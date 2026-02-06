@@ -460,25 +460,59 @@ button:hover {
     height: 12px;
     background: #ddd;
 }
+
 /* Tone Color Coding Styles */
 
 /* Vibrant Theme */
-.tone-1-vibrant { color: #ef4444; }
-.tone-2-vibrant { color: #f59e0b; }
-.tone-3-vibrant { color: #10b981; }
-.tone-4-vibrant { color: #3b82f6; }
+.tone-1-vibrant {
+    color: #ef4444;
+}
+
+.tone-2-vibrant {
+    color: #f59e0b;
+}
+
+.tone-3-vibrant {
+    color: #10b981;
+}
+
+.tone-4-vibrant {
+    color: #3b82f6;
+}
 
 /* Pastel Theme */
-.tone-1-pastel { color: #fca5a5; }
-.tone-2-pastel { color: #fcd34d; }
-.tone-3-pastel { color: #6ee7b7; }
-.tone-4-pastel { color: #93c5fd; }
+.tone-1-pastel {
+    color: #fca5a5;
+}
+
+.tone-2-pastel {
+    color: #fcd34d;
+}
+
+.tone-3-pastel {
+    color: #6ee7b7;
+}
+
+.tone-4-pastel {
+    color: #93c5fd;
+}
 
 /* Neon Theme */
-.tone-1-neon { color: #dc2626; }
-.tone-2-neon { color: #ea580c; }
-.tone-3-neon { color: #059669; }
-.tone-4-neon { color: #2563eb; }
+.tone-1-neon {
+    color: #dc2626;
+}
+
+.tone-2-neon {
+    color: #ea580c;
+}
+
+.tone-3-neon {
+    color: #059669;
+}
+
+.tone-4-neon {
+    color: #2563eb;
+}
 
 /* ========================================
    MOBILE STYLES
@@ -716,20 +750,35 @@ button:hover {
 
 /* Animations */
 @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
 @keyframes slideUp {
-    from { transform: translateY(100%); }
-    to { transform: translateY(0); }
+    from {
+        transform: translateY(100%);
+    }
+
+    to {
+        transform: translateY(0);
+    }
 }
 
 /* Mobile-specific adjustments */
 @media (max-width: 768px) {
     .reader-content {
+        width: 100%;
+        max-width: 100%;
         padding: 16px;
-        padding-bottom: 100px; /* Space for FAB */
+        padding-bottom: 100px;
+        /* Space for FAB */
+        box-sizing: border-box;
+        margin: 0;
     }
 
     .reader-para {
