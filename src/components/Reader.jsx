@@ -3,12 +3,15 @@ import { lookupAt } from '../lib/dictionary';
 import { saveBookmark, getBookmark } from '../lib/storage';
 import { startReadingSession, endReadingSession } from '../lib/stats';
 import { trackWordClick } from '../lib/vocabulary';
+import { useIsMobile } from '../lib/useIsMobile';
 import WordPopup from './WordPopup';
+import MobileBottomSheet from './MobileBottomSheet';
 import ColorizedText from './ColorizedText';
+import FloatingActionMenu from './FloatingActionMenu';
 
 const Reader = ({ story }) => {
     const [fontSize, setFontSize] = useState(20);
-    const [theme, setTheme] = useState('light'); // light, dark, sepia
+    const [theme, setTheme] = useState('light');
     const [popupData, setPopupData] = useState(null);
     const [popupPos, setPopupPos] = useState({ x: 0, y: 0 });
     const [toneColorsEnabled, setToneColorsEnabled] = useState(() => {
@@ -18,6 +21,7 @@ const Reader = ({ story }) => {
         return localStorage.getItem('toneColorTheme') || 'vibrant';
     });
     const contentRef = useRef(null);
+    const isMobile = useIsMobile();
 
     // Initial theme setup
     useEffect(() => {
@@ -37,7 +41,6 @@ const Reader = ({ story }) => {
     useEffect(() => {
         if (!story) return;
 
-        // Start session logic
         if (!document.hidden) {
             startReadingSession();
         }
@@ -66,7 +69,6 @@ const Reader = ({ story }) => {
     useEffect(() => {
         if (!story || !contentRef.current) return;
 
-        // Reset scroll first
         contentRef.current.scrollTop = 0;
 
         const restorePos = async () => {
@@ -76,7 +78,6 @@ const Reader = ({ story }) => {
             }
         };
 
-        // Small timeout to allow layout to render
         setTimeout(restorePos, 100);
     }, [story]);
 
@@ -88,19 +89,15 @@ const Reader = ({ story }) => {
     };
 
     const handleTextClick = (e) => {
-        // Clear previous popup
         setPopupData(null);
 
-        // Get clicked range
         let range, offset, textNode;
 
-        // Standard and WebKit
         if (document.caretRangeFromPoint) {
             range = document.caretRangeFromPoint(e.clientX, e.clientY);
             textNode = range.startContainer;
             offset = range.startOffset;
         } else if (document.caretPositionFromPoint) {
-            // Firefox
             const pos = document.caretPositionFromPoint(e.clientX, e.clientY);
             textNode = pos.offsetNode;
             offset = pos.offset;
@@ -108,7 +105,6 @@ const Reader = ({ story }) => {
 
         if (!textNode || textNode.nodeType !== Node.TEXT_NODE) return;
 
-        // Lookup word
         const text = textNode.textContent;
         const result = lookupAt(text, offset);
 
@@ -116,7 +112,6 @@ const Reader = ({ story }) => {
             setPopupData(result);
             setPopupPos({ x: e.clientX, y: e.clientY });
 
-            // Track vocabulary click
             if (story && story.id) {
                 trackWordClick(result.word, story.id);
             }
@@ -140,44 +135,50 @@ const Reader = ({ story }) => {
         setToneColorTheme(themes[nextIndex]);
     };
 
+    const handleFontSizeChange = (delta) => {
+        setFontSize(Math.max(12, Math.min(48, fontSize + delta)));
+    };
+
     if (!story) return <div className="reader-empty">Select a story to start reading</div>;
 
     return (
         <div className="reader-container">
-            <div className="reader-toolbar">
-                <div className="toolbar-left">
-                    <h3>{story.title}</h3>
-                </div>
-                <div className="toolbar-right">
-                    <button onClick={() => setFontSize(Math.max(12, fontSize - 2))}>A-</button>
-                    <span style={{ margin: '0 8px' }}>{fontSize}px</span>
-                    <button onClick={() => setFontSize(Math.min(48, fontSize + 2))}>A+</button>
-                    <button onClick={toggleTheme} style={{ marginLeft: '8px' }}>
-                        {theme === 'light' ? '☀️' : theme === 'dark' ? '🌙' : '☕'}
-                    </button>
-                    <button
-                        onClick={toggleToneColors}
-                        style={{
-                            marginLeft: '8px',
-                            background: toneColorsEnabled ? 'var(--primary-color)' : 'transparent',
-                            border: toneColorsEnabled ? 'none' : '1px solid var(--border-color)',
-                            color: toneColorsEnabled ? 'white' : 'var(--text-color)'
-                        }}
-                        title="Toggle tone colors"
-                    >
-                        🎨
-                    </button>
-                    {toneColorsEnabled && (
-                        <button
-                            onClick={cycleToneTheme}
-                            style={{ marginLeft: '4px', fontSize: '12px' }}
-                            title={`Theme: ${toneColorTheme}`}
-                        >
-                            {toneColorTheme === 'vibrant' ? '💥' : toneColorTheme === 'pastel' ? '🌸' : '✨'}
+            {!isMobile && (
+                <div className="reader-toolbar">
+                    <div className="toolbar-left">
+                        <h3>{story.title}</h3>
+                    </div>
+                    <div className="toolbar-right">
+                        <button onClick={() => setFontSize(Math.max(12, fontSize - 2))}>A-</button>
+                        <span style={{ margin: '0 8px' }}>{fontSize}px</span>
+                        <button onClick={() => setFontSize(Math.min(48, fontSize + 2))}>A+</button>
+                        <button onClick={toggleTheme} style={{ marginLeft: '8px' }}>
+                            {theme === 'light' ? '☀️' : theme === 'dark' ? '🌙' : '☕'}
                         </button>
-                    )}
+                        <button
+                            onClick={toggleToneColors}
+                            style={{
+                                marginLeft: '8px',
+                                background: toneColorsEnabled ? 'var(--primary-color)' : 'transparent',
+                                border: toneColorsEnabled ? 'none' : '1px solid var(--border-color)',
+                                color: toneColorsEnabled ? 'white' : 'var(--text-color)'
+                            }}
+                            title="Toggle tone colors"
+                        >
+                            🎨
+                        </button>
+                        {toneColorsEnabled && (
+                            <button
+                                onClick={cycleToneTheme}
+                                style={{ marginLeft: '4px', fontSize: '12px' }}
+                                title={`Theme: ${toneColorTheme}`}
+                            >
+                                {toneColorTheme === 'vibrant' ? '💥' : toneColorTheme === 'pastel' ? '🌸' : '✨'}
+                            </button>
+                        )}
+                    </div>
                 </div>
-            </div>
+            )}
 
             <div
                 className="reader-content"
@@ -186,6 +187,9 @@ const Reader = ({ story }) => {
                 onScroll={handleScroll}
                 ref={contentRef}
             >
+                {isMobile && story.title && (
+                    <h2 className="mobile-story-title">{story.title}</h2>
+                )}
                 {story.content.split('\n').map((para, idx) => (
                     <p key={idx} className="reader-para">
                         {toneColorsEnabled ? (
@@ -197,11 +201,30 @@ const Reader = ({ story }) => {
                 ))}
             </div>
 
-            <WordPopup
-                data={popupData}
-                position={popupPos}
-                onClose={() => setPopupData(null)}
-            />
+            {isMobile ? (
+                <>
+                    <MobileBottomSheet
+                        data={popupData}
+                        onClose={() => setPopupData(null)}
+                    />
+                    <FloatingActionMenu
+                        fontSize={fontSize}
+                        onFontSizeChange={handleFontSizeChange}
+                        theme={theme}
+                        onThemeToggle={toggleTheme}
+                        toneColorsEnabled={toneColorsEnabled}
+                        onToneColorsToggle={toggleToneColors}
+                        toneColorTheme={toneColorTheme}
+                        onToneThemeCycle={cycleToneTheme}
+                    />
+                </>
+            ) : (
+                <WordPopup
+                    data={popupData}
+                    position={popupPos}
+                    onClose={() => setPopupData(null)}
+                />
+            )}
         </div>
     );
 };

@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { getReadingStats } from '../lib/stats';
+import { useIsMobile } from '../lib/useIsMobile';
 import '../styles/index.css';
 
 const StatsToolbar = () => {
     const [stats, setStats] = useState({ daily: 0, weekly: 0, total: 0 });
+    const [isCollapsed, setIsCollapsed] = useState(true);
+    const isMobile = useIsMobile();
 
     const fetchStats = async () => {
         const data = await getReadingStats();
@@ -16,8 +19,6 @@ const StatsToolbar = () => {
         // Listen for updates from stats.js
         const handleStatsUpdate = (e) => {
             if (e.detail) {
-                // e.detail is the full stats object, we might need to re-calculate daily/weekly 
-                // or just re-fetch to be consistent and simple
                 fetchStats();
             }
         };
@@ -33,8 +34,22 @@ const StatsToolbar = () => {
         };
     }, []);
 
+    const toggleCollapse = () => {
+        if (isMobile) {
+            setIsCollapsed(!isCollapsed);
+        }
+    };
+
+    if (isMobile && isCollapsed) {
+        return (
+            <div className="stats-toolbar collapsed" onClick={toggleCollapse}>
+                <span className="stats-icon">📊</span>
+            </div>
+        );
+    }
+
     return (
-        <div className="stats-toolbar">
+        <div className={`stats-toolbar ${isMobile ? 'mobile' : ''}`} onClick={toggleCollapse}>
             <div className="stat-item" title="Minutes read today">
                 <span className="stat-label">Daily</span>
                 <span className="stat-value">{stats.daily}m</span>
