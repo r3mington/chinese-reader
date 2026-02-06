@@ -850,3 +850,119 @@ button:active {
         display: none;
     }
 }
+/* ========================================
+   LIBRARY MODAL (POPUP)
+   ======================================== */
+
+.library-modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    z-index: 999;
+    animation: fadeIn 0.2s ease;
+}
+
+.library-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 480px;
+    max-height: 80vh;
+    background: var(--sidebar-bg);
+    border-radius: 16px;
+    box-shadow: 0 20px 60px var(--shadow-color);
+    z-index: 1000;
+    overflow: hidden;
+    animation: slideIn 0.3s ease;
+}
+
+.library-modal .sidebar {
+    width: 100%;
+    height: auto;
+    max-height: 80vh;
+    border: none;
+    border-radius: 16px;
+}
+
+.library-modal-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: rgba(0, 0, 0, 0.1);
+    border: none;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    font-size: 20px;
+    cursor: pointer;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    color: var(--text-color);
+}
+
+.library-modal-close:hover {
+    background: rgba(0, 0, 0, 0.2);
+    transform: scale(1.1);
+}
+
+/* Floating Library Button (replaces sidebar) */
+.floating-library-button {
+    position: fixed;
+    bottom: 24px;
+    left: 24px;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    box-shadow: 0 6px 20px var(--shadow-color);
+    font-size: 24px;
+    cursor: pointer;
+    z-index: 98;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.floating-library-button:hover {
+    background: var(--primary-hover);
+    transform: scale(1.05);
+    box-shadow: 0 8px 24px var(--shadow-color);
+}
+
+.floating-library-button:active {
+    transform: scale(0.95);
+}
+
+/* Modal animation */
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -48%);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+    }
+}
+
+/* Hide old sidebar completely */
+.sidebar {
+    display: none;
+}
+
+/* Show sidebar only inside modal */
+.library-modal .sidebar {
+    display: flex;
+}

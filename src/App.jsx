@@ -1,20 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Sidebar from './components/Sidebar';
-import SidebarDrawer from './components/SidebarDrawer';
+import LibraryModal from './components/LibraryModal';
 import Reader from './components/Reader';
 import StatsToolbar from './components/StatsToolbar';
 import VocabularyView from './components/VocabularyView';
 import { initDictionary } from './lib/dictionary';
-import { useIsMobile } from './lib/useIsMobile';
 import './styles/index.css';
 
 function App() {
   const [currentStory, setCurrentStory] = useState(null);
   const [isLoadingDict, setIsLoadingDict] = useState(false);
   const [loadingStatus, setLoadingStatus] = useState('');
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const isMobile = useIsMobile();
+  const [libraryOpen, setLibraryOpen] = useState(false);
 
   useEffect(() => {
     // Initialize dictionary on load
@@ -46,31 +43,22 @@ function App() {
       <StatsToolbar />
       <Routes>
         <Route path="/" element={
-          <div className="flex">
-            {isMobile ? (
-              <>
-                <SidebarDrawer
-                  isOpen={drawerOpen}
-                  onClose={() => setDrawerOpen(false)}
-                  onSelectStory={setCurrentStory}
-                  currentStoryId={currentStory?.id}
-                />
-                <button
-                  className="floating-sidebar-button"
-                  onClick={() => setDrawerOpen(true)}
-                  aria-label="Open library"
-                >
-                  📚
-                </button>
-              </>
-            ) : (
-              <Sidebar
-                onSelectStory={setCurrentStory}
-                currentStoryId={currentStory?.id}
-              />
-            )}
+          <>
+            <LibraryModal
+              isOpen={libraryOpen}
+              onClose={() => setLibraryOpen(false)}
+              onSelectStory={setCurrentStory}
+              currentStoryId={currentStory?.id}
+            />
+            <button
+              className="floating-library-button"
+              onClick={() => setLibraryOpen(true)}
+              aria-label="Open library"
+            >
+              📚
+            </button>
             <Reader story={currentStory} />
-          </div>
+          </>
         } />
         <Route path="/vocabulary" element={<VocabularyView />} />
       </Routes>
