@@ -1,11 +1,14 @@
 :root {
-    /* Colors - Light Mode (Default) */
-    --bg-color: #f8f9fa;
-    --text-color: #2c3e50;
+    /* Zen Garden Theme - Light Mode (Default) */
+    --bg-color: #f5f7f5;
+    --text-color: #2d3436;
     --sidebar-bg: #ffffff;
-    --primary-color: #3498db;
-    --accent-color: #e74c3c;
-    --border-color: #e9ecef;
+    --sidebar-bg-tint: #f0f5f0;
+    --primary-color: #00b894;
+    --primary-hover: #00a383;
+    --accent-color: #4db6ac;
+    --border-color: #d5e3d5;
+    --shadow-color: rgba(0, 184, 148, 0.1);
 
     /* Typography */
     --font-main: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -23,25 +26,33 @@ body {
     font-family: var(--font-main);
     background-color: var(--bg-color);
     color: var(--text-color);
-    transition: background-color 0.3s, color 0.3s;
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Dark Mode Theme */
+/* Dark Mode Theme - Deep Forest */
 body.dark-mode {
-    --bg-color: #1a1a1a;
-    --text-color: #ecf0f1;
-    --sidebar-bg: #2c2c2c;
-    --primary-color: #5dade2;
-    --border-color: #444;
+    --bg-color: #1e2826;
+    --text-color: #e8f5e9;
+    --sidebar-bg: #263238;
+    --sidebar-bg-tint: #2c3a38;
+    --primary-color: #4db6ac;
+    --primary-hover: #26a69a;
+    --accent-color: #80cbc4;
+    --border-color: #37474f;
+    --shadow-color: rgba(77, 182, 172, 0.15);
 }
 
-/* Sepia Mode Theme */
+/* Sepia Mode Theme - Warm Sage */
 body.sepia-mode {
-    --bg-color: #f4ecd8;
-    --text-color: #5b4636;
-    --sidebar-bg: #efdec2;
-    --primary-color: #d35400;
-    --border-color: #d6ccbd;
+    --bg-color: #f0f2ed;
+    --text-color: #3e4a3d;
+    --sidebar-bg: #fafbf8;
+    --sidebar-bg-tint: #e8ede5;
+    --primary-color: #7cb342;
+    --primary-hover: #689f38;
+    --accent-color: #9ccc65;
+    --border-color: #c5d5c0;
+    --shadow-color: rgba(124, 179, 66, 0.1);
 }
 
 /* Utilities */
@@ -73,13 +84,21 @@ button {
     background: var(--primary-color);
     color: white;
     padding: 8px 16px;
-    border-radius: 4px;
+    border-radius: 6px;
     font-size: 14px;
-    transition: opacity 0.2s;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px var(--shadow-color);
 }
 
 button:hover {
-    opacity: 0.9;
+    background: var(--primary-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px var(--shadow-color);
+}
+
+button:active {
+    transform: translateY(0);
 }
 
 /* Word Popup Styles */
@@ -323,11 +342,11 @@ button:hover {
     top: 10px;
     left: 50%;
     transform: translateX(-50%);
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(4px);
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(12px);
     padding: 6px 16px;
     border-radius: 20px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 16px var(--shadow-color);
     display: flex;
     align-items: center;
     gap: 12px;
@@ -626,13 +645,19 @@ button:hover {
     background: var(--primary-color);
     color: white;
     border: none;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 6px 20px var(--shadow-color);
     font-size: 24px;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: transform 0.2s ease;
+    transition: all 0.3s ease;
+}
+
+.fab-main:hover {
+    background: var(--primary-hover);
+    transform: scale(1.05);
+    box-shadow: 0 8px 24px var(--shadow-color);
 }
 
 .fab-main:active {
@@ -714,14 +739,20 @@ button:hover {
     background: var(--primary-color);
     color: white;
     border: none;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 6px 20px var(--shadow-color);
     font-size: 24px;
     cursor: pointer;
     z-index: 98;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: transform 0.2s ease;
+    transition: all 0.3s ease;
+}
+
+.floating-sidebar-button:hover {
+    background: var(--primary-hover);
+    transform: scale(1.05);
+    box-shadow: 0 8px 24px var(--shadow-color);
 }
 
 .floating-sidebar-button:active {
