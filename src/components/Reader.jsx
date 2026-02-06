@@ -11,7 +11,9 @@ import FloatingActionMenu from './FloatingActionMenu';
 
 const Reader = ({ story }) => {
     const [fontSize, setFontSize] = useState(20);
-    const [theme, setTheme] = useState('light');
+    const [theme, setTheme] = useState(() => {
+        return localStorage.getItem('theme') || 'light';
+    });
     const [popupData, setPopupData] = useState(null);
     const [popupPos, setPopupPos] = useState({ x: 0, y: 0 });
     const [toneColorsEnabled, setToneColorsEnabled] = useState(() => {
@@ -23,9 +25,10 @@ const Reader = ({ story }) => {
     const contentRef = useRef(null);
     const isMobile = useIsMobile();
 
-    // Initial theme setup
+    // Initial theme setup and persistence
     useEffect(() => {
         document.body.className = theme === 'light' ? '' : `${theme}-mode`;
+        localStorage.setItem('theme', theme);
     }, [theme]);
 
     // Persist tone color settings
