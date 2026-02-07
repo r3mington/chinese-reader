@@ -5,6 +5,7 @@ import Reader from './components/Reader';
 import StatsToolbar from './components/StatsToolbar';
 import VocabularyView from './components/VocabularyView';
 import { initDictionary } from './lib/dictionary';
+import { getStories } from './lib/storage';
 import './styles/index.css';
 
 function App() {
@@ -29,6 +30,31 @@ function App() {
     loadDict();
   }, []);
 
+  // Restore last read story on mount
+  useEffect(() => {
+    const restoreLastStory = async () => {
+      const lastStoryId = localStorage.getItem('lastStoryId');
+      if (lastStoryId) {
+        const stories = await getStories();
+        const story = stories.find(s => s.id === lastStoryId);
+        if (story) {
+          setCurrentStory(story);
+        }
+      }
+    };
+    restoreLastStory();
+  }, []);
+
+  // Save current story ID when it changes
+  const handleStorySelect = (story) => {
+    setCurrentStory(story);
+    if (story) {
+      localStorage.setItem('lastStoryId', story.id);
+    } else {
+      localStorage.removeItem('lastStoryId');
+    }
+  };
+
   if (isLoadingDict) {
     return (
       <div className="reader-empty flex-col" style={{ height: '100vh', justifyContent: 'center' }}>
@@ -47,7 +73,7 @@ function App() {
             <LibraryModal
               isOpen={libraryOpen}
               onClose={() => setLibraryOpen(false)}
-              onSelectStory={setCurrentStory}
+              onSelectStory={handleStorySelect}
               currentStoryId={currentStory?.id}
             />
             <button
