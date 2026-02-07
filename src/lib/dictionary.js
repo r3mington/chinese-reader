@@ -106,24 +106,29 @@ const buildIndex = (data) => {
 export const lookupAt = (text, index) => {
     if (!dictionaryMap) return null;
 
-    const char = text[index];
-    // Basic check: is it Chinese?
-    // unicode range for CJK Unified Ideographs: 4E00-9FFF
-    if (!/[\u4E00-\u9FFF]/.test(char)) return null;
+    // Basic check: is the clicked character Chinese?
+    if (!/[\u4E00-\u9FFF]/.test(text[index])) return null;
 
-    // Try to find the longest match starting from index
-    // We check substrings of length `maxWordLength` down to 1
+    // Try to find the longest match containing the index
+    // We check matches of length `maxWordLength` down to 1
     for (let len = maxWordLength; len > 0; len--) {
-        if (index + len > text.length) continue;
+        // To contain the character at `index`, a word of length `len` 
+        // can start at `index - len + 1` up to `index`.
+        const minStart = Math.max(0, index - len + 1);
+        const maxStart = index;
 
-        const substring = text.substring(index, index + len);
-        if (dictionaryMap.has(substring)) {
-            return {
-                word: substring,
-                entries: dictionaryMap.get(substring),
-                start: index,
-                end: index + len
-            };
+        for (let start = minStart; start <= maxStart; start++) {
+            if (start + len > text.length) continue;
+
+            const substring = text.substring(start, start + len);
+            if (dictionaryMap.has(substring)) {
+                return {
+                    word: substring,
+                    entries: dictionaryMap.get(substring),
+                    start: start,
+                    end: start + len
+                };
+            }
         }
     }
 
