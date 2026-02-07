@@ -1,4 +1,4 @@
-const CACHE_NAME = 'chinese-reader-v1';
+const CACHE_NAME = 'chinese-reader-v2';
 const urlsToCache = [
     '/',
     '/index.html',
