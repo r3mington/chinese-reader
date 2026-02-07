@@ -10,7 +10,9 @@ import ColorizedText from './ColorizedText';
 import FloatingActionMenu from './FloatingActionMenu';
 
 const Reader = ({ story }) => {
-    const [fontSize, setFontSize] = useState(20);
+    const [fontSize, setFontSize] = useState(() => {
+        return parseInt(localStorage.getItem('fontSize')) || 20;
+    });
     const [theme, setTheme] = useState(() => {
         return localStorage.getItem('theme') || 'light';
     });
@@ -139,7 +141,9 @@ const Reader = ({ story }) => {
     };
 
     const handleFontSizeChange = (delta) => {
-        setFontSize(Math.max(12, Math.min(48, fontSize + delta)));
+        const newSize = Math.max(12, Math.min(48, fontSize + delta));
+        setFontSize(newSize);
+        localStorage.setItem('fontSize', newSize);
     };
 
     if (!story) return <div className="reader-empty">Select a story to start reading</div>;
@@ -152,9 +156,9 @@ const Reader = ({ story }) => {
                         <h3>{story.title}</h3>
                     </div>
                     <div className="toolbar-right">
-                        <button onClick={() => setFontSize(Math.max(12, fontSize - 2))}>A-</button>
+                        <button onClick={() => handleFontSizeChange(-2)}>A-</button>
                         <span style={{ margin: '0 8px' }}>{fontSize}px</span>
-                        <button onClick={() => setFontSize(Math.min(48, fontSize + 2))}>A+</button>
+                        <button onClick={() => handleFontSizeChange(2)}>A+</button>
                         <button onClick={toggleTheme} style={{ marginLeft: '8px' }}>
                             {theme === 'light' ? '☀️' : theme === 'dark' ? '🌙' : '☕'}
                         </button>

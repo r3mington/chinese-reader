@@ -813,9 +813,11 @@ button:active {
     }
 
     .reader-para {
-        font-size: 18px;
+        font-size: 1em;
+        /* Inherit from reader-content */
         line-height: 1.8;
         margin-bottom: 1.2em;
+        word-wrap: break-word;
     }
 
     /* Hide desktop sidebar */
@@ -850,6 +852,7 @@ button:active {
         display: none;
     }
 }
+
 /* ========================================
    LIBRARY MODAL (POPUP)
    ======================================== */
@@ -951,6 +954,7 @@ button:active {
         opacity: 0;
         transform: translate(-50%, -48%);
     }
+
     to {
         opacity: 1;
         transform: translate(-50%, -50%);
