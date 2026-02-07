@@ -96,22 +96,39 @@ const Reader = ({ story }) => {
     const handleTextClick = (e) => {
         setPopupData(null);
 
-        let range, offset, textNode;
+        // Find the paragraph container to get full context
+        const paragraph = e.target.closest('.reader-para');
+        if (!paragraph) return;
 
+        let range;
         if (document.caretRangeFromPoint) {
             range = document.caretRangeFromPoint(e.clientX, e.clientY);
-            textNode = range.startContainer;
-            offset = range.startOffset;
         } else if (document.caretPositionFromPoint) {
             const pos = document.caretPositionFromPoint(e.clientX, e.clientY);
-            textNode = pos.offsetNode;
-            offset = pos.offset;
+            range = document.createRange();
+            range.setStart(pos.offsetNode, pos.offset);
+            range.setEnd(pos.offsetNode, pos.offset);
         }
 
-        if (!textNode || textNode.nodeType !== Node.TEXT_NODE) return;
+        if (!range) return;
 
-        const text = textNode.textContent;
-        const result = lookupAt(text, offset);
+        // Calculate global offset relative to the paragraph
+        // This is necessary because ColorizedText splits text into multiple <span>s
+        const preCaretRange = range.cloneRange();
+        preCaretRange.selectNodeContents(paragraph);
+        preCaretRange.setEnd(range.endContainer, range.endOffset);
+
+        // This gives us the index in the full paragraph text
+        const globalOffset = preCaretRange.toString().length;
+        const text = paragraph.textContent;
+
+        // Try lookup at current position
+        let result = lookupAt(text, globalOffset);
+
+        // If no result (e.g. clicked at end of char), try previous char
+        if (!result && globalOffset > 0) {
+            result = lookupAt(text, globalOffset - 1);
+        }
 
         if (result) {
             setPopupData(result);
