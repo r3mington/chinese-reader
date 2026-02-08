@@ -21,6 +21,26 @@
 
 <body>
   <div id="root"></div>
+  <!-- Emergency SW Cleanup: If app fails to load, unregister SW and reload -->
+  <script>
+    window.addEventListener('error', async (e) => {
+      // Check if error is related to script loading (blank screen issue)
+      if (e.message && (e.message.includes('MIME type') || e.message.includes('Failed to load module'))) {
+        console.error('App load failure detected. Attempting emergency SW cleanup...');
+        if ('serviceWorker' in navigator) {
+          const registrations = await navigator.serviceWorker.getRegistrations();
+          for (const registration of registrations) {
+            await registration.unregister();
+          }
+          // Clear caches
+          const keys = await caches.keys();
+          await Promise.all(keys.map(key => caches.delete(key)));
+          // Force reload from server
+          window.location.reload(true);
+        }
+      }
+    }, true);
+  </script>
   <script type="module" src="/src/main.jsx"></script>
 </body>
 
