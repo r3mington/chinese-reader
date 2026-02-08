@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { convertPinyin } from '../lib/pinyin';
-import '../styles/index.css';
+import '../styles/oled.css';
 
 const WordPopup = ({ data, position, onClose }) => {
     const ref = useRef(null);

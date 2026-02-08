@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import '../styles/index.css';
+import '../styles/oled.css';
 
 const FloatingActionMenu = ({
     fontSize,

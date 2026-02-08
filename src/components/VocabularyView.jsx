@@ -3,7 +3,7 @@ import { getVocabularyList } from '../lib/vocabulary';
 import { convertPinyin } from '../lib/pinyin';
 import { lookupAt } from '../lib/dictionary';
 import { Link } from 'react-router-dom';
-import '../styles/index.css';
+import '../styles/oled.css';
 
 const VocabularyView = () => {
     const [vocabList, setVocabList] = useState([]);

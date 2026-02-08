@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { getReadingStats } from '../lib/stats';
 import { useIsMobile } from '../lib/useIsMobile';
-import '../styles/index.css';
+import '../styles/oled.css';
 
 const StatsToolbar = () => {
     const [stats, setStats] = useState({ daily: 0, weekly: 0, total: 0 });

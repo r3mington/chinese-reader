@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import Sidebar from './Sidebar';
-import '../styles/index.css';
+import '../styles/oled.css';
 
 const SidebarDrawer = ({ isOpen, onClose, onSelectStory, currentStoryId }) => {
     useEffect(() => {

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { convertPinyin } from '../lib/pinyin';
-import '../styles/index.css';
+import '../styles/oled.css';
 
 const MobileBottomSheet = ({ data, onClose }) => {
     const sheetRef = useRef(null);
