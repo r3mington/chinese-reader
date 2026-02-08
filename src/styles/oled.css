@@ -3,7 +3,7 @@
     --bg-primary: rgba(10, 10, 10, 0.95);
     --bg-secondary: rgba(20, 20, 20, 0.95);
     --text-primary: #E0E0E0;
-    --text-secondary: #999999;
+    --text-secondary: var(--text-secondary)999;
     --accent-blue: #2962FF;
     --border-color: #333333;
 
@@ -86,18 +86,16 @@ button:active {
 
 /* Word Popup Styles */
 .word-popup {
-    background: #fffcd6;
-    /* Light Yellow */
-    border: 1px solid #f9da5f;
-    /* Darker Yellow border */
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
     border-radius: 8px;
     width: 320px;
     max-width: 90vw;
     padding: 12px 16px;
     font-size: 15px;
     font-family: var(--font-main);
-    color: #333;
+    color: var(--text-primary);
 }
 
 .popup-close-btn {
@@ -106,7 +104,7 @@ button:active {
     right: 4px;
     background: transparent;
     border: none;
-    color: #666;
+    color: var(--text-secondary);
     font-size: 20px;
     cursor: pointer;
     line-height: 1;
@@ -114,7 +112,7 @@ button:active {
 }
 
 .popup-close-btn:hover {
-    color: #000;
+    color: var(--text-primary);
 }
 
 .popup-content {
@@ -139,22 +137,20 @@ button:active {
 .popup-word-text {
     font-family: var(--font-chinese);
     font-size: 24px;
-    color: #5c6bc0;
-    /* Blue-ish */
+    color: var(--accent-blue);
     font-weight: 500;
 }
 
 .popup-pinyin-text {
     font-size: 18px;
-    color: #ef5350;
-    /* Red */
+    color: var(--text-secondary);
     font-family: var(--font-main);
 }
 
 .popup-definitions-text {
     font-size: 14px;
     line-height: 1.5;
-    color: #000;
+    color: var(--text-primary);
 }
 
 /* Sidebar Styles */
@@ -246,14 +242,14 @@ button:active {
 
 .story-meta {
     font-size: 12px;
-    color: #7f8c8d;
+    color: var(--text-secondary);
     display: flex;
     justify-content: space-between;
 }
 
 .delete-btn {
     background: transparent;
-    color: #999;
+    color: var(--text-secondary);
     padding: 0 4px;
     font-size: 16px;
     line-height: 1;
@@ -267,7 +263,7 @@ button:active {
 .empty-state {
     padding: 32px;
     text-align: center;
-    color: #999;
+    color: var(--text-secondary);
     font-size: 14px;
 }
 
@@ -285,7 +281,7 @@ button:active {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #999;
+    color: var(--text-secondary);
     font-size: 18px;
 }
 
@@ -325,11 +321,11 @@ button:active {
     top: 10px;
     left: 50%;
     transform: translateX(-50%);
-    background: rgba(255, 255, 255, 0.92);
+    background: var(--bg-secondary);
     backdrop-filter: blur(12px);
     padding: 6px 16px;
     border-radius: 20px;
-    box-shadow: 0 4px 16px rgba(41, 98, 255, 0.1);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
     display: flex;
     align-items: center;
     gap: 12px;
@@ -408,7 +404,7 @@ button:active {
 
 .vocab-pinyin {
     font-size: 14px;
-    color: #666;
+    color: var(--text-secondary);
 }
 
 .vocab-def-col {
@@ -440,12 +436,12 @@ button:active {
 
 .vocab-count-label {
     font-size: 10px;
-    color: #999;
+    color: var(--text-secondary);
     margin-top: 2px;
 }
 
 .stat-label {
-    color: #888;
+    color: var(--text-secondary);
     text-transform: uppercase;
     font-size: 10px;
     font-weight: 600;
@@ -460,7 +456,7 @@ button:active {
 .stat-divider {
     width: 1px;
     height: 12px;
-    background: #ddd;
+    background: var(--border-color);
 }
 
 /* Tone Color Coding Styles */
@@ -607,12 +603,12 @@ button:active {
     font-family: var(--font-chinese);
     font-size: 32px;
     font-weight: bold;
-    color: #5c6bc0;
+    color: var(--accent-blue);
 }
 
 .bottom-sheet-pinyin {
     font-size: 20px;
-    color: #ef5350;
+    color: var(--text-secondary);
 }
 
 .bottom-sheet-definitions {
@@ -683,7 +679,7 @@ button:active {
     height: 48px;
     border-radius: 50%;
     background: white;
-    border: 1px solid #ddd;
+    border: 1px solid var(--border-color);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
     font-size: 20px;
     cursor: pointer;
