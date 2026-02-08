@@ -6,7 +6,7 @@ import StatsToolbar from './components/StatsToolbar';
 import VocabularyView from './components/VocabularyView';
 import { initDictionary } from './lib/dictionary';
 import { getStories } from './lib/storage';
-import './styles/index.css';
+import './styles/oled.css';
 
 function App() {
   const [currentStory, setCurrentStory] = useState(null);

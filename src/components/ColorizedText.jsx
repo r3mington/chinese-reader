@@ -1,7 +1,7 @@
 import React from 'react';
 import { getCharacterTone } from '../lib/tones';
 
-const ColorizedText = ({ text, theme = 'vibrant', enabled = true }) => {
+const ColorizedText = ({ text, enabled = true }) => {
     if (!enabled || !text) {
         return <>{text}</>;
     }
@@ -11,9 +11,9 @@ const ColorizedText = ({ text, theme = 'vibrant', enabled = true }) => {
             const tone = getCharacterTone(char);
 
             if (tone) {
-                const className = `tone-${tone}-${theme}`;
+                // Use char-with-tone class and tone-{number} for dots above
                 return (
-                    <span key={index} className={className}>
+                    <span key={index} className={`char-with-tone tone-${tone}`}>
                         {char}
                     </span>
                 );

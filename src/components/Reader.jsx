@@ -13,34 +13,18 @@ const Reader = ({ story }) => {
     const [fontSize, setFontSize] = useState(() => {
         return parseInt(localStorage.getItem('fontSize')) || 20;
     });
-    const [theme, setTheme] = useState(() => {
-        return localStorage.getItem('theme') || 'light';
-    });
     const [popupData, setPopupData] = useState(null);
     const [popupPos, setPopupPos] = useState({ x: 0, y: 0 });
     const [toneColorsEnabled, setToneColorsEnabled] = useState(() => {
         return localStorage.getItem('toneColorsEnabled') === 'true';
     });
-    const [toneColorTheme, setToneColorTheme] = useState(() => {
-        return localStorage.getItem('toneColorTheme') || 'vibrant';
-    });
     const contentRef = useRef(null);
     const isMobile = useIsMobile();
-
-    // Initial theme setup and persistence
-    useEffect(() => {
-        document.body.className = theme === 'light' ? '' : `${theme}-mode`;
-        localStorage.setItem('theme', theme);
-    }, [theme]);
 
     // Persist tone color settings
     useEffect(() => {
         localStorage.setItem('toneColorsEnabled', toneColorsEnabled);
     }, [toneColorsEnabled]);
-
-    useEffect(() => {
-        localStorage.setItem('toneColorTheme', toneColorTheme);
-    }, [toneColorTheme]);
 
     // Managing reading session
     useEffect(() => {
@@ -140,21 +124,8 @@ const Reader = ({ story }) => {
         }
     };
 
-    const toggleTheme = () => {
-        const modes = ['light', 'sepia', 'dark'];
-        const next = modes[(modes.indexOf(theme) + 1) % modes.length];
-        setTheme(next);
-    };
-
     const toggleToneColors = () => {
         setToneColorsEnabled(!toneColorsEnabled);
-    };
-
-    const cycleToneTheme = () => {
-        const themes = ['vibrant', 'pastel', 'neon'];
-        const currentIndex = themes.indexOf(toneColorTheme);
-        const nextIndex = (currentIndex + 1) % themes.length;
-        setToneColorTheme(themes[nextIndex]);
     };
 
     const handleFontSizeChange = (delta) => {
@@ -176,30 +147,14 @@ const Reader = ({ story }) => {
                         <button onClick={() => handleFontSizeChange(-2)}>A-</button>
                         <span style={{ margin: '0 8px' }}>{fontSize}px</span>
                         <button onClick={() => handleFontSizeChange(2)}>A+</button>
-                        <button onClick={toggleTheme} style={{ marginLeft: '8px' }}>
-                            {theme === 'light' ? '☀️' : theme === 'dark' ? '🌙' : '☕'}
-                        </button>
                         <button
                             onClick={toggleToneColors}
-                            style={{
-                                marginLeft: '8px',
-                                background: toneColorsEnabled ? 'var(--primary-color)' : 'transparent',
-                                border: toneColorsEnabled ? 'none' : '1px solid var(--border-color)',
-                                color: toneColorsEnabled ? 'white' : 'var(--text-color)'
-                            }}
-                            title="Toggle tone colors"
+                            className={toneColorsEnabled ? 'active' : ''}
+                            style={{ marginLeft: '8px' }}
+                            title="Toggle tone dots"
                         >
-                            🎨
+                            •
                         </button>
-                        {toneColorsEnabled && (
-                            <button
-                                onClick={cycleToneTheme}
-                                style={{ marginLeft: '4px', fontSize: '12px' }}
-                                title={`Theme: ${toneColorTheme}`}
-                            >
-                                {toneColorTheme === 'vibrant' ? '💥' : toneColorTheme === 'pastel' ? '🌸' : '✨'}
-                            </button>
-                        )}
                     </div>
                 </div>
             )}
@@ -217,7 +172,7 @@ const Reader = ({ story }) => {
                 {story.content.split('\n').map((para, idx) => (
                     <p key={idx} className="reader-para">
                         {toneColorsEnabled ? (
-                            <ColorizedText text={para} theme={toneColorTheme} enabled={true} />
+                            <ColorizedText text={para} enabled={toneColorsEnabled} />
                         ) : (
                             para
                         )}

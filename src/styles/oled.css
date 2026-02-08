@@ -1,14 +1,23 @@
 :root {
-    /* Zen Garden Theme - Light Mode (Default) */
-    --bg-color: #f5f7f5;
-    --text-color: #2d3436;
-    --sidebar-bg: #ffffff;
-    --sidebar-bg-tint: #f0f5f0;
-    --primary-color: #00b894;
-    --primary-hover: #00a383;
-    --accent-color: #4db6ac;
-    --border-color: #d5e3d5;
-    --shadow-color: rgba(0, 184, 148, 0.1);
+    /* True Black OLED Color Scheme */
+    --bg-primary: rgba(10, 10, 10, 0.95);
+    --bg-secondary: rgba(20, 20, 20, 0.95);
+    --text-primary: #E0E0E0;
+    --text-secondary: #999999;
+    --accent-blue: #2962FF;
+    --border-color: #333333;
+
+    /* Tone Dots - Muted but Distinguishable */
+    --tone-1: #7986CB;
+    /* Muted indigo */
+    --tone-2: #81C784;
+    /* Muted green */
+    --tone-3: #FFB74D;
+    /* Muted orange */
+    --tone-4: #E57373;
+    /* Muted red */
+    --tone-neutral: #90A4AE;
+    /* Muted blue-grey */
 
     /* Typography */
     --font-main: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -24,35 +33,8 @@ body {
     margin: 0;
     padding: 0;
     font-family: var(--font-main);
-    background-color: var(--bg-color);
-    color: var(--text-color);
-    transition: background-color 0.3s ease, color 0.3s ease;
-}
-
-/* Dark Mode Theme - Deep Forest */
-body.dark-mode {
-    --bg-color: #1e2826;
-    --text-color: #e8f5e9;
-    --sidebar-bg: #263238;
-    --sidebar-bg-tint: #2c3a38;
-    --primary-color: #4db6ac;
-    --primary-hover: #26a69a;
-    --accent-color: #80cbc4;
-    --border-color: #37474f;
-    --shadow-color: rgba(77, 182, 172, 0.15);
-}
-
-/* Sepia Mode Theme - Warm Sage */
-body.sepia-mode {
-    --bg-color: #f0f2ed;
-    --text-color: #3e4a3d;
-    --sidebar-bg: #fafbf8;
-    --sidebar-bg-tint: #e8ede5;
-    --primary-color: #7cb342;
-    --primary-hover: #689f38;
-    --accent-color: #9ccc65;
-    --border-color: #c5d5c0;
-    --shadow-color: rgba(124, 179, 66, 0.1);
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
 }
 
 /* Utilities */
@@ -80,25 +62,26 @@ body.sepia-mode {
 
 button {
     cursor: pointer;
-    border: none;
-    background: var(--primary-color);
-    color: white;
+    border: 1px solid var(--border-color);
+    background: transparent;
+    color: var(--text-secondary);
     padding: 8px 16px;
-    border-radius: 6px;
+    border-radius: 4px;
     font-size: 14px;
     font-weight: 500;
     transition: all 0.2s ease;
-    box-shadow: 0 2px 4px var(--shadow-color);
 }
 
 button:hover {
-    background: var(--primary-hover);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px var(--shadow-color);
+    border-color: var(--accent-blue);
+    color: var(--accent-blue);
 }
 
+button.active,
 button:active {
-    transform: translateY(0);
+    background: var(--accent-blue);
+    border-color: var(--accent-blue);
+    color: #000;
 }
 
 /* Word Popup Styles */
@@ -177,7 +160,7 @@ button:active {
 /* Sidebar Styles */
 .sidebar {
     width: 300px;
-    background: var(--sidebar-bg);
+    background: var(--bg-secondary);
     border-right: 1px solid var(--border-color);
     height: 100vh;
     display: flex;
@@ -241,7 +224,7 @@ button:active {
 }
 
 .story-item.active {
-    background: var(--primary-color);
+    background: var(--accent-blue);
     color: white;
 }
 
@@ -277,7 +260,7 @@ button:active {
 }
 
 .delete-btn:hover {
-    color: var(--accent-color);
+    color: var(--accent-blue);
     background: transparent;
 }
 
@@ -312,7 +295,7 @@ button:active {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: var(--bg-color);
+    background: var(--bg-primary);
     z-index: 10;
 }
 
@@ -328,7 +311,7 @@ button:active {
     line-height: 1.8;
     max-width: 900px;
     margin: 0 auto;
-    color: var(--text-color);
+    color: var(--text-primary);
 }
 
 .reader-para {
@@ -346,14 +329,14 @@ button:active {
     backdrop-filter: blur(12px);
     padding: 6px 16px;
     border-radius: 20px;
-    box-shadow: 0 4px 16px var(--shadow-color);
+    box-shadow: 0 4px 16px rgba(41, 98, 255, 0.1);
     display: flex;
     align-items: center;
     gap: 12px;
     z-index: 100;
     border: 1px solid var(--border-color);
     font-size: 13px;
-    color: var(--text-color);
+    color: var(--text-primary);
 }
 
 .stat-item {
@@ -379,11 +362,11 @@ button:active {
 
 .vocab-header h2 {
     margin: 0;
-    color: var(--text-color);
+    color: var(--text-primary);
 }
 
 .back-link {
-    color: var(--primary-color);
+    color: var(--accent-blue);
     text-decoration: none;
     font-weight: 500;
 }
@@ -403,7 +386,7 @@ button:active {
     align-items: center;
     background: white;
     /* Force white for list items even in sepia? Or use sidebar-bg */
-    background: var(--sidebar-bg);
+    background: var(--bg-secondary);
     padding: 12px 16px;
     border-radius: 8px;
     border: 1px solid var(--border-color);
@@ -420,7 +403,7 @@ button:active {
     font-family: var(--font-chinese);
     font-size: 20px;
     font-weight: bold;
-    color: var(--text-color);
+    color: var(--text-primary);
 }
 
 .vocab-pinyin {
@@ -431,7 +414,7 @@ button:active {
 .vocab-def-col {
     flex: 1;
     font-size: 14px;
-    color: var(--text-color);
+    color: var(--text-primary);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -447,7 +430,7 @@ button:active {
 }
 
 .vocab-count-badge {
-    background: var(--primary-color);
+    background: var(--accent-blue);
     color: white;
     padding: 4px 10px;
     border-radius: 12px;
@@ -471,7 +454,7 @@ button:active {
 
 .stat-value {
     font-weight: 600;
-    color: var(--primary-color);
+    color: var(--accent-blue);
 }
 
 .stat-divider {
@@ -482,55 +465,66 @@ button:active {
 
 /* Tone Color Coding Styles */
 
-/* Vibrant Theme */
-.tone-1-vibrant {
-    color: #ef4444;
+/* Tone Dots System - Dots appear above characters */
+.char-with-tone {
+    position: relative;
+    display: inline-block;
+    color: var(--text-primary);
 }
 
-.tone-2-vibrant {
-    color: #f59e0b;
+.char-with-tone.tone-1::before {
+    content: '•';
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: var(--tone-1);
+    font-size: 10px;
+    line-height: 1;
 }
 
-.tone-3-vibrant {
-    color: #10b981;
+.char-with-tone.tone-2::before {
+    content: '•';
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: var(--tone-2);
+    font-size: 10px;
+    line-height: 1;
 }
 
-.tone-4-vibrant {
-    color: #3b82f6;
+.char-with-tone.tone-3::before {
+    content: '•';
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: var(--tone-3);
+    font-size: 10px;
+    line-height: 1;
 }
 
-/* Pastel Theme */
-.tone-1-pastel {
-    color: #fca5a5;
+.char-with-tone.tone-4::before {
+    content: '•';
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: var(--tone-4);
+    font-size: 10px;
+    line-height: 1;
 }
 
-.tone-2-pastel {
-    color: #fcd34d;
-}
-
-.tone-3-pastel {
-    color: #6ee7b7;
-}
-
-.tone-4-pastel {
-    color: #93c5fd;
-}
-
-/* Neon Theme */
-.tone-1-neon {
-    color: #dc2626;
-}
-
-.tone-2-neon {
-    color: #ea580c;
-}
-
-.tone-3-neon {
-    color: #059669;
-}
-
-.tone-4-neon {
-    color: #2563eb;
+.char-with-tone.tone-neutral::before {
+    content: '•';
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: var(--tone-neutral);
+    font-size: 10px;
+    line-height: 1;
 }
 
 /* ========================================
@@ -544,7 +538,7 @@ button:active {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.8);
     z-index: 999;
     animation: fadeIn 0.2s ease;
 }
@@ -554,25 +548,21 @@ button:active {
     bottom: 0;
     left: 0;
     right: 0;
-    background: var(--sidebar-bg);
-    /* Use theme bg */
-    color: var(--text-color);
-    border-radius: 20px 20px 0 0;
-    box-shadow: 0 -4px 20px var(--shadow-color);
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    border-radius: 0;
+    border-top: 1px solid var(--border-color);
     z-index: 1000;
     max-height: 40vh;
-    /* Reduced height (approx 1/3 to 1/2 screen) */
     overflow-y: auto;
     padding: 20px;
     animation: slideUp 0.3s ease;
-    border-top: 1px solid var(--border-color);
 }
 
 .bottom-sheet-handle {
     width: 40px;
     height: 4px;
     background: var(--border-color);
-    /* Theme aware */
     border-radius: 2px;
     margin: 0 auto 16px;
     opacity: 0.5;
@@ -583,7 +573,7 @@ button:active {
     top: 16px;
     right: 16px;
     background: transparent;
-    border: none;
+    border: 1px solid var(--border-color);
     border-radius: 50%;
     width: 32px;
     height: 32px;
@@ -592,8 +582,14 @@ button:active {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--text-color);
-    opacity: 0.6;
+    color: var(--text-secondary);
+    opacity: 0.8;
+    transition: all 0.2s ease;
+}
+
+.bottom-sheet-close:hover {
+    border-color: var(--accent-blue);
+    color: var(--accent-blue);
 }
 
 .bottom-sheet-entry {
@@ -650,10 +646,10 @@ button:active {
     width: 56px;
     height: 56px;
     border-radius: 50%;
-    background: var(--primary-color);
+    background: var(--accent-blue);
     color: white;
     border: none;
-    box-shadow: 0 6px 20px var(--shadow-color);
+    box-shadow: 0 6px 20px rgba(41, 98, 255, 0.1);
     font-size: 24px;
     cursor: pointer;
     display: flex;
@@ -665,7 +661,7 @@ button:active {
 .fab-main:hover {
     background: var(--primary-hover);
     transform: scale(1.05);
-    box-shadow: 0 8px 24px var(--shadow-color);
+    box-shadow: 0 8px 24px rgba(41, 98, 255, 0.1);
 }
 
 .fab-main:active {
@@ -698,9 +694,9 @@ button:active {
 }
 
 .fab-menu-item.active {
-    background: var(--primary-color);
+    background: var(--accent-blue);
     color: white;
-    border-color: var(--primary-color);
+    border-color: var(--accent-blue);
 }
 
 .fab-menu-item:active {
@@ -726,7 +722,7 @@ button:active {
     bottom: 0;
     width: 80%;
     max-width: 320px;
-    background: var(--sidebar-bg);
+    background: var(--bg-secondary);
     z-index: 1000;
     transition: left 0.3s ease;
     overflow-y: auto;
@@ -744,10 +740,10 @@ button:active {
     width: 56px;
     height: 56px;
     border-radius: 50%;
-    background: var(--primary-color);
+    background: var(--accent-blue);
     color: white;
     border: none;
-    box-shadow: 0 6px 20px var(--shadow-color);
+    box-shadow: 0 6px 20px rgba(41, 98, 255, 0.1);
     font-size: 24px;
     cursor: pointer;
     z-index: 98;
@@ -760,7 +756,7 @@ button:active {
 .floating-sidebar-button:hover {
     background: var(--primary-hover);
     transform: scale(1.05);
-    box-shadow: 0 8px 24px var(--shadow-color);
+    box-shadow: 0 8px 24px rgba(41, 98, 255, 0.1);
 }
 
 .floating-sidebar-button:active {
@@ -783,7 +779,7 @@ button:active {
     font-size: 24px;
     font-weight: bold;
     margin-bottom: 24px;
-    color: var(--text-color);
+    color: var(--text-primary);
     padding-top: 8px;
 }
 
@@ -885,9 +881,9 @@ button:active {
     width: 90%;
     max-width: 480px;
     max-height: 80vh;
-    background: var(--sidebar-bg);
+    background: var(--bg-secondary);
     border-radius: 16px;
-    box-shadow: 0 20px 60px var(--shadow-color);
+    box-shadow: 0 20px 60px rgba(41, 98, 255, 0.1);
     z-index: 1000;
     overflow: hidden;
     animation: slideIn 0.3s ease;
@@ -917,7 +913,7 @@ button:active {
     align-items: center;
     justify-content: center;
     transition: all 0.2s ease;
-    color: var(--text-color);
+    color: var(--text-primary);
 }
 
 .library-modal-close:hover {
@@ -933,10 +929,10 @@ button:active {
     width: 56px;
     height: 56px;
     border-radius: 50%;
-    background: var(--primary-color);
+    background: var(--accent-blue);
     color: white;
     border: none;
-    box-shadow: 0 6px 20px var(--shadow-color);
+    box-shadow: 0 6px 20px rgba(41, 98, 255, 0.1);
     font-size: 24px;
     cursor: pointer;
     z-index: 98;
@@ -949,7 +945,7 @@ button:active {
 .floating-library-button:hover {
     background: var(--primary-hover);
     transform: scale(1.05);
-    box-shadow: 0 8px 24px var(--shadow-color);
+    box-shadow: 0 8px 24px rgba(41, 98, 255, 0.1);
 }
 
 .floating-library-button:active {
