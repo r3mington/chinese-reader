@@ -21,10 +21,39 @@ const Reader = ({ story }) => {
     const contentRef = useRef(null);
     const isMobile = useIsMobile();
 
-    // Persist tone color settings
     useEffect(() => {
         localStorage.setItem('toneColorsEnabled', toneColorsEnabled);
     }, [toneColorsEnabled]);
+
+    // Theme state
+    const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'dark');
+    const [toneColorTheme, setToneColorTheme] = useState(() => localStorage.getItem('toneColorTheme') || 'vibrant');
+
+    useEffect(() => {
+        localStorage.setItem('theme', theme);
+        document.documentElement.setAttribute('data-theme', theme);
+    }, [theme]);
+
+    useEffect(() => {
+        localStorage.setItem('toneColorTheme', toneColorTheme);
+        document.documentElement.setAttribute('data-tone-theme', toneColorTheme);
+    }, [toneColorTheme]);
+
+    const toggleTheme = () => {
+        setTheme(prev => {
+            if (prev === 'dark') return 'light';
+            if (prev === 'light') return 'sepia';
+            return 'dark';
+        });
+    };
+
+    const cycleToneTheme = () => {
+        setToneColorTheme(prev => {
+            if (prev === 'vibrant') return 'pastel';
+            if (prev === 'pastel') return 'standard';
+            return 'vibrant';
+        });
+    };
 
     // Managing reading session
     useEffect(() => {
