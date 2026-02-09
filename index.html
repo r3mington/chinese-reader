@@ -21,25 +21,52 @@
 
 <body>
   <div id="root"></div>
-  <!-- Emergency SW Cleanup: If app fails to load, unregister SW and reload -->
+  <!-- Enhanced Error Logging and Recovery -->
   <script>
+    // Log ALL errors to help debug
     window.addEventListener('error', async (e) => {
-      // Check if error is related to script loading (blank screen issue)
+      console.error('=== ERROR DETECTED ===');
+      console.error('Message:', e.message);
+      console.error('Filename:', e.filename);
+      console.error('Line:', e.lineno);
+      console.error('Error object:', e.error);
+
+      // Check if error is related to script loading
       if (e.message && (e.message.includes('MIME type') || e.message.includes('Failed to load module'))) {
-        console.error('App load failure detected. Attempting emergency SW cleanup...');
+        console.error('Script load failure! Attempting recovery...');
+
+        // Unregister ALL service workers
         if ('serviceWorker' in navigator) {
-          const registrations = await navigator.serviceWorker.getRegistrations();
-          for (const registration of registrations) {
-            await registration.unregister();
+          try {
+            const registrations = await navigator.serviceWorker.getRegistrations();
+            console.log('Found', registrations.length, 'service workers');
+            for (const registration of registrations) {
+              console.log('Unregistering:', registration);
+              await registration.unregister();
+            }
+
+            // Clear ALL caches
+            const keys = await caches.keys();
+            console.log('Found', keys.length, 'caches');
+            await Promise.all(keys.map(key => {
+              console.log('Deleting cache:', key);
+              return caches.delete(key);
+            }));
+
+            console.log('Recovery complete. Reloading...');
+            // Force reload from server
+            window.location.reload(true);
+          } catch (err) {
+            console.error('Recovery failed:', err);
           }
-          // Clear caches
-          const keys = await caches.keys();
-          await Promise.all(keys.map(key => caches.delete(key)));
-          // Force reload from server
-          window.location.reload(true);
         }
       }
     }, true);
+
+    // Log when the app successfully loads
+    window.addEventListener('load', () => {
+      console.log('=== APP LOADED SUCCESSFULLY ===');
+    });
   </script>
   <script type="module" src="/src/main.jsx"></script>
 </body>
