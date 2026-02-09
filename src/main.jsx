@@ -9,15 +9,21 @@ createRoot(document.getElementById('root')).render(
   </StrictMode>,
 )
 
-// Register service worker for PWA
+// EMERGENCY FIX: Unregister all service workers to fix blank screen
+// PWA temporarily disabled until we can debug the caching issue
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
-      .then((registration) => {
-        console.log('SW registered:', registration);
-      })
-      .catch((error) => {
-        console.log('SW registration failed:', error);
-      });
+  navigator.serviceWorker.getRegistrations().then((registrations) => {
+    registrations.forEach((registration) => {
+      console.log('Unregistering service worker:', registration);
+      registration.unregister();
+    });
+  });
+
+  // Also clear all caches
+  caches.keys().then((keys) => {
+    keys.forEach((key) => {
+      console.log('Deleting cache:', key);
+      caches.delete(key);
+    });
   });
 }
