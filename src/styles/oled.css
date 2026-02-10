@@ -469,8 +469,8 @@ button:active {
 
 .char-with-tone::before {
     position: absolute;
-    top: -0.5em;
-    /* Adjust to sit on top */
+    top: -0.15em;
+    /* Moved closer to the character */
     left: 50%;
     transform: translateX(-50%);
     font-size: 0.8em;
