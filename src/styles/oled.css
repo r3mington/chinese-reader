@@ -461,66 +461,41 @@ button:active {
 
 /* Tone Color Coding Styles */
 
-/* Tone Dots System - Dots appear above characters */
+/* Tone Lines System - Lines appear above characters */
 .char-with-tone {
     position: relative;
     display: inline-block;
-    color: var(--text-primary);
+}
+
+.char-with-tone::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: 10%;
+    width: 80%;
+    height: 3px;
+    border-radius: 1.5px;
+    opacity: 0.9;
 }
 
 .char-with-tone.tone-1::before {
-    content: '•';
-    position: absolute;
-    top: -10px;
-    left: 50%;
-    transform: translateX(-50%);
-    color: var(--tone-1);
-    font-size: 10px;
-    line-height: 1;
+    background-color: var(--tone-1);
 }
 
 .char-with-tone.tone-2::before {
-    content: '•';
-    position: absolute;
-    top: -10px;
-    left: 50%;
-    transform: translateX(-50%);
-    color: var(--tone-2);
-    font-size: 10px;
-    line-height: 1;
+    background-color: var(--tone-2);
 }
 
 .char-with-tone.tone-3::before {
-    content: '•';
-    position: absolute;
-    top: -10px;
-    left: 50%;
-    transform: translateX(-50%);
-    color: var(--tone-3);
-    font-size: 10px;
-    line-height: 1;
+    background-color: var(--tone-3);
 }
 
 .char-with-tone.tone-4::before {
-    content: '•';
-    position: absolute;
-    top: -10px;
-    left: 50%;
-    transform: translateX(-50%);
-    color: var(--tone-4);
-    font-size: 10px;
-    line-height: 1;
+    background-color: var(--tone-4);
 }
 
 .char-with-tone.tone-neutral::before {
-    content: '•';
-    position: absolute;
-    top: -10px;
-    left: 50%;
-    transform: translateX(-50%);
-    color: var(--tone-neutral);
-    font-size: 10px;
-    line-height: 1;
+    background-color: var(--tone-neutral);
 }
 
 /* ========================================
