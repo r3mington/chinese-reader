@@ -5,6 +5,7 @@ import '../styles/oled.css';
 
 const StatsToolbar = () => {
     const [stats, setStats] = useState({ daily: 0, weekly: 0, total: 0 });
+    const [progress, setProgress] = useState({ percentage: 0, charsRead: 0 });
     const [isCollapsed, setIsCollapsed] = useState(true);
     const isMobile = useIsMobile();
 
@@ -23,13 +24,22 @@ const StatsToolbar = () => {
             }
         };
 
+        // Listen for reading progress from Reader.jsx
+        const handleProgressUpdate = (e) => {
+            if (e.detail) {
+                setProgress(e.detail);
+            }
+        };
+
         window.addEventListener('statsUpdated', handleStatsUpdate);
+        window.addEventListener('readingProgressUpdated', handleProgressUpdate);
 
         // Poll every minute just in case
         const interval = setInterval(fetchStats, 60000);
 
         return () => {
             window.removeEventListener('statsUpdated', handleStatsUpdate);
+            window.removeEventListener('readingProgressUpdated', handleProgressUpdate);
             clearInterval(interval);
         };
     }, []);
@@ -64,6 +74,22 @@ const StatsToolbar = () => {
                 <span className="stat-label">Total</span>
                 <span className="stat-value">{stats.total}m</span>
             </div>
+
+            {/* Reading Progress Stats */}
+            {progress.percentage > 0 && (
+                <>
+                    <div className="stat-divider"></div>
+                    <div className="stat-item" title="Reading progress">
+                        <span className="stat-label">Progress</span>
+                        <span className="stat-value">{progress.percentage}%</span>
+                    </div>
+                    <div className="stat-divider"></div>
+                    <div className="stat-item" title="Estimated characters read">
+                        <span className="stat-label">Chars</span>
+                        <span className="stat-value">{progress.charsRead}</span>
+                    </div>
+                </>
+            )}
         </div>
     );
 };

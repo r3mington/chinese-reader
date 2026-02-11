@@ -99,10 +99,33 @@ const Reader = ({ story }) => {
         setTimeout(restorePos, 100);
     }, [story]);
 
-    // Save bookmark on scroll
+    // Save bookmark and update progress on scroll
     const handleScroll = (e) => {
         if (story) {
-            saveBookmark(story.id, e.target.scrollTop);
+            const target = e.target;
+            const scrollTop = target.scrollTop;
+            const scrollHeight = target.scrollHeight;
+            const clientHeight = target.clientHeight;
+
+            // Save bookmark
+            saveBookmark(story.id, scrollTop);
+
+            // Calculate progress
+            // We use a safe division to avoid NaN
+            const progressRatio = scrollHeight > 0 ? (scrollTop + clientHeight) / scrollHeight : 0;
+            const percentage = Math.min(100, Math.max(0, Math.round(progressRatio * 100)));
+
+            // Calculate approximate chars read
+            const totalChars = story.content ? story.content.length : 0;
+            const charsRead = Math.round(totalChars * progressRatio);
+
+            // Dispatch event for StatsToolbar
+            window.dispatchEvent(new CustomEvent('readingProgressUpdated', {
+                detail: {
+                    percentage,
+                    charsRead
+                }
+            }));
         }
     };
 
