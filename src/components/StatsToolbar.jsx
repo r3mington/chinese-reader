@@ -53,7 +53,11 @@ const StatsToolbar = () => {
     if (isMobile && isCollapsed) {
         return (
             <div className="stats-toolbar collapsed" onClick={toggleCollapse}>
-                <span className="stats-icon">📊</span>
+                <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
+                    <rect x="2" y="12" width="3" height="6" />
+                    <rect x="7" y="8" width="3" height="10" />
+                    <rect x="12" y="4" width="3" height="14" />
+                </svg>
             </div>
         );
     }

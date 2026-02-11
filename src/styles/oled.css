@@ -810,8 +810,9 @@ button:active {
 
     /* Adjust stats toolbar for mobile */
     .stats-toolbar {
-        padding: 8px 12px;
-        font-size: 12px;
+        padding: 6px 10px;
+        font-size: 10px;
+        gap: 8px;
     }
 
     .stats-toolbar.mobile {
