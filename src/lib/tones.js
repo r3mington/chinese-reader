@@ -31,3 +31,12 @@ export const getCharacterTone = (char) => {
 
     return null;
 };
+
+// Extract tones for a full word from its pinyin string
+export const getTonesFromPinyin = (pinyin) => {
+    if (!pinyin) return [];
+    return pinyin.split(' ').map(part => {
+        const match = part.match(/\d$/);
+        return match ? parseInt(match[0], 10) : 5; // Default to neutral (5) if no number
+    });
+};
