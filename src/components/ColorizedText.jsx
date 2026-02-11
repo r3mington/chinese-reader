@@ -28,18 +28,33 @@ const ColorizedText = ({ text, enabled = true }) => {
 
                     if (tone && tone >= 1 && tone <= 4) {
                         elements.push(
-                            <span key={`${i + j}`} className={`char-with-tone tone-${tone}`}>
+                            <span
+                                key={`${i + j}`}
+                                className={`char-with-tone tone-${tone}`}
+                                data-word={result.word}
+                            >
                                 {char}
                             </span>
                         );
                     } else if (tone === 5) {
                         elements.push(
-                            <span key={`${i + j}`} className={`char-with-tone tone-neutral`}>
+                            <span
+                                key={`${i + j}`}
+                                className={`char-with-tone tone-neutral`}
+                                data-word={result.word}
+                            >
                                 {char}
                             </span>
                         );
                     } else {
-                        elements.push(<span key={`${i + j}`}>{char}</span>);
+                        elements.push(
+                            <span
+                                key={`${i + j}`}
+                                data-word={result.word}
+                            >
+                                {char}
+                            </span>
+                        );
                     }
                 }
 

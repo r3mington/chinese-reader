@@ -109,7 +109,28 @@ const Reader = ({ story }) => {
     const handleTextClick = (e) => {
         setPopupData(null);
 
-        // Find the paragraph container to get full context
+        // Check if the clicked element (or parent) has a data-word attribute
+        const target = e.target.closest('[data-word]');
+
+        if (target) {
+            const word = target.getAttribute('data-word');
+            // Look up the word directly
+            const result = lookupAt(word, 0);
+
+            if (result) {
+                setPopupData(result);
+                setPopupPos({ x: e.clientX, y: e.clientY });
+
+                if (story && story.id) {
+                    trackWordClick(result.word, story.id);
+                }
+            }
+            return;
+        }
+
+        // Fallback for non-word clicks (e.g. single chars not part of a word)
+        // This handles cases where ColorizedText rendered a single char without data-word
+        // OR standard paragraph text if tone colors are disabled
         const paragraph = e.target.closest('.reader-para');
         if (!paragraph) return;
 
@@ -126,12 +147,10 @@ const Reader = ({ story }) => {
         if (!range) return;
 
         // Calculate global offset relative to the paragraph
-        // This is necessary because ColorizedText splits text into multiple <span>s
         const preCaretRange = range.cloneRange();
         preCaretRange.selectNodeContents(paragraph);
         preCaretRange.setEnd(range.endContainer, range.endOffset);
 
-        // This gives us the index in the full paragraph text
         const globalOffset = preCaretRange.toString().length;
         const text = paragraph.textContent;
 
