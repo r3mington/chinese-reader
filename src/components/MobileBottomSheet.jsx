@@ -5,6 +5,7 @@ import { lookupAt } from '../lib/dictionary';
 import '../styles/oled.css';
 
 const MobileBottomSheet = ({ data, onClose }) => {
+    const sheetRef = useRef(null);
     const [starred, setStarred] = React.useState(false);
 
     // Check starred status when data changes
