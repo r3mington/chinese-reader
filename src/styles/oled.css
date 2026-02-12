@@ -624,6 +624,103 @@ button:active {
 .bottom-sheet-def-item {
     margin-bottom: 8px;
     padding-left: 8px;
+    color: var(--text-primary);
+}
+
+/* Mobile Sheet Enhancements */
+.bottom-sheet-header-section {
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 16px;
+}
+
+.sheet-main-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.sheet-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.sheet-action-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    padding: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s;
+}
+
+.sheet-action-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+}
+
+.sheet-action-btn.starred {
+    color: #fbbf24;
+}
+
+.sheet-breakdown-section {
+    margin-top: 24px;
+    border-top: 1px dashed var(--border-color);
+    padding-top: 16px;
+}
+
+.sheet-section-title {
+    font-size: 14px;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+    font-weight: 600;
+}
+
+.sheet-breakdown-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.breakdown-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    padding: 8px 12px;
+    border-radius: 8px;
+}
+
+.breakdown-char {
+    font-family: var(--font-chinese);
+    font-size: 24px;
+    color: var(--accent-blue);
+    font-weight: bold;
+}
+
+.breakdown-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.breakdown-pinyin {
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.breakdown-def {
+    font-size: 14px;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
 }
 
 /* Floating Action Menu */
