@@ -45,14 +45,15 @@ const MobileBottomSheet = ({ data, onClose }) => {
 
     // Character Breakdown Logic
     const getBreakdown = () => {
-        if (word.length <= 1) return null;
+        if (!word || word.length <= 1) return null;
 
         return word.split('').map((char, index) => {
             const result = lookupAt(char, 0);
+            const entry = result?.entries?.[0];
             return {
                 char,
-                pinyin: result?.entries[0]?.pinyin || '',
-                definition: result?.entries[0]?.definitions[0] || 'No definition'
+                pinyin: entry?.pinyin || '',
+                definition: entry?.definitions?.[0] || 'No definition'
             };
         });
     };
