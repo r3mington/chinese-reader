@@ -28,9 +28,11 @@ const MobileBottomSheet = ({ data, onClose }) => {
         };
     }, [data]);
 
-    if (!data) return null;
+    if (!data || !data.entries || data.entries.length === 0) return null;
 
     const mainEntry = data.entries[0];
+    if (!mainEntry || !mainEntry.simplified) return null;
+
     const word = mainEntry.simplified;
 
     const handleCopy = () => {
