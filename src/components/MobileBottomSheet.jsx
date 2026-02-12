@@ -80,6 +80,33 @@ const MobileBottomSheet = ({ data, onClose }) => {
                         <div className="sheet-main-row">
                             <span className="bottom-sheet-word">{word}</span>
                             <div className="sheet-actions">
+                                <button className="sheet-action-btn" onClick={() => {
+                                    const utterance = new SpeechSynthesisUtterance(word);
+                                    utterance.lang = 'zh-CN';
+                                    window.speechSynthesis.speak(utterance);
+                                }} title="Listen">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                                        <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                                    </svg>
+                                </button>
+                                <button className="sheet-action-btn" onClick={() => {
+                                    // Pleco URL Scheme
+                                    window.location.href = `plecoapi://x-callback-url/s?q=${encodeURIComponent(word)}`;
+                                }} title="Open in Pleco">
+                                    <span style={{ fontSize: '14px', fontWeight: 'bold' }}>P</span>
+                                </button>
+                                <button className="sheet-action-btn" onClick={() => {
+                                    // MDBG Web Dictionary
+                                    window.open(`https://www.mdbg.net/chinese/dictionary?page=worddict&wdrst=0&wdqtm=0&wdqcham=1&wdqt=${encodeURIComponent(word)}`, '_blank');
+                                }} title="Open Web Dict">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <line x1="2" y1="12" x2="22" y2="12"></line>
+                                        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                                    </svg>
+                                </button>
+                                <div className="sheet-divider" style={{ width: 1, height: 20, background: 'var(--border-color)', margin: '0 4px' }}></div>
                                 <button className="sheet-action-btn" onClick={handleCopy} title="Copy">
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                         <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
