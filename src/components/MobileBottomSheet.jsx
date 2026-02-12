@@ -6,14 +6,15 @@ import '../styles/oled.css';
 
 const MobileBottomSheet = ({ data, onClose }) => {
     const sheetRef = useRef(null);
-    const [starred, setStarred] = React.useState(false);
+    const [stats, setStats] = React.useState(null);
+    const starred = stats?.starred || false;
 
-    // Check starred status when data changes
+    // Check stats when data changes
     useEffect(() => {
         if (data && data.entries && data.entries.length > 0) {
             const word = data.entries[0].simplified;
-            getWordStats(word).then(stats => {
-                setStarred(stats?.starred || false);
+            getWordStats(word).then(s => {
+                setStats(s || { starred: false, clickCount: 0 }); // Default empty stats
             });
         }
     }, [data]);
@@ -43,7 +44,7 @@ const MobileBottomSheet = ({ data, onClose }) => {
 
     const handleToggleStar = async () => {
         const newStatus = await toggleStarred(word);
-        setStarred(newStatus);
+        setStats(prev => ({ ...prev, starred: newStatus }));
     };
 
     // Character Breakdown Logic
@@ -106,6 +107,12 @@ const MobileBottomSheet = ({ data, onClose }) => {
                                         <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
                                     </svg>
                                 </button>
+                                <button className="sheet-action-btn" onClick={() => {
+                                    // Google Translate
+                                    window.open(`https://translate.google.com/?sl=zh-CN&tl=en&text=${encodeURIComponent(word)}&op=translate`, '_blank');
+                                }} title="Google Translate">
+                                    <span style={{ fontSize: '14px', fontWeight: 'bold' }}>G</span>
+                                </button>
                                 <div className="sheet-divider" style={{ width: 1, height: 20, background: 'var(--border-color)', margin: '0 4px' }}></div>
                                 <button className="sheet-action-btn" onClick={handleCopy} title="Copy">
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -129,6 +136,16 @@ const MobileBottomSheet = ({ data, onClose }) => {
                                 {i + 1}. {def}
                             </div>
                         ))}
+                    </div>
+
+                    {/* My Stats Section */}
+                    <div className="sheet-stats-section" style={{ marginTop: '16px', padding: '12px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', fontSize: '12px', color: 'var(--text-secondary)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span>👀 Seen: <span style={{ color: 'var(--accent-blue)', fontWeight: 'bold' }}>{stats?.clickCount || 1}</span> times</span>
+                            {stats?.firstSeen && (
+                                <span>📅 Since: {new Date(stats.firstSeen).toLocaleDateString()}</span>
+                            )}
+                        </div>
                     </div>
 
                     {breakdown && (
