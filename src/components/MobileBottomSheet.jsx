@@ -47,17 +47,22 @@ const MobileBottomSheet = ({ data, onClose }) => {
 
     // Character Breakdown Logic
     const getBreakdown = () => {
-        if (!word || word.length <= 1) return null;
+        try {
+            if (!word || word.length <= 1) return null;
 
-        return word.split('').map((char, index) => {
-            const result = lookupAt(char, 0);
-            const entry = result?.entries?.[0];
-            return {
-                char,
-                pinyin: entry?.pinyin || '',
-                definition: entry?.definitions?.[0] || 'No definition'
-            };
-        });
+            return word.split('').map((char, index) => {
+                const result = lookupAt(char, 0);
+                const entry = result?.entries?.[0];
+                return {
+                    char,
+                    pinyin: entry?.pinyin || '',
+                    definition: entry?.definitions?.[0] || 'No definition'
+                };
+            });
+        } catch (e) {
+            console.error('Error generating breakdown:', e);
+            return null;
+        }
     };
 
     const breakdown = getBreakdown();

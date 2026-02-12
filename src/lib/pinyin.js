@@ -1,5 +1,11 @@
 export const convertPinyin = (pinyin) => {
     if (!pinyin) return '';
+    if (typeof pinyin !== 'string') {
+        // If it's an array, join it space
+        if (Array.isArray(pinyin)) return pinyin.join(' ').split(' ').map(convertWord).join(' ');
+        // Otherwise try to stringify
+        return String(pinyin).split(' ').map(convertWord).join(' ');
+    }
     return pinyin.split(' ').map(convertWord).join(' ');
 };
 
