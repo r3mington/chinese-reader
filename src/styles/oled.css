@@ -377,27 +377,56 @@ button:active {
     gap: 12px;
 }
 
-.vocab-item {
-    display: flex;
-    align-items: center;
-    background: white;
-    /* Force white for list items even in sepia? Or use sidebar-bg */
+/* Vocabulary Card Styles */
+.vocab-card {
     background: var(--bg-secondary);
-    padding: 12px 16px;
-    border-radius: 8px;
+    padding: 16px;
+    border-radius: 12px;
     border: 1px solid var(--border-color);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 12px;
 }
 
-.vocab-word-col {
-    flex: 0 0 150px;
+.vocab-card-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.star-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    color: #999;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.star-button:hover {
+    color: #666;
+    transform: scale(1.1);
+}
+
+.star-button.starred {
+    color: #fbbf24;
+}
+
+.star-button.starred:hover {
+    color: #f59e0b;
+}
+
+.vocab-word-header {
+    flex: 1;
     display: flex;
     flex-direction: column;
+    gap: 4px;
 }
 
 .vocab-word {
     font-family: var(--font-chinese);
-    font-size: 20px;
+    font-size: 24px;
     font-weight: bold;
     color: var(--text-primary);
 }
@@ -407,37 +436,30 @@ button:active {
     color: var(--text-secondary);
 }
 
-.vocab-def-col {
-    flex: 1;
-    font-size: 14px;
-    color: var(--text-primary);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    padding: 0 16px;
-}
-
-.vocab-count-col {
-    flex: 0 0 80px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-}
-
 .vocab-count-badge {
     background: var(--accent-blue);
     color: white;
-    padding: 4px 10px;
+    padding: 4px 12px;
     border-radius: 12px;
     font-weight: bold;
-    font-size: 14px;
+    font-size: 13px;
+    flex-shrink: 0;
 }
 
-.vocab-count-label {
-    font-size: 10px;
-    color: var(--text-secondary);
-    margin-top: 2px;
+.vocab-card-body {
+    padding-left: 32px;
+}
+
+.vocab-definitions {
+    margin: 0;
+    padding-left: 20px;
+    color: var(--text-primary);
+    font-size: 15px;
+    line-height: 1.6;
+}
+
+.vocab-definitions li {
+    margin-bottom: 8px;
 }
 
 .stat-label {
@@ -625,10 +647,10 @@ button:active {
     width: 56px;
     height: 56px;
     border-radius: 50%;
-    background: var(--accent-blue);
+    background: #1a1a1a;
     color: white;
     border: none;
-    box-shadow: 0 6px 20px rgba(41, 98, 255, 0.1);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
     font-size: 24px;
     cursor: pointer;
     display: flex;
@@ -638,9 +660,9 @@ button:active {
 }
 
 .fab-main:hover {
-    background: var(--primary-hover);
+    background: #2a2a2a;
     transform: scale(1.05);
-    box-shadow: 0 8px 24px rgba(41, 98, 255, 0.1);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
 }
 
 .fab-main:active {
@@ -909,10 +931,10 @@ button:active {
     width: 56px;
     height: 56px;
     border-radius: 50%;
-    background: var(--accent-blue);
+    background: #1a1a1a;
     color: white;
     border: none;
-    box-shadow: 0 6px 20px rgba(41, 98, 255, 0.1);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
     font-size: 24px;
     cursor: pointer;
     z-index: 98;
@@ -923,9 +945,9 @@ button:active {
 }
 
 .floating-library-button:hover {
-    background: var(--primary-hover);
+    background: #2a2a2a;
     transform: scale(1.05);
-    box-shadow: 0 8px 24px rgba(41, 98, 255, 0.1);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
 }
 
 .floating-library-button:active {

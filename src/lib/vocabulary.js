@@ -23,7 +23,8 @@ export const trackWordClick = async (word, storyId) => {
             clickCount: 0,
             firstSeen: Date.now(),
             lastClicked: Date.now(),
-            contexts: []
+            contexts: [],
+            starred: false
         };
     }
 
@@ -43,14 +44,38 @@ export const trackWordClick = async (word, storyId) => {
     }
 };
 
+export const toggleStarred = async (word) => {
+    await loadVocab();
+
+    if (vocabStats[word]) {
+        vocabStats[word].starred = !vocabStats[word].starred;
+
+        try {
+            await set(VOCAB_KEY, vocabStats);
+            return vocabStats[word].starred;
+        } catch (e) {
+            console.warn('Failed to toggle starred status', e);
+            return false;
+        }
+    }
+
+    return false;
+};
+
 export const getVocabularyList = async () => {
     await loadVocab();
 
-    // Convert object to array and sort by click count descending
+    // Convert object to array and sort: starred first, then by click count descending
     return Object.entries(vocabStats)
         .map(([word, stats]) => ({
             word,
             ...stats
         }))
-        .sort((a, b) => b.clickCount - a.clickCount);
+        .sort((a, b) => {
+            // Starred words come first
+            if (a.starred && !b.starred) return -1;
+            if (!a.starred && b.starred) return 1;
+            // Then sort by click count
+            return b.clickCount - a.clickCount;
+        });
 };
