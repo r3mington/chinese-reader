@@ -78,7 +78,6 @@ export const getVocabularyList = async () => {
             // Then sort by click count
             return b.clickCount - a.clickCount;
         });
-});
 };
 
 export const getWordStats = async (word) => {
