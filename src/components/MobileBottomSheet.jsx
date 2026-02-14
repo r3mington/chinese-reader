@@ -95,7 +95,12 @@ const MobileBottomSheet = ({ data, onClose }) => {
                                     // Pleco URL Scheme
                                     window.location.href = `plecoapi://x-callback-url/s?q=${encodeURIComponent(word)}`;
                                 }} title="Open in Pleco">
-                                    <span style={{ fontSize: '14px', fontWeight: 'bold' }}>P</span>
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                                        <path d="M12 6v6"></path>
+                                        <path d="M9 9h6"></path>
+                                    </svg>
                                 </button>
                                 <button className="sheet-action-btn" onClick={() => {
                                     // MDBG Web Dictionary
@@ -111,7 +116,14 @@ const MobileBottomSheet = ({ data, onClose }) => {
                                     // Google Translate
                                     window.open(`https://translate.google.com/?sl=zh-CN&tl=en&text=${encodeURIComponent(word)}&op=translate`, '_blank');
                                 }} title="Google Translate">
-                                    <span style={{ fontSize: '14px', fontWeight: 'bold' }}>G</span>
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d="M5 8l6 6"></path>
+                                        <path d="M4 14l6-6 2-3"></path>
+                                        <path d="M2 5h12"></path>
+                                        <path d="M7 2h1"></path>
+                                        <path d="M22 22l-5-10-5 10"></path>
+                                        <path d="M14 18h6"></path>
+                                    </svg>
                                 </button>
                                 <div className="sheet-divider" style={{ width: 1, height: 20, background: 'var(--border-color)', margin: '0 4px' }}></div>
                                 <button className="sheet-action-btn" onClick={handleCopy} title="Copy">
