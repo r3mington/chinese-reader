@@ -153,6 +153,29 @@ button:active {
     color: var(--text-primary);
 }
 
+/* Reading Progress Bar */
+.reading-progress-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.05);
+    z-index: 1001;
+    overflow: hidden;
+}
+
+.reading-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg,
+            var(--accent-blue) 0%,
+            #60a5fa 50%,
+            #93c5fd 100%);
+    box-shadow: 0 0 8px rgba(59, 130, 246, 0.5);
+    transition: width 0.2s ease-out;
+    border-radius: 0 2px 2px 0;
+}
+
 /* Sidebar Styles */
 .sidebar {
     width: 300px;

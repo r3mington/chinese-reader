@@ -18,6 +18,7 @@ const Reader = ({ story }) => {
     const [toneColorsEnabled, setToneColorsEnabled] = useState(() => {
         return localStorage.getItem('toneColorsEnabled') === 'true';
     });
+    const [readingProgress, setReadingProgress] = useState(0);
     const contentRef = useRef(null);
     const isMobile = useIsMobile();
 
@@ -115,6 +116,9 @@ const Reader = ({ story }) => {
             const progressRatio = scrollHeight > 0 ? (scrollTop + clientHeight) / scrollHeight : 0;
             const percentage = Math.min(100, Math.max(0, Math.round(progressRatio * 100)));
 
+            // Update progress bar state
+            setReadingProgress(percentage);
+
             // Calculate approximate chars read
             const totalChars = story.content ? story.content.length : 0;
             const charsRead = Math.round(totalChars * progressRatio);
@@ -209,6 +213,14 @@ const Reader = ({ story }) => {
 
     return (
         <div className="reader-container">
+            {/* Reading Progress Bar */}
+            <div className="reading-progress-bar">
+                <div
+                    className="reading-progress-fill"
+                    style={{ width: `${readingProgress}%` }}
+                />
+            </div>
+
             {!isMobile && (
                 <div className="reader-toolbar">
                     <div className="toolbar-left">
