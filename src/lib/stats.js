@@ -143,7 +143,9 @@ export const trackScrollProgress = (charsRead) => {
         // Calculate story average based on time since story start
         if (currentStoryId && storyStartTime) {
             const elapsedSeconds = (now - storyStartTime) / 1000;
-            if (elapsedSeconds > 0) {
+
+            // Only update story CPM after 5 seconds of reading to avoid spikes
+            if (elapsedSeconds > 5) {
                 // Use the cumulative chars read from start of session
                 const avgCpm = Math.round((storyTotalChars / elapsedSeconds) * 60);
 
@@ -169,12 +171,17 @@ export const getCpmStats = () => {
 
     // Calculate 60s CPM
     let recentCpm = '--';
-    if (scrollEvents.length > 0 && lastScrollTime && (now - lastScrollTime) <= 60000) {
-        const totalChars = scrollEvents.reduce((sum, e) => sum + e.charsRead, 0);
+    if (scrollEvents.length > 1 && lastScrollTime && (now - lastScrollTime) <= 60000) {
+        // We track the time span covered by the events in the window
+        const newestEvent = scrollEvents[scrollEvents.length - 1];
         const oldestEvent = scrollEvents[0];
-        const timeSpan = (now - oldestEvent.timestamp) / 1000;
+        const timeSpan = (newestEvent.timestamp - oldestEvent.timestamp) / 1000;
 
-        if (timeSpan >= 10) { // Only show after 10 seconds of data
+        // Only show if we have events spanning at least 5 seconds
+        if (timeSpan >= 5) {
+            const totalChars = scrollEvents.reduce((sum, e) => sum + e.charsRead, 0);
+
+            // Calculate rate based on the actual time span of data we have
             recentCpm = Math.round((totalChars / timeSpan) * 60);
         }
     }
