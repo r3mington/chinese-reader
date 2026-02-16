@@ -17,6 +17,7 @@ let savedStats = null;
 let scrollEvents = []; // Array of { timestamp, charsRead }
 let currentStoryId = null;
 let storyStartTime = null;
+let storyStartPosition = null; // Track where reading started in the story
 let storyTotalChars = 0;
 let lastScrollTime = null;
 let storyCpmData = {}; // { storyId: { totalChars, totalSeconds, avgCpm } }
@@ -94,39 +95,56 @@ export const getReadingStats = async () => {
 // CPM Tracking Functions
 export const initStoryTracking = (storyId) => {
     currentStoryId = storyId;
-    storyStartTime = Date.now();
+    storyStartTime = null; // Will be set on first scroll
     storyTotalChars = 0;
+    storyStartPosition = null; // Track where reading started
     scrollEvents = [];
-    lastScrollTime = Date.now();
+    lastScrollTime = null;
 };
 
 export const trackScrollProgress = (charsRead) => {
     const now = Date.now();
 
+    // Initialize on first scroll
+    if (storyStartPosition === null) {
+        storyStartPosition = charsRead;
+        storyStartTime = now;
+        lastScrollTime = now;
+        return;
+    }
+
     // Detect pause (>5 seconds since last scroll)
     if (lastScrollTime && (now - lastScrollTime) > 5000) {
         // Reset story timer after pause
         storyStartTime = now;
+        storyStartPosition = charsRead;
         storyTotalChars = 0;
+        scrollEvents = [];
     }
 
     lastScrollTime = now;
 
-    // Only track forward progress
-    if (charsRead > storyTotalChars) {
-        const charsAdded = charsRead - storyTotalChars;
-        storyTotalChars = charsRead;
+    // Calculate characters read from start position
+    const currentProgress = charsRead - storyStartPosition;
 
-        // Add to rolling window
+    // Only track forward progress
+    if (currentProgress > storyTotalChars) {
+        const charsAdded = currentProgress - storyTotalChars;
+
+        // Add to rolling window (incremental chars only)
         scrollEvents.push({ timestamp: now, charsRead: charsAdded });
 
         // Remove events older than 60 seconds
         scrollEvents = scrollEvents.filter(e => (now - e.timestamp) <= 60000);
 
-        // Update story average
+        // Update story total (cumulative for this session)
+        storyTotalChars = currentProgress;
+
+        // Calculate story average based on time since story start
         if (currentStoryId && storyStartTime) {
             const elapsedSeconds = (now - storyStartTime) / 1000;
             if (elapsedSeconds > 0) {
+                // Use the cumulative chars read from start of session
                 const avgCpm = Math.round((storyTotalChars / elapsedSeconds) * 60);
 
                 // Save to storage
