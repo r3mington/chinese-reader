@@ -107,7 +107,7 @@ const StatsToolbar = () => {
                     {!isMobile && (
                         <>
                             <div className="stat-divider"></div>
-                            <div className="stat-item" title="Characters read in last 60s (Rolling)">
+                            <div className="stat-item" title="Characters read in last 5m (Rolling)">
                                 <span className="stat-label">CPM</span>
                                 <span className="stat-value">{cpm.cpm}</span>
                             </div>
@@ -119,7 +119,7 @@ const StatsToolbar = () => {
             {/* Line 3: CPM (mobile only) */}
             {isMobile && progress.percentage > 0 && (
                 <div className="stats-row">
-                    <div className="stat-item" title="Characters read in last 60s (Rolling)">
+                    <div className="stat-item" title="Characters read in last 5m (Rolling)">
                         <span className="stat-label">CPM</span>
                         <span className="stat-value">{cpm.cpm}</span>
                     </div>

@@ -171,12 +171,12 @@ export const trackScrollProgress = (charsRead) => {
 export const getCpmStats = () => {
     const now = Date.now();
 
-    // Calculate 60s CPM
+    // Calculate 5m CPM
     let recentCpm = '--';
 
-    // Filter events for the calculation window (last 60s)
+    // Filter events for the calculation window (last 5m)
     // Note: We do this filter here too for display accuracy
-    const activeEvents = scrollEvents.filter(e => (now - e.timestamp) <= 60000);
+    const activeEvents = scrollEvents.filter(e => (now - e.timestamp) <= 300000);
 
     if (activeEvents.length > 0) {
         const totalChars = activeEvents.reduce((sum, e) => sum + e.charsRead, 0);
