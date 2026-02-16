@@ -1027,13 +1027,24 @@ button:active {
 
     /* Adjust stats toolbar for mobile */
     .stats-toolbar {
-        padding: 6px 10px;
+        padding: 6px 4px;
+        /* Reduced side padding */
         font-size: 12px;
         gap: 4px;
+        width: 95%;
+        /* Use almost full width */
+        max-width: 400px;
+        /* Cap width on larger phones */
+        box-sizing: border-box;
+        justify-content: center;
     }
 
     .stats-row {
-        gap: 8px;
+        gap: 4px;
+        /* Tighter gap between items */
+        justify-content: center;
+        /* Center content */
+        width: 100%;
     }
 
     .stats-toolbar.mobile {

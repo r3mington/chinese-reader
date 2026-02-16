@@ -92,11 +92,11 @@ const StatsToolbar = () => {
                 </div>
             </div>
 
-            {/* Line 2: Progress & CPM stats (desktop) / Line 2-3 (mobile) */}
+            {/* Line 2: Progress & CPM stats (Both Desktop & Mobile now) */}
             {progress.percentage > 0 && (
                 <div className="stats-row">
                     <div className="stat-item" title="Reading progress">
-                        <span className="stat-label">PROGRESS</span>
+                        <span className="stat-label">PROG</span>
                         <span className="stat-value">{progress.percentage}%</span>
                     </div>
                     <div className="stat-divider"></div>
@@ -104,27 +104,15 @@ const StatsToolbar = () => {
                         <span className="stat-label">CHARS</span>
                         <span className="stat-value">{progress.charsRead}</span>
                     </div>
-                    {!isMobile && (
-                        <>
-                            <div className="stat-divider"></div>
-                            <div className="stat-item" title="Characters read in last 5m (Rolling)">
-                                <span className="stat-label">CPM</span>
-                                <span className="stat-value">{cpm.cpm}</span>
-                            </div>
-                        </>
-                    )}
-                </div>
-            )}
-
-            {/* Line 3: CPM (mobile only) */}
-            {isMobile && progress.percentage > 0 && (
-                <div className="stats-row">
+                    <div className="stat-divider"></div>
                     <div className="stat-item" title="Characters read in last 5m (Rolling)">
                         <span className="stat-label">CPM</span>
                         <span className="stat-value">{cpm.cpm}</span>
                     </div>
                 </div>
             )}
+
+            {/* Line 3 Removed for mobile - merged into Line 2 */}
         </div>
     );
 };
