@@ -110,16 +110,18 @@ export const trackScrollProgress = (charsRead) => {
         storyStartPosition = charsRead;
         storyStartTime = now;
         lastScrollTime = now;
+        // Seed the scroll events with t=0 (now) and chars=0 so we have an anchor
+        scrollEvents.push({ timestamp: now, charsRead: 0 });
         return;
     }
 
-    // Detect pause (>5 seconds since last scroll)
-    if (lastScrollTime && (now - lastScrollTime) > 5000) {
-        // Reset story timer after pause
+    // Detect pause (>5 minutes since last scroll) - effectively a new session
+    if (lastScrollTime && (now - lastScrollTime) > 300000) {
+        // Reset story timer after long pause
         storyStartTime = now;
         storyStartPosition = charsRead;
         storyTotalChars = 0;
-        scrollEvents = [];
+        scrollEvents = [{ timestamp: now, charsRead: 0 }];
     }
 
     lastScrollTime = now;
@@ -137,7 +139,7 @@ export const trackScrollProgress = (charsRead) => {
         // Remove events older than 60 seconds
         scrollEvents = scrollEvents.filter(e => (now - e.timestamp) <= 60000);
 
-        // Update story total (cumulative for this session)
+        // Update story total
         storyTotalChars = currentProgress;
 
         // Calculate story average based on time since story start
@@ -171,19 +173,26 @@ export const getCpmStats = () => {
 
     // Calculate 60s CPM
     let recentCpm = '--';
-    if (scrollEvents.length > 1 && lastScrollTime && (now - lastScrollTime) <= 60000) {
-        // We track the time span covered by the events in the window
-        const newestEvent = scrollEvents[scrollEvents.length - 1];
-        const oldestEvent = scrollEvents[0];
-        const timeSpan = (newestEvent.timestamp - oldestEvent.timestamp) / 1000;
 
-        // Only show if we have events spanning at least 2 seconds (was 5)
-        // This reduces the time users see "--"
-        if (timeSpan >= 2) {
-            const totalChars = scrollEvents.reduce((sum, e) => sum + e.charsRead, 0);
+    // Filter events for the calculation window (last 60s)
+    // Note: We do this filter here too for display accuracy
+    const activeEvents = scrollEvents.filter(e => (now - e.timestamp) <= 60000);
 
-            // Calculate rate based on the actual time span of data we have
+    if (activeEvents.length > 0) {
+        const totalChars = activeEvents.reduce((sum, e) => sum + e.charsRead, 0);
+        const oldestEvent = activeEvents[0];
+
+        // Use time relative to NOW to account for reading time (pauses between scrolls)
+        // Ensure we don't divide by zero or very small numbers
+        const timeSpan = Math.max(1, (now - oldestEvent.timestamp) / 1000);
+
+        // Only show valid stats if we have > 0 chars and > 2s of history
+        if (totalChars > 0 && timeSpan >= 2) {
             recentCpm = Math.round((totalChars / timeSpan) * 60);
+        } else if (activeEvents.length > 2) {
+            // If we have events but 0 chars (static), CPM is 0
+            // Or if we just started
+            if (timeSpan >= 2) recentCpm = 0;
         }
     }
 
