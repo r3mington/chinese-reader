@@ -123,7 +123,11 @@ const Reader = ({ story }) => {
             setReadingProgress(percentage);
 
             // Calculate approximate chars read
-            const totalChars = story.content ? story.content.length : 0;
+            // Accurate count: Strip HTML and whitespace to get real character count
+            const contentText = story.content
+                ? story.content.replace(/<[^>]*>/g, '').replace(/\s+/g, '')
+                : '';
+            const totalChars = contentText.length;
             const charsRead = Math.round(totalChars * progressRatio);
 
             // Track CPM

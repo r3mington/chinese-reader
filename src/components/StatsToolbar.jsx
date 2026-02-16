@@ -6,7 +6,7 @@ import '../styles/oled.css';
 const StatsToolbar = () => {
     const [stats, setStats] = useState({ daily: 0, weekly: 0, total: 0 });
     const [progress, setProgress] = useState({ percentage: 0, charsRead: 0 });
-    const [cpm, setCpm] = useState({ recentCpm: '--', storyCpm: '--' });
+    const [cpm, setCpm] = useState({ cpm: '--' });
     const [isCollapsed, setIsCollapsed] = useState(true);
     const isMobile = useIsMobile();
 
@@ -107,9 +107,9 @@ const StatsToolbar = () => {
                     {!isMobile && (
                         <>
                             <div className="stat-divider"></div>
-                            <div className="stat-item" title="Characters per minute (60s / story avg)">
+                            <div className="stat-item" title="Characters read in last 60s (Rolling)">
                                 <span className="stat-label">CPM</span>
-                                <span className="stat-value">{cpm.recentCpm} / {cpm.storyCpm}</span>
+                                <span className="stat-value">{cpm.cpm}</span>
                             </div>
                         </>
                     )}
@@ -119,9 +119,9 @@ const StatsToolbar = () => {
             {/* Line 3: CPM (mobile only) */}
             {isMobile && progress.percentage > 0 && (
                 <div className="stats-row">
-                    <div className="stat-item" title="Characters per minute (60s / story avg)">
+                    <div className="stat-item" title="Characters read in last 60s (Rolling)">
                         <span className="stat-label">CPM</span>
-                        <span className="stat-value">{cpm.recentCpm} / {cpm.storyCpm}</span>
+                        <span className="stat-value">{cpm.cpm}</span>
                     </div>
                 </div>
             )}

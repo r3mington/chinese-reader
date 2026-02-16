@@ -186,13 +186,9 @@ export const getCpmStats = () => {
         }
     }
 
-    // Get story average
-    let storyCpm = '--';
-    if (currentStoryId && storyCpmData[currentStoryId]) {
-        storyCpm = storyCpmData[currentStoryId].avgCpm;
-    }
-
-    return { recentCpm, storyCpm };
+    // User requested only ONE rolling 60s measure
+    // We return recentCpm but maybe label it just 'cpm'
+    return { cpm: recentCpm };
 };
 
 const dispatchCpmUpdate = () => {
