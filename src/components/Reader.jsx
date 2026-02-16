@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { lookupAt } from '../lib/dictionary';
 import { saveBookmark, getBookmark } from '../lib/storage';
-import { startReadingSession, endReadingSession } from '../lib/stats';
+import { startReadingSession, endReadingSession, initStoryTracking, trackScrollProgress } from '../lib/stats';
 import { trackWordClick } from '../lib/vocabulary';
 import { useIsMobile } from '../lib/useIsMobile';
 import WordPopup from './WordPopup';
@@ -90,6 +90,9 @@ const Reader = ({ story }) => {
 
         contentRef.current.scrollTop = 0;
 
+        // Initialize CPM tracking for this story
+        initStoryTracking(story.id);
+
         const restorePos = async () => {
             const bookmark = await getBookmark(story.id);
             if (bookmark && contentRef.current) {
@@ -122,6 +125,9 @@ const Reader = ({ story }) => {
             // Calculate approximate chars read
             const totalChars = story.content ? story.content.length : 0;
             const charsRead = Math.round(totalChars * progressRatio);
+
+            // Track CPM
+            trackScrollProgress(charsRead);
 
             // Dispatch event for StatsToolbar
             window.dispatchEvent(new CustomEvent('readingProgressUpdated', {

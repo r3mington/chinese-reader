@@ -6,6 +6,7 @@ import '../styles/oled.css';
 const StatsToolbar = () => {
     const [stats, setStats] = useState({ daily: 0, weekly: 0, total: 0 });
     const [progress, setProgress] = useState({ percentage: 0, charsRead: 0 });
+    const [cpm, setCpm] = useState({ recentCpm: '--', storyCpm: '--' });
     const [isCollapsed, setIsCollapsed] = useState(true);
     const isMobile = useIsMobile();
 
@@ -31,8 +32,16 @@ const StatsToolbar = () => {
             }
         };
 
+        // Listen for CPM updates
+        const handleCpmUpdate = (e) => {
+            if (e.detail) {
+                setCpm(e.detail);
+            }
+        };
+
         window.addEventListener('statsUpdated', handleStatsUpdate);
         window.addEventListener('readingProgressUpdated', handleProgressUpdate);
+        window.addEventListener('cpmUpdated', handleCpmUpdate);
 
         // Poll every minute just in case
         const interval = setInterval(fetchStats, 60000);
@@ -40,6 +49,7 @@ const StatsToolbar = () => {
         return () => {
             window.removeEventListener('statsUpdated', handleStatsUpdate);
             window.removeEventListener('readingProgressUpdated', handleProgressUpdate);
+            window.removeEventListener('cpmUpdated', handleCpmUpdate);
             clearInterval(interval);
         };
     }, []);
@@ -64,35 +74,56 @@ const StatsToolbar = () => {
 
     return (
         <div className={`stats-toolbar ${isMobile ? 'mobile' : ''}`} onClick={toggleCollapse}>
-            <div className="stat-item" title="Minutes read today">
-                <span className="stat-label">Daily</span>
-                <span className="stat-value">{stats.daily}m</span>
-            </div>
-            <div className="stat-divider"></div>
-            <div className="stat-item" title="Minutes read in last 7 days">
-                <span className="stat-label">Weekly</span>
-                <span className="stat-value">{stats.weekly}m</span>
-            </div>
-            <div className="stat-divider"></div>
-            <div className="stat-item" title="Total minutes read">
-                <span className="stat-label">Total</span>
-                <span className="stat-value">{stats.total}m</span>
+            {/* Line 1: Time stats */}
+            <div className="stats-row">
+                <div className="stat-item" title="Minutes read today">
+                    <span className="stat-label">DAILY</span>
+                    <span className="stat-value">{stats.daily}m</span>
+                </div>
+                <div className="stat-divider"></div>
+                <div className="stat-item" title="Minutes read in last 7 days">
+                    <span className="stat-label">WEEKLY</span>
+                    <span className="stat-value">{stats.weekly}m</span>
+                </div>
+                <div className="stat-divider"></div>
+                <div className="stat-item" title="Total minutes read">
+                    <span className="stat-label">TOTAL</span>
+                    <span className="stat-value">{stats.total}m</span>
+                </div>
             </div>
 
-            {/* Reading Progress Stats */}
+            {/* Line 2: Progress & CPM stats (desktop) / Line 2-3 (mobile) */}
             {progress.percentage > 0 && (
-                <>
-                    <div className="stat-divider"></div>
+                <div className="stats-row">
                     <div className="stat-item" title="Reading progress">
-                        <span className="stat-label">Progress</span>
+                        <span className="stat-label">PROGRESS</span>
                         <span className="stat-value">{progress.percentage}%</span>
                     </div>
                     <div className="stat-divider"></div>
                     <div className="stat-item" title="Estimated characters read">
-                        <span className="stat-label">Chars</span>
+                        <span className="stat-label">CHARS</span>
                         <span className="stat-value">{progress.charsRead}</span>
                     </div>
-                </>
+                    {!isMobile && (
+                        <>
+                            <div className="stat-divider"></div>
+                            <div className="stat-item" title="Characters per minute (60s / story avg)">
+                                <span className="stat-label">CPM</span>
+                                <span className="stat-value">{cpm.recentCpm} / {cpm.storyCpm}</span>
+                            </div>
+                        </>
+                    )}
+                </div>
+            )}
+
+            {/* Line 3: CPM (mobile only) */}
+            {isMobile && progress.percentage > 0 && (
+                <div className="stats-row">
+                    <div className="stat-item" title="Characters per minute (60s / story avg)">
+                        <span className="stat-label">CPM</span>
+                        <span className="stat-value">{cpm.recentCpm} / {cpm.storyCpm}</span>
+                    </div>
+                </div>
             )}
         </div>
     );
