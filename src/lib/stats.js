@@ -177,8 +177,9 @@ export const getCpmStats = () => {
         const oldestEvent = scrollEvents[0];
         const timeSpan = (newestEvent.timestamp - oldestEvent.timestamp) / 1000;
 
-        // Only show if we have events spanning at least 5 seconds
-        if (timeSpan >= 5) {
+        // Only show if we have events spanning at least 2 seconds (was 5)
+        // This reduces the time users see "--"
+        if (timeSpan >= 2) {
             const totalChars = scrollEvents.reduce((sum, e) => sum + e.charsRead, 0);
 
             // Calculate rate based on the actual time span of data we have

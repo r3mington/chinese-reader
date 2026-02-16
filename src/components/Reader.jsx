@@ -123,12 +123,12 @@ const Reader = ({ story }) => {
             setReadingProgress(percentage);
 
             // Calculate approximate chars read
-            // Accurate count: Strip HTML and whitespace to get real character count
-            const contentText = story.content
-                ? story.content.replace(/<[^>]*>/g, '').replace(/\s+/g, '')
-                : '';
-            const totalChars = contentText.length;
-            const charsRead = Math.round(totalChars * progressRatio);
+            // Accurate count: Match only Chinese characters (CJK Unified Ideographs)
+            // This excludes punctuation, spaces, HTML tags, and latin text/pinyin
+            const chineseChars = story.content
+                ? (story.content.match(/[\u4e00-\u9fff]/g) || []).length
+                : 0;
+            const charsRead = Math.round(chineseChars * progressRatio);
 
             // Track CPM
             trackScrollProgress(charsRead);
