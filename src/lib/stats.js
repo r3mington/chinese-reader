@@ -13,6 +13,7 @@ const defaultStats = {
 let currentSessionStart = null;
 let savedStats = null;
 let isPaused = false; // Global pause flag
+let sessionStartChars = 0; // chars at the moment the current session started
 
 // CPM tracking
 let scrollEvents = []; // Array of { timestamp, charsRead }
@@ -38,6 +39,8 @@ export const loadStats = async () => {
 export const startReadingSession = () => {
     if (isPaused) return;
     currentSessionStart = Date.now();
+    // Snapshot chars at session start so we can compute the delta on end
+    sessionStartChars = storyTotalChars;
 };
 
 export const pauseStats = () => {
@@ -67,25 +70,24 @@ export const endReadingSession = async () => {
     const now = Date.now();
     const durationMinutes = (now - currentSessionStart) / 1000 / 60;
 
-    if (durationMinutes > 0) {
+    // Only save sessions longer than 10 seconds to avoid noise
+    if (durationMinutes >= (10 / 60)) {
         await updateReadingTime(durationMinutes);
 
-        // Save session stats for current story if we have CPM data
         if (currentStoryId) {
+            // Chars read in THIS session = delta from when session started
+            const sessionChars = Math.max(0, storyTotalChars - sessionStartChars);
+
+            // Get CPM — use 0 if unavailable, don't gate the save on it
             const { cpm } = getCpmStats();
-            // If CPM is valid number
-            const cpmVal = parseInt(cpm);
-            if (!isNaN(cpmVal)) {
-                // Approximate chars read in this session based on simple math or
-                // tracking the delta of storyTotalChars
-                // For now, let's use what we tracked in storyTotalChars for THIS session
-                await saveSession(currentStoryId, durationMinutes, storyTotalChars, cpmVal);
-            }
+            const cpmVal = (typeof cpm === 'number' && !isNaN(cpm)) ? cpm : 0;
+
+            await saveSession(currentStoryId, durationMinutes, sessionChars, cpmVal);
         }
     }
 
     currentSessionStart = null;
-    currentStoryId = null; // Clear active story
+    sessionStartChars = storyTotalChars; // update snapshot for next session
 };
 
 export const updateReadingTime = async (minutes) => {

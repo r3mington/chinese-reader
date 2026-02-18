@@ -60,6 +60,7 @@ const Reader = ({ story }) => {
     useEffect(() => {
         if (!story) return;
 
+        // Start session immediately if page is visible
         if (!document.hidden) {
             startReadingSession();
         }
@@ -72,15 +73,19 @@ const Reader = ({ story }) => {
             }
         };
 
+        // pagehide is the most reliable signal for mobile PWA close / background
+        const handlePageHide = () => {
+            endReadingSession();
+        };
+
         document.addEventListener('visibilitychange', handleVisibilityChange);
-        window.addEventListener('blur', endReadingSession);
-        window.addEventListener('focus', startReadingSession);
+        window.addEventListener('pagehide', handlePageHide);
 
         return () => {
+            // Story changed or component unmounted — save current session
             endReadingSession();
             document.removeEventListener('visibilitychange', handleVisibilityChange);
-            window.removeEventListener('blur', endReadingSession);
-            window.removeEventListener('focus', startReadingSession);
+            window.removeEventListener('pagehide', handlePageHide);
         };
     }, [story]);
 
