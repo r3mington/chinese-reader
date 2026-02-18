@@ -292,8 +292,3 @@ export const saveSession = async (storyId, durationMinutes, charsRead, cpm) => {
     // Dispatch stats update
     window.dispatchEvent(new CustomEvent('statsUpdated', { detail: savedStats }));
 };
-
-const dispatchCpmUpdate = () => {
-    const cpmStats = getCpmStats();
-    window.dispatchEvent(new CustomEvent('cpmUpdated', { detail: cpmStats }));
-};
