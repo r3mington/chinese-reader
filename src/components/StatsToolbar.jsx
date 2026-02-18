@@ -147,9 +147,9 @@ const StatsToolbar = ({ currentStoryId }) => {
                         <span className="stat-value">{(storyStats.totalChars || 0) + (progress.charsRead || 0)}</span>
                     </div>
                     <div className="stat-divider"></div>
-                    <div className="stat-item" title="Current reading speed (rolling 5 min)">
-                        <span className="stat-label">CPM</span>
-                        <span className="stat-value">{cpm.cpm}</span>
+                    <div className="stat-item" title="Average CPM across all past sessions for this book">
+                        <span className="stat-label">AVG CPM</span>
+                        <span className="stat-value">{storyStats.avgCpm || '--'}</span>
                     </div>
                 </div>
             )}
