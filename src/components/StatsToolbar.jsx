@@ -9,6 +9,7 @@ const StatsToolbar = ({ currentStoryId }) => {
     const [cpm, setCpm] = useState({ cpm: '--' });
     const [isCollapsed, setIsCollapsed] = useState(true);
     const [viewMode, setViewMode] = useState('BOOK'); // Default to BOOK stats when reading
+    const [sessionStartTime] = useState(Date.now()); // Track when this session started
     const isMobile = useIsMobile();
 
     const fetchStats = async () => {
@@ -119,21 +120,23 @@ const StatsToolbar = ({ currentStoryId }) => {
                     </div>
                 </div>
             ) : (
-                /* BOOK STATS VIEW */
+                /* BOOK STATS VIEW — saved totals + live session */
                 <div className="stats-row">
-                    <div className="stat-item" title="Total time spent on this book (approx)">
+                    <div className="stat-item" title="Total time on this book including current session">
                         <span className="stat-label">TIME</span>
-                        <span className="stat-value">{storyStats.totalTime ? Math.round(storyStats.totalTime) : 0}m</span>
+                        <span className="stat-value">
+                            {Math.round((storyStats.totalTime || 0) + (Date.now() - sessionStartTime) / 60000)}m
+                        </span>
                     </div>
                     <div className="stat-divider"></div>
-                    <div className="stat-item" title="Characters read in this book">
+                    <div className="stat-item" title="Total characters read in this book including current session">
                         <span className="stat-label">CHARS</span>
-                        <span className="stat-value">{storyStats.totalChars || 0}</span>
+                        <span className="stat-value">{(storyStats.totalChars || 0) + (progress.charsRead || 0)}</span>
                     </div>
                     <div className="stat-divider"></div>
-                    <div className="stat-item" title="Average CPM for this book">
-                        <span className="stat-label">AVG CPM</span>
-                        <span className="stat-value">{storyStats.avgCpm || '--'}</span>
+                    <div className="stat-item" title="Current reading speed (rolling 5 min)">
+                        <span className="stat-label">CPM</span>
+                        <span className="stat-value">{cpm.cpm}</span>
                     </div>
                 </div>
             )}
