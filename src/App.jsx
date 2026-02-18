@@ -4,6 +4,7 @@ import LibraryModal from './components/LibraryModal';
 import Reader from './components/Reader';
 import StatsToolbar from './components/StatsToolbar';
 import VocabularyView from './components/VocabularyView';
+import StoryStatsPage from './components/StoryStatsPage';
 import { initDictionary } from './lib/dictionary';
 import { getStories } from './lib/storage';
 import './styles/oled.css';
@@ -13,6 +14,7 @@ function App() {
   const [isLoadingDict, setIsLoadingDict] = useState(false);
   const [loadingStatus, setLoadingStatus] = useState('');
   const [libraryOpen, setLibraryOpen] = useState(false);
+  const [statsStory, setStatsStory] = useState(null);
 
   useEffect(() => {
     // Initialize dictionary on load
@@ -75,6 +77,7 @@ function App() {
               onClose={() => setLibraryOpen(false)}
               onSelectStory={handleStorySelect}
               currentStoryId={currentStory?.id}
+              onViewStats={(story) => setStatsStory(story)}
             />
             <button
               className="floating-library-button"
@@ -91,6 +94,12 @@ function App() {
         } />
         <Route path="/vocabulary" element={<VocabularyView />} />
       </Routes>
+      {statsStory && (
+        <StoryStatsPage
+          story={statsStory}
+          onClose={() => setStatsStory(null)}
+        />
+      )}
     </Router>
   );
 }

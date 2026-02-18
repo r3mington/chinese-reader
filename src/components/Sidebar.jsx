@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { getStories, saveStory, deleteStory } from '../lib/storage';
 import { Link } from 'react-router-dom';
-import StoryStatsModal from './StoryStatsModal';
 
-const Sidebar = ({ onSelectStory, currentStoryId }) => {
+const Sidebar = ({ onSelectStory, currentStoryId, onViewStats }) => {
     const [stories, setStories] = useState([]);
     const [isAdding, setIsAdding] = useState(false);
     const [newTitle, setNewTitle] = useState('');
     const [newContent, setNewContent] = useState('');
-    const [statsStory, setStatsStory] = useState(null);
 
     useEffect(() => {
         loadStories();
@@ -87,7 +85,7 @@ const Sidebar = ({ onSelectStory, currentStoryId }) => {
                                     className="icon-btn stats-btn"
                                     onClick={(e) => {
                                         e.stopPropagation();
-                                        setStatsStory(story);
+                                        onViewStats && onViewStats(story);
                                     }}
                                     title="View Stats & History"
                                 >
@@ -114,13 +112,6 @@ const Sidebar = ({ onSelectStory, currentStoryId }) => {
                 </Link>
             </div>
 
-            {/* Stats Modal */}
-            {statsStory && (
-                <StoryStatsModal
-                    story={statsStory}
-                    onClose={() => setStatsStory(null)}
-                />
-            )}
         </div>
     );
 };

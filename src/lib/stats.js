@@ -280,6 +280,7 @@ export const saveSession = async (storyId, durationMinutes, charsRead, cpm) => {
 
     // Add to history
     stats.history.push({
+        startTime: new Date().toISOString(), // when this session started (approx end - duration)
         date: new Date().toISOString(),
         duration: durationMinutes,
         chars: charsRead,
