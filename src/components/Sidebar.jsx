@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getStories, saveStory, deleteStory } from '../lib/storage';
+import { getStories, saveStory, deleteStory, setStoryRead } from '../lib/storage';
 import { Link } from 'react-router-dom';
 
 const Sidebar = ({ onSelectStory, currentStoryId, onViewStats, onViewGlobalStats }) => {
@@ -41,6 +41,13 @@ const Sidebar = ({ onSelectStory, currentStoryId, onViewStats, onViewGlobalStats
         }
     };
 
+    const handleToggleRead = async (story, e) => {
+        e.stopPropagation();
+        const newVal = !story.isRead;
+        await setStoryRead(story.id, newVal);
+        setStories(stories.map(s => s.id === story.id ? { ...s, isRead: newVal } : s));
+    };
+
     return (
         <div className="sidebar">
             <div className="sidebar-header">
@@ -74,13 +81,23 @@ const Sidebar = ({ onSelectStory, currentStoryId, onViewStats, onViewGlobalStats
                 {stories.map(story => (
                     <div
                         key={story.id}
-                        className={`story-item ${story.id === currentStoryId ? 'active' : ''}`}
+                        className={`story-item ${story.id === currentStoryId ? 'active' : ''} ${story.isRead ? 'story-read' : ''}`}
                         onClick={() => onSelectStory(story)}
                     >
-                        <div className="story-title">{story.title}</div>
+                        <div className="story-title">
+                            {story.title}
+                            {story.isRead && <span className="story-read-badge">READ</span>}
+                        </div>
                         <div className="story-meta">
                             {new Date(story.createdAt).toLocaleDateString()}
                             <div className="story-actions">
+                                <button
+                                    className={`icon-btn read-toggle-btn ${story.isRead ? 'read-toggle-active' : ''}`}
+                                    onClick={(e) => handleToggleRead(story, e)}
+                                    title={story.isRead ? 'Mark as unread' : 'Mark as read (stops stats tracking)'}
+                                >
+                                    ✓
+                                </button>
                                 <button
                                     className="icon-btn stats-btn"
                                     onClick={(e) => {

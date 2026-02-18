@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getStoryStats, resetStoryStats } from '../lib/stats';
+import { getStoryStats, resetStoryStats, deleteSession } from '../lib/stats';
 
 const StoryStatsPage = ({ story, onClose }) => {
     const [stats, setStats] = useState(null);
@@ -17,6 +17,13 @@ const StoryStatsPage = ({ story, onClose }) => {
     const handleReset = async () => {
         if (!confirm(`Reset all stats for "${story.title}"? This cannot be undone.`)) return;
         await resetStoryStats(story.id);
+        const fresh = await getStoryStats(story.id);
+        setStats(fresh);
+    };
+
+    const handleDeleteSession = async (originalIndex) => {
+        if (!confirm('Delete this session?')) return;
+        await deleteSession(story.id, originalIndex);
         const fresh = await getStoryStats(story.id);
         setStats(fresh);
     };
@@ -344,10 +351,12 @@ const StoryStatsPage = ({ story, onClose }) => {
                                             <th>Duration</th>
                                             <th>Chars</th>
                                             <th>CPM</th>
+                                            <th></th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {history.map((session, i) => {
+                                            const originalIndex = sessionCount - 1 - i; // history is reversed
                                             const cpmPct = bestCpm > 0 ? Math.round((session.cpm / bestCpm) * 100) : 0;
                                             return (
                                                 <tr key={i}>
@@ -365,6 +374,13 @@ const StoryStatsPage = ({ story, onClose }) => {
                                                                 </div>
                                                             )}
                                                         </div>
+                                                    </td>
+                                                    <td>
+                                                        <button
+                                                            className="ssp-session-del-btn"
+                                                            onClick={() => handleDeleteSession(originalIndex)}
+                                                            title="Delete this session"
+                                                        >×</button>
                                                     </td>
                                                 </tr>
                                             );

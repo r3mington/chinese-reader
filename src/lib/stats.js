@@ -14,6 +14,7 @@ let currentSessionStart = null;
 let savedStats = null;
 let isPaused = false; // Global pause flag
 let sessionStartChars = 0; // chars at the moment the current session started
+let isCurrentStoryRead = false; // If true, don't save per-book session stats
 
 // Use LOCAL date string (YYYY-MM-DD) so timezone doesn't shift sessions to wrong day
 const localDateKey = (date = new Date()) => {
@@ -82,7 +83,7 @@ export const endReadingSession = async () => {
     if (durationMinutes >= 1) {
         await updateReadingTime(durationMinutes);
 
-        if (currentStoryId) {
+        if (currentStoryId && !isCurrentStoryRead) {
             // Chars read in THIS session = delta from when session started
             const sessionChars = Math.max(0, storyTotalChars - sessionStartChars);
 
@@ -140,8 +141,9 @@ export const getReadingStats = async () => {
 };
 
 // CPM Tracking Functions
-export const initStoryTracking = (storyId) => {
+export const initStoryTracking = (storyId, isRead = false) => {
     currentStoryId = storyId;
+    isCurrentStoryRead = isRead;
     storyStartTime = null; // Will be set on first scroll
     storyTotalChars = 0;
     storyStartPosition = null; // Track where reading started
@@ -337,6 +339,25 @@ export const resetStoryStats = async (storyId) => {
         await set(STATS_KEY, savedStats);
         window.dispatchEvent(new CustomEvent('statsUpdated', { detail: savedStats }));
     }
+};
+
+export const deleteSession = async (storyId, sessionIndex) => {
+    if (!savedStats) await loadStats();
+    const storyData = savedStats.storyStats?.[storyId];
+    if (!storyData || !storyData.history) return;
+
+    const session = storyData.history[sessionIndex];
+    if (!session) return;
+
+    // Subtract from totals
+    storyData.totalTime = Math.max(0, (storyData.totalTime || 0) - (session.duration || 0));
+    storyData.totalChars = Math.max(0, (storyData.totalChars || 0) - (session.chars || 0));
+
+    // Remove from history
+    storyData.history.splice(sessionIndex, 1);
+
+    await set(STATS_KEY, savedStats);
+    window.dispatchEvent(new CustomEvent('statsUpdated', { detail: savedStats }));
 };
 
 export const getGlobalStats = async () => {

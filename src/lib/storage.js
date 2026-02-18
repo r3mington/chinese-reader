@@ -31,6 +31,12 @@ export const deleteStory = async (id) => {
   });
 };
 
+export const setStoryRead = async (id, isRead) => {
+  await update(STORIES_KEY, (stories = []) =>
+    stories.map(s => s.id === id ? { ...s, isRead } : s)
+  );
+};
+
 export const updateStoryProgress = async (id, progress) => {
   await update(STORIES_KEY, (stories = []) => {
     return stories.map(story =>

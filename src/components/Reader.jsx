@@ -96,7 +96,7 @@ const Reader = ({ story }) => {
         contentRef.current.scrollTop = 0;
 
         // Initialize CPM tracking for this story
-        initStoryTracking(story.id);
+        initStoryTracking(story.id, !!story.isRead);
 
         const restorePos = async () => {
             const bookmark = await getBookmark(story.id);
