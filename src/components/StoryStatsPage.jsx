@@ -228,6 +228,53 @@ const StoryStatsPage = ({ story, onClose }) => {
 
                 <div className="ssp-body">
 
+                    {/* Book Meta Info */}
+                    {(() => {
+                        const content = story.content || '';
+                        const totalChars = content.length;
+                        const cjkChars = [...content].filter(c => { const cp = c.codePointAt(0); return cp >= 0x4E00 && cp <= 0x9FFF; });
+                        const totalCjk = cjkChars.length;
+                        const uniqueCjkCount = new Set(cjkChars).size;
+                        const diversityRatio = totalCjk > 0 ? uniqueCjkCount / totalCjk : 0;
+                        const difficulty = diversityRatio > 0.6 ? 'Very High' : diversityRatio > 0.4 ? 'High' : diversityRatio > 0.25 ? 'Medium' : 'Low';
+                        const diffColor = diversityRatio > 0.6 ? '#f87171' : diversityRatio > 0.4 ? '#fb923c' : diversityRatio > 0.25 ? '#facc15' : '#4ade80';
+                        const avgCpm = stats?.avgCpm && stats.avgCpm !== '--' ? stats.avgCpm : 200;
+                        const estMins = totalCjk > 0 ? Math.round(totalCjk / avgCpm) : 0;
+                        const progress = Math.round((story.progress || 0) * 100);
+                        const dateAdded = story.createdAt ? new Date(story.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '--';
+                        return (
+                            <div className="ssp-section ssp-book-meta">
+                                <h2 className="ssp-section-title">Book Info</h2>
+                                <div className="ssp-meta-grid">
+                                    <div className="ssp-meta-item">
+                                        <span className="ssp-meta-value">{totalCjk.toLocaleString()}</span>
+                                        <span className="ssp-meta-label">CJK Characters</span>
+                                    </div>
+                                    <div className="ssp-meta-item">
+                                        <span className="ssp-meta-value">{uniqueCjkCount.toLocaleString()}</span>
+                                        <span className="ssp-meta-label">Unique Chars</span>
+                                    </div>
+                                    <div className="ssp-meta-item">
+                                        <span className="ssp-meta-value" style={{ color: diffColor }}>{difficulty}</span>
+                                        <span className="ssp-meta-label">Vocab Diversity</span>
+                                    </div>
+                                    <div className="ssp-meta-item">
+                                        <span className="ssp-meta-value">{formatDuration(estMins)}</span>
+                                        <span className="ssp-meta-label">Est. Read Time{avgCpm !== 200 ? ' (your CPM)' : ' (200 CPM)'}</span>
+                                    </div>
+                                    <div className="ssp-meta-item">
+                                        <span className="ssp-meta-value">{progress}%</span>
+                                        <span className="ssp-meta-label">Scroll Progress</span>
+                                    </div>
+                                    <div className="ssp-meta-item">
+                                        <span className="ssp-meta-value" style={{ fontSize: '13px' }}>{dateAdded}</span>
+                                        <span className="ssp-meta-label">Date Added</span>
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    })()}
+
                     {/* Section 1: Hero Summary */}
                     <div className="ssp-hero-grid">
                         <div className="ssp-stat-card">

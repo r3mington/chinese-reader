@@ -8,6 +8,7 @@ import StoryStatsPage from './components/StoryStatsPage';
 import GlobalStatsPage from './components/GlobalStatsPage';
 import { initDictionary } from './lib/dictionary';
 import { getStories } from './lib/storage';
+import { endReadingSession, startReadingSession } from './lib/stats';
 import './styles/oled.css';
 
 function App() {
@@ -76,7 +77,11 @@ function App() {
           <>
             <LibraryModal
               isOpen={libraryOpen}
-              onClose={() => setLibraryOpen(false)}
+              onClose={() => {
+                setLibraryOpen(false);
+                // Resume session when library closes (if page is visible)
+                if (!document.hidden) startReadingSession();
+              }}
               onSelectStory={handleStorySelect}
               currentStoryId={currentStory?.id}
               onViewStats={(story) => setStatsStory(story)}
@@ -84,7 +89,10 @@ function App() {
             />
             <button
               className="floating-library-button"
-              onClick={() => setLibraryOpen(true)}
+              onClick={() => {
+                endReadingSession();
+                setLibraryOpen(true);
+              }}
               aria-label="Open library"
             >
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
