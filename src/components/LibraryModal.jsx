@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import Sidebar from './Sidebar';
 import '../styles/oled.css';
 
-const LibraryModal = ({ isOpen, onClose, onSelectStory, currentStoryId, onViewStats }) => {
+const LibraryModal = ({ isOpen, onClose, onSelectStory, currentStoryId, onViewStats, onViewGlobalStats }) => {
     useEffect(() => {
         if (isOpen) {
             document.body.style.overflow = 'hidden';
@@ -30,6 +30,10 @@ const LibraryModal = ({ isOpen, onClose, onSelectStory, currentStoryId, onViewSt
                     onViewStats={(story) => {
                         onClose();
                         onViewStats && onViewStats(story);
+                    }}
+                    onViewGlobalStats={() => {
+                        onClose();
+                        onViewGlobalStats && onViewGlobalStats();
                     }}
                 />
             </div>

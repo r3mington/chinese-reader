@@ -1,0 +1,211 @@
+import React, { useState, useEffect } from 'react';
+import { getGlobalStats } from '../lib/stats';
+import { getStories } from '../lib/storage';
+
+const GlobalStatsPage = ({ onClose }) => {
+    const [stats, setStats] = useState(null);
+    const [storyMap, setStoryMap] = useState({});
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const load = async () => {
+            const [data, stories] = await Promise.all([getGlobalStats(), getStories()]);
+            const map = {};
+            stories.forEach(s => { map[s.id] = s.title; });
+            setStats(data);
+            setStoryMap(map);
+            setLoading(false);
+        };
+        load();
+    }, []);
+
+    const formatDuration = (mins) => {
+        const m = Math.round(mins || 0);
+        if (m < 60) return `${m}mn`;
+        const h = Math.floor(m / 60);
+        const rem = m % 60;
+        return rem > 0 ? `${h}h ${rem}mn` : `${h}h`;
+    };
+
+    const formatDate = (isoStr) => {
+        if (!isoStr) return '--';
+        const d = new Date(isoStr);
+        const today = new Date();
+        if (d.toDateString() === today.toDateString()) return 'Today';
+        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    };
+
+    // Last 14 days activity heatmap data
+    const buildActivityData = (dailyLog) => {
+        const days = [];
+        for (let i = 13; i >= 0; i--) {
+            const d = new Date();
+            d.setDate(d.getDate() - i);
+            const key = d.toISOString().split('T')[0];
+            days.push({ key, label: d.toLocaleDateString('en-US', { weekday: 'short' }), mins: Math.round(dailyLog[key] || 0) });
+        }
+        return days;
+    };
+
+    if (loading) {
+        return (
+            <div className="ssp-overlay">
+                <div className="ssp-loading">Loading stats…</div>
+            </div>
+        );
+    }
+
+    const activityDays = buildActivityData(stats.dailyLog || {});
+    const maxMins = Math.max(...activityDays.map(d => d.mins), 1);
+    const estPages = stats.totalChars ? Math.round(stats.totalChars / 500) : 0;
+
+    return (
+        <div className="ssp-overlay" onClick={onClose}>
+            <div className="ssp-page" onClick={e => e.stopPropagation()}>
+
+                {/* Header */}
+                <div className="ssp-header">
+                    <button className="ssp-back" onClick={onClose} aria-label="Back">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                            <path d="M19 12H5M12 5l-7 7 7 7" />
+                        </svg>
+                    </button>
+                    <div className="ssp-title">
+                        <span className="ssp-label">OVERALL</span>
+                        <h1>Reading Stats</h1>
+                    </div>
+                </div>
+
+                <div className="ssp-body">
+
+                    {/* Hero Summary */}
+                    <div className="ssp-hero-grid">
+                        <div className="ssp-stat-card">
+                            <span className="ssp-card-value">{formatDuration(stats.totalTime)}</span>
+                            <span className="ssp-card-label">Total Time</span>
+                        </div>
+                        <div className="ssp-stat-card">
+                            <span className="ssp-card-value">{(stats.totalChars || 0).toLocaleString()}</span>
+                            <span className="ssp-card-label">Characters</span>
+                        </div>
+                        <div className="ssp-stat-card">
+                            <span className="ssp-card-value">{stats.totalSessions}</span>
+                            <span className="ssp-card-label">Sessions</span>
+                        </div>
+                        <div className="ssp-stat-card">
+                            <span className="ssp-card-value">{stats.avgCpm || '--'}</span>
+                            <span className="ssp-card-label">Avg CPM</span>
+                        </div>
+                        <div className="ssp-stat-card ssp-card-accent">
+                            <span className="ssp-card-value">{stats.bestCpm || '--'}</span>
+                            <span className="ssp-card-label">Best CPM</span>
+                        </div>
+                        <div className="ssp-stat-card">
+                            <span className="ssp-card-value">{estPages}</span>
+                            <span className="ssp-card-label">Est. Pages</span>
+                        </div>
+                    </div>
+
+                    {/* Insights */}
+                    <div className="ssp-section">
+                        <h2 className="ssp-section-title">Insights</h2>
+                        <div className="ssp-insights-row">
+                            <div className="ssp-insight-pill">
+                                <span className="ssp-insight-icon">🔥</span>
+                                <div>
+                                    <div className="ssp-insight-value">{stats.streak} day{stats.streak !== 1 ? 's' : ''}</div>
+                                    <div className="ssp-insight-desc">Reading streak</div>
+                                </div>
+                            </div>
+                            <div className="ssp-insight-pill">
+                                <span className="ssp-insight-icon">📚</span>
+                                <div>
+                                    <div className="ssp-insight-value">{stats.books.length}</div>
+                                    <div className="ssp-insight-desc">Books started</div>
+                                </div>
+                            </div>
+                            <div className="ssp-insight-pill">
+                                <span className="ssp-insight-icon">⚡</span>
+                                <div>
+                                    <div className="ssp-insight-value">{stats.bestCpm || '--'} CPM</div>
+                                    <div className="ssp-insight-desc">All-time best</div>
+                                </div>
+                            </div>
+                            {stats.totalSessions > 0 && (
+                                <div className="ssp-insight-pill">
+                                    <span className="ssp-insight-icon">⏱️</span>
+                                    <div>
+                                        <div className="ssp-insight-value">{formatDuration(stats.totalTime / Math.max(stats.totalSessions, 1))}</div>
+                                        <div className="ssp-insight-desc">Avg session length</div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* 14-day Activity Bar Chart */}
+                    <div className="ssp-section">
+                        <h2 className="ssp-section-title">Last 14 Days</h2>
+                        <div className="gsp-activity-chart">
+                            {activityDays.map((day, i) => (
+                                <div key={i} className="gsp-activity-col" title={`${day.key}: ${day.mins}mn`}>
+                                    <div className="gsp-activity-bar-wrap">
+                                        <div
+                                            className="gsp-activity-bar"
+                                            style={{ height: `${Math.round((day.mins / maxMins) * 100)}%`, opacity: day.mins > 0 ? 1 : 0.15 }}
+                                        />
+                                    </div>
+                                    {(i === 0 || i === 6 || i === 13) && (
+                                        <div className="gsp-activity-label">{day.label}</div>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Per-book breakdown */}
+                    {stats.books.length > 0 && (
+                        <div className="ssp-section">
+                            <h2 className="ssp-section-title">By Book</h2>
+                            <div className="ssp-table-wrapper">
+                                <table className="ssp-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Book</th>
+                                            <th>Time</th>
+                                            <th>Chars</th>
+                                            <th>Sessions</th>
+                                            <th>Avg CPM</th>
+                                            <th>Last Read</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {stats.books.map((book, i) => (
+                                            <tr key={i}>
+                                                <td style={{ fontWeight: 600, color: '#fff' }}>
+                                                    {storyMap[book.storyId] || book.storyId}
+                                                </td>
+                                                <td>{formatDuration(book.totalTime)}</td>
+                                                <td>{(book.totalChars || 0).toLocaleString()}</td>
+                                                <td className="ssp-td-muted">{book.sessions}</td>
+                                                <td>{book.avgCpm || '--'}</td>
+                                                <td className="ssp-td-muted">{formatDate(book.lastSession)}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    )}
+
+                    {stats.books.length === 0 && (
+                        <div className="ssp-empty">No reading sessions recorded yet. Start reading to see your stats!</div>
+                    )}
+
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default GlobalStatsPage;

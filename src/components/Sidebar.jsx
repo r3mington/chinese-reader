@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { getStories, saveStory, deleteStory } from '../lib/storage';
 import { Link } from 'react-router-dom';
 
-const Sidebar = ({ onSelectStory, currentStoryId, onViewStats }) => {
+const Sidebar = ({ onSelectStory, currentStoryId, onViewStats, onViewGlobalStats }) => {
     const [stories, setStories] = useState([]);
     const [isAdding, setIsAdding] = useState(false);
     const [newTitle, setNewTitle] = useState('');
@@ -106,10 +106,13 @@ const Sidebar = ({ onSelectStory, currentStoryId, onViewStats }) => {
                 )}
             </div>
 
-            <div className="sidebar-footer" style={{ padding: '16px', borderTop: '1px solid var(--border-color)', textAlign: 'center' }}>
-                <Link to="/vocabulary" style={{ color: 'var(--primary-color)', textDecoration: 'none', fontSize: '14px', fontWeight: '500' }}>
+            <div className="sidebar-footer">
+                <Link to="/vocabulary" className="sidebar-footer-link">
                     View Vocabulary Stats →
                 </Link>
+                <button className="sidebar-footer-link sidebar-footer-btn" onClick={onViewGlobalStats}>
+                    Reading Stats →
+                </button>
             </div>
 
         </div>

@@ -326,3 +326,71 @@ export const resetStoryStats = async (storyId) => {
         window.dispatchEvent(new CustomEvent('statsUpdated', { detail: savedStats }));
     }
 };
+
+export const getGlobalStats = async () => {
+    if (!savedStats) await loadStats();
+
+    const storyStats = savedStats.storyStats || {};
+    let totalTime = 0;
+    let totalChars = 0;
+    let allSessions = [];
+    let bestCpm = 0;
+    const books = [];
+
+    for (const [storyId, data] of Object.entries(storyStats)) {
+        if (!data || !data.history) continue;
+        totalTime += data.totalTime || 0;
+        totalChars += data.totalChars || 0;
+
+        const sessions = data.history || [];
+        allSessions = allSessions.concat(sessions);
+
+        const validCpms = sessions.filter(s => s.cpm > 0).map(s => s.cpm);
+        const bookBest = validCpms.length > 0 ? Math.max(...validCpms) : 0;
+        const bookAvg = validCpms.length > 0 ? Math.round(validCpms.reduce((a, b) => a + b, 0) / validCpms.length) : 0;
+        if (bookBest > bestCpm) bestCpm = bookBest;
+
+        books.push({
+            storyId,
+            totalTime: data.totalTime || 0,
+            totalChars: data.totalChars || 0,
+            sessions: sessions.length,
+            avgCpm: bookAvg,
+            bestCpm: bookBest,
+            lastSession: sessions.length > 0 ? sessions[sessions.length - 1].date : null,
+        });
+    }
+
+    // Sort books by last session date (most recent first)
+    books.sort((a, b) => new Date(b.lastSession || 0) - new Date(a.lastSession || 0));
+
+    // Daily activity: sum minutes per day across all books
+    const dailyLog = savedStats.dailyLog || {};
+
+    // Global avg CPM
+    const validCpms = allSessions.filter(s => s.cpm > 0).map(s => s.cpm);
+    const avgCpm = validCpms.length > 0 ? Math.round(validCpms.reduce((a, b) => a + b, 0) / validCpms.length) : 0;
+
+    // Reading streak (consecutive days with any activity)
+    const activeDays = new Set([
+        ...Object.keys(dailyLog).filter(d => dailyLog[d] > 0),
+        ...allSessions.map(s => new Date(s.date).toISOString().split('T')[0])
+    ]);
+    let streak = 0;
+    const d = new Date();
+    while (activeDays.has(d.toISOString().split('T')[0])) {
+        streak++;
+        d.setDate(d.getDate() - 1);
+    }
+
+    return {
+        totalTime,
+        totalChars,
+        totalSessions: allSessions.length,
+        avgCpm,
+        bestCpm,
+        books,
+        streak,
+        dailyLog,
+    };
+};
