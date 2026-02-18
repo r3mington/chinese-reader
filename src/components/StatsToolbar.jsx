@@ -117,30 +117,30 @@ const StatsToolbar = ({ currentStoryId }) => {
 
     return (
         <div className={`stats-toolbar ${isMobile ? 'mobile' : ''} ${isPaused ? 'paused' : ''}`} onClick={toggleCollapse}>
-            {/* Pause Button */}
-            <button
-                className="stats-pause-btn"
-                onClick={(e) => { e.stopPropagation(); isPaused ? resumeStats() : pauseStats(); }}
-                title={isPaused ? 'Resume tracking' : 'Pause tracking'}
-                aria-label={isPaused ? 'Resume' : 'Pause'}
-            >
-                {isPaused ? (
-                    // Play icon
-                    <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor">
-                        <polygon points="2,1 9,5 2,9" />
-                    </svg>
-                ) : (
-                    // Pause icon
-                    <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor">
-                        <rect x="1.5" y="1" width="3" height="8" />
-                        <rect x="5.5" y="1" width="3" height="8" />
-                    </svg>
-                )}
-            </button>
 
-            {/* Toggle Button / Label */}
-            <div className="stats-mode-toggle" onClick={toggleViewMode} title="Switch between Global and Book stats">
-                {isPaused ? 'PAUSED' : (viewMode === 'GLOBAL' ? 'GLOBAL' : 'BOOK')}
+            {/* Top row: pause button + mode toggle inline */}
+            <div className="stats-top-row">
+                <button
+                    className="stats-pause-btn"
+                    onClick={(e) => { e.stopPropagation(); isPaused ? resumeStats() : pauseStats(); }}
+                    title={isPaused ? 'Resume tracking' : 'Pause tracking'}
+                    aria-label={isPaused ? 'Resume' : 'Pause'}
+                >
+                    {isPaused ? (
+                        <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor">
+                            <polygon points="2,1 9,5 2,9" />
+                        </svg>
+                    ) : (
+                        <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor">
+                            <rect x="1.5" y="1" width="3" height="8" />
+                            <rect x="5.5" y="1" width="3" height="8" />
+                        </svg>
+                    )}
+                </button>
+
+                <div className="stats-mode-toggle" onClick={(e) => { e.stopPropagation(); toggleViewMode(); }} title="Switch between Global and Book stats">
+                    {isPaused ? 'PAUSED' : (viewMode === 'GLOBAL' ? 'GLOBAL' : 'BOOK')}
+                </div>
             </div>
 
             {viewMode === 'GLOBAL' ? (
@@ -183,7 +183,7 @@ const StatsToolbar = ({ currentStoryId }) => {
                 </div>
             )}
 
-            {/* Line 2: Progress & CPM stats (Both Desktop & Mobile now) */}
+            {/* Line 2: Progress & CPM stats */}
             {progress.percentage > 0 && (
                 <div className="stats-row">
                     <div className="stat-item" title="Reading progress">
@@ -208,7 +208,6 @@ const StatsToolbar = ({ currentStoryId }) => {
                 </div>
             )}
 
-            {/* Line 3 Removed for mobile - merged into Line 2 */}
         </div>
     );
 };

@@ -1533,6 +1533,13 @@ button:active {
     color: #fff;
 }
 
+/* Pause button + mode toggle share one line */
+.stats-top-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
 /* When paused: toolbar dims slightly and mode label turns amber */
 .stats-toolbar.paused {
     opacity: 0.75;
