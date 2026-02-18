@@ -130,6 +130,11 @@ const StatsToolbar = ({ currentStoryId }) => {
                         <span className="stat-label">CHARS</span>
                         <span className="stat-value">{storyStats.totalChars || 0}</span>
                     </div>
+                    <div className="stat-divider"></div>
+                    <div className="stat-item" title="Average CPM for this book">
+                        <span className="stat-label">AVG CPM</span>
+                        <span className="stat-value">{storyStats.avgCpm || '--'}</span>
+                    </div>
                 </div>
             )}
 
