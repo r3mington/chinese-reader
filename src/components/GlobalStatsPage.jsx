@@ -53,7 +53,11 @@ const GlobalStatsPage = ({ onClose }) => {
         for (let i = 13; i >= 0; i--) {
             const d = new Date();
             d.setDate(d.getDate() - i);
-            const key = d.toISOString().split('T')[0];
+            // Use LOCAL date string to match how sessions are stored
+            const y = d.getFullYear();
+            const mo = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            const key = `${y}-${mo}-${day}`;
             days.push({ key, label: d.toLocaleDateString('en-US', { weekday: 'short' }), mins: Math.round(dailyLog[key] || 0) });
         }
         return days;

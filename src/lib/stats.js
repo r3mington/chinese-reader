@@ -15,6 +15,14 @@ let savedStats = null;
 let isPaused = false; // Global pause flag
 let sessionStartChars = 0; // chars at the moment the current session started
 
+// Use LOCAL date string (YYYY-MM-DD) so timezone doesn't shift sessions to wrong day
+const localDateKey = (date = new Date()) => {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+};
+
 // CPM tracking
 let scrollEvents = []; // Array of { timestamp, charsRead }
 let currentStoryId = null;
@@ -70,8 +78,8 @@ export const endReadingSession = async () => {
     const now = Date.now();
     const durationMinutes = (now - currentSessionStart) / 1000 / 60;
 
-    // Only save sessions longer than 10 seconds to avoid noise
-    if (durationMinutes >= (10 / 60)) {
+    // Only save sessions of at least 1 minute
+    if (durationMinutes >= 1) {
         await updateReadingTime(durationMinutes);
 
         if (currentStoryId) {
@@ -93,7 +101,7 @@ export const endReadingSession = async () => {
 export const updateReadingTime = async (minutes) => {
     if (!savedStats) await loadStats();
 
-    const today = new Date().toISOString().split('T')[0];
+    const today = localDateKey();
 
     savedStats.totalMinutes += minutes;
     savedStats.dailyLog[today] = (savedStats.dailyLog[today] || 0) + minutes;
@@ -274,7 +282,7 @@ export const getStoryStats = async (storyId) => {
                 count++;
             }
             if (s.date && s.duration > 0) {
-                const day = new Date(s.date).toISOString().split('T')[0];
+                const day = localDateKey(new Date(s.date));
                 dailyLog[day] = (dailyLog[day] || 0) + s.duration;
             }
         });
