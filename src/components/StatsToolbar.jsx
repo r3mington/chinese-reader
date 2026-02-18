@@ -10,7 +10,17 @@ const StatsToolbar = ({ currentStoryId }) => {
     const [isCollapsed, setIsCollapsed] = useState(true);
     const [viewMode, setViewMode] = useState('BOOK'); // Default to BOOK stats when reading
     const [sessionStartTime] = useState(Date.now()); // Track when this session started
+    const [sessionElapsed, setSessionElapsed] = useState(0); // minutes elapsed this session
     const isMobile = useIsMobile();
+
+    // Format minutes as Xh Ymn
+    const formatTime = (totalMinutes) => {
+        const mins = Math.round(totalMinutes);
+        if (mins < 60) return `${mins}mn`;
+        const h = Math.floor(mins / 60);
+        const m = mins % 60;
+        return m > 0 ? `${h}h ${m}mn` : `${h}h`;
+    };
 
     const fetchStats = async () => {
         const data = await getReadingStats();
@@ -53,8 +63,11 @@ const StatsToolbar = ({ currentStoryId }) => {
         window.addEventListener('readingProgressUpdated', handleProgressUpdate);
         window.addEventListener('cpmUpdated', handleCpmUpdate);
 
-        // Poll every minute just in case
-        const interval = setInterval(fetchStats, 60000);
+        // Poll every minute + update session elapsed timer
+        const interval = setInterval(() => {
+            fetchStats();
+            setSessionElapsed(Math.round((Date.now() - sessionStartTime) / 60000));
+        }, 30000);
 
         return () => {
             window.removeEventListener('statsUpdated', handleStatsUpdate);
@@ -125,7 +138,7 @@ const StatsToolbar = ({ currentStoryId }) => {
                     <div className="stat-item" title="Total time on this book including current session">
                         <span className="stat-label">TIME</span>
                         <span className="stat-value">
-                            {Math.round((storyStats.totalTime || 0) + (Date.now() - sessionStartTime) / 60000)}m
+                            {formatTime((storyStats.totalTime || 0) + sessionElapsed)}
                         </span>
                     </div>
                     <div className="stat-divider"></div>
@@ -157,6 +170,11 @@ const StatsToolbar = ({ currentStoryId }) => {
                     <div className="stat-item" title="Characters read in last 5m (Rolling)">
                         <span className="stat-label">CPM</span>
                         <span className="stat-value">{cpm.cpm}</span>
+                    </div>
+                    <div className="stat-divider"></div>
+                    <div className="stat-item" title="Time spent in this reading session">
+                        <span className="stat-label">SESSION</span>
+                        <span className="stat-value">{sessionElapsed}mn</span>
                     </div>
                 </div>
             )}
