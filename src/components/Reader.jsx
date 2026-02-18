@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { lookupAt } from '../lib/dictionary';
 import { saveBookmark, getBookmark } from '../lib/storage';
-import { startReadingSession, endReadingSession, initStoryTracking, trackScrollProgress } from '../lib/stats';
+import { startReadingSession, endReadingSession, initStoryTracking, trackScrollProgress, trackSessionLookup } from '../lib/stats';
 import { trackWordClick } from '../lib/vocabulary';
 import { useIsMobile } from '../lib/useIsMobile';
 import WordPopup from './WordPopup';
@@ -160,14 +160,18 @@ const Reader = ({ story }) => {
             const result = lookupAt(word, 0);
 
             if (result) {
+                trackSessionLookup(); // Track stats
+
                 setPopupData(result);
+                // Calculate position relative to viewport
+                const rect = target.getBoundingClientRect();
                 setPopupPos({ x: e.clientX, y: e.clientY });
 
                 if (story && story.id) {
                     trackWordClick(result.word, story.id);
                 }
+                return;
             }
-            return;
         }
 
         // Fallback for non-word clicks (e.g. single chars not part of a word)
@@ -205,6 +209,7 @@ const Reader = ({ story }) => {
         }
 
         if (result) {
+            trackSessionLookup(); // Track stats
             setPopupData(result);
             setPopupPos({ x: e.clientX, y: e.clientY });
 

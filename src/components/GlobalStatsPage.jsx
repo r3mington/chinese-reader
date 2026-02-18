@@ -109,6 +109,10 @@ const GlobalStatsPage = ({ onClose }) => {
                             <span className="ssp-card-label">Unique Chars</span>
                         </div>
                         <div className="ssp-stat-card">
+                            <span className="ssp-card-value">{(stats.totalLookups || 0).toLocaleString()}</span>
+                            <span className="ssp-card-label">Total Lookups</span>
+                        </div>
+                        <div className="ssp-stat-card">
                             <span className="ssp-card-value">{stats.totalSessions}</span>
                             <span className="ssp-card-label">Sessions</span>
                         </div>

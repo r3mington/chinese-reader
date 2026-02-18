@@ -15,6 +15,7 @@ let savedStats = null;
 let isPaused = false; // Global pause flag
 let sessionStartChars = 0; // chars at the moment the current session started
 let isCurrentStoryRead = false; // If true, don't save per-book session stats
+let sessionLookups = 0; // Track dictionary lookups in current session
 
 // Use LOCAL date string (YYYY-MM-DD) so timezone doesn't shift sessions to wrong day
 const localDateKey = (date = new Date()) => {
@@ -50,6 +51,11 @@ export const startReadingSession = () => {
     currentSessionStart = Date.now();
     // Snapshot chars at session start so we can compute the delta on end
     sessionStartChars = storyTotalChars;
+    sessionLookups = 0;
+};
+
+export const trackSessionLookup = () => {
+    if (!isPaused) sessionLookups++;
 };
 
 export const pauseStats = () => {
@@ -91,7 +97,7 @@ export const endReadingSession = async () => {
             const { cpm } = getCpmStats();
             const cpmVal = (typeof cpm === 'number' && !isNaN(cpm)) ? cpm : 0;
 
-            await saveSession(currentStoryId, durationMinutes, sessionChars, cpmVal);
+            await saveSession(currentStoryId, durationMinutes, sessionChars, cpmVal, sessionLookups); // Pass lookups
         }
     }
 
@@ -297,7 +303,7 @@ export const getStoryStats = async (storyId) => {
     };
 };
 
-export const saveSession = async (storyId, durationMinutes, charsRead, cpm) => {
+export const saveSession = async (storyId, durationMinutes, charsRead, cpm, lookups = 0) => {
     if (!storyId || durationMinutes <= 0) return;
     if (!savedStats) await loadStats();
 
@@ -315,6 +321,7 @@ export const saveSession = async (storyId, durationMinutes, charsRead, cpm) => {
     // Update totals
     stats.totalTime += durationMinutes;
     stats.totalChars += charsRead;
+    stats.totalLookups = (stats.totalLookups || 0) + lookups;
 
     // Add to history
     stats.history.push({
@@ -322,7 +329,8 @@ export const saveSession = async (storyId, durationMinutes, charsRead, cpm) => {
         date: new Date().toISOString(),
         duration: durationMinutes,
         chars: charsRead,
-        cpm: cpm
+        cpm: cpm,
+        lookups: lookups
     });
 
     // Persist
@@ -335,7 +343,7 @@ export const saveSession = async (storyId, durationMinutes, charsRead, cpm) => {
 export const resetStoryStats = async (storyId) => {
     if (!savedStats) await loadStats();
     if (savedStats.storyStats && savedStats.storyStats[storyId]) {
-        savedStats.storyStats[storyId] = { totalTime: 0, totalChars: 0, history: [] };
+        savedStats.storyStats[storyId] = { totalTime: 0, totalChars: 0, totalLookups: 0, history: [] };
         await set(STATS_KEY, savedStats);
         window.dispatchEvent(new CustomEvent('statsUpdated', { detail: savedStats }));
     }
@@ -352,6 +360,7 @@ export const deleteSession = async (storyId, sessionIndex) => {
     // Subtract from totals
     storyData.totalTime = Math.max(0, (storyData.totalTime || 0) - (session.duration || 0));
     storyData.totalChars = Math.max(0, (storyData.totalChars || 0) - (session.chars || 0));
+    storyData.totalLookups = Math.max(0, (storyData.totalLookups || 0) - (session.lookups || 0));
 
     // Remove from history
     storyData.history.splice(sessionIndex, 1);
@@ -364,8 +373,10 @@ export const getGlobalStats = async () => {
     if (!savedStats) await loadStats();
 
     const storyStats = savedStats.storyStats || {};
+
     let totalTime = 0;
     let totalChars = 0;
+    let totalLookups = 0;
     let allSessions = [];
     let bestCpm = 0;
     const books = [];
@@ -374,6 +385,7 @@ export const getGlobalStats = async () => {
         if (!data || !data.history) continue;
         totalTime += data.totalTime || 0;
         totalChars += data.totalChars || 0;
+        totalLookups += data.totalLookups || 0;
 
         const sessions = data.history || [];
         allSessions = allSessions.concat(sessions);
@@ -419,11 +431,11 @@ export const getGlobalStats = async () => {
     return {
         totalTime,
         totalChars,
+        totalLookups,
         totalSessions: allSessions.length,
-        avgCpm,
+        avgCpm: globalAvgCpm,
         bestCpm,
-        books,
-        streak,
         dailyLog,
+        books: books.sort((a, b) => new Date(b.lastSession) - new Date(a.lastSession))
     };
 };

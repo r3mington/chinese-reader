@@ -286,6 +286,10 @@ const StoryStatsPage = ({ story, onClose }) => {
                             <span className="ssp-card-label">Chars Read</span>
                         </div>
                         <div className="ssp-stat-card">
+                            <span className="ssp-card-value">{(stats?.totalLookups || 0).toLocaleString()}</span>
+                            <span className="ssp-card-label">Lookups</span>
+                        </div>
+                        <div className="ssp-stat-card">
                             <span className="ssp-card-value">{uniqueChars.toLocaleString()}</span>
                             <span className="ssp-card-label">Unique Chars</span>
                         </div>
@@ -397,6 +401,7 @@ const StoryStatsPage = ({ story, onClose }) => {
                                             <th>Time</th>
                                             <th>Duration</th>
                                             <th>Chars</th>
+                                            <th>Lookups</th>
                                             <th>CPM</th>
                                             <th></th>
                                         </tr>
@@ -412,6 +417,7 @@ const StoryStatsPage = ({ story, onClose }) => {
                                                     <td className="ssp-td-muted">{formatTime(session.startTime || session.date)}</td>
                                                     <td>{formatDuration(session.duration)}</td>
                                                     <td>{(session.chars || 0).toLocaleString()}</td>
+                                                    <td>{(session.lookups || 0).toLocaleString()}</td>
                                                     <td>
                                                         <div className="ssp-cpm-cell">
                                                             <span>{session.cpm || '--'}</span>
