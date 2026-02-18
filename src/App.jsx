@@ -66,7 +66,7 @@ function App() {
 
   return (
     <Router>
-      <StatsToolbar />
+      <StatsToolbar currentStoryId={currentStory ? currentStory.id : null} />
       <Routes>
         <Route path="/" element={
           <>

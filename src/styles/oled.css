@@ -1039,6 +1039,18 @@ button:active {
         justify-content: center;
     }
 
+    .stats-mode-toggle {
+        font-size: 10px;
+        font-weight: bold;
+        padding: 2px 6px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 4px;
+        margin-right: 4px;
+        cursor: pointer;
+        align-self: flex-start;
+        /* Align to top if multi-line, or center */
+    }
+
     .stats-row {
         gap: 4px;
         /* Tighter gap between items */

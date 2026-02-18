@@ -46,9 +46,23 @@ export const endReadingSession = async () => {
 
     if (durationMinutes > 0) {
         await updateReadingTime(durationMinutes);
+
+        // Save session stats for current story if we have CPM data
+        if (currentStoryId) {
+            const { cpm } = getCpmStats();
+            // If CPM is valid number
+            const cpmVal = parseInt(cpm);
+            if (!isNaN(cpmVal)) {
+                // Approximate chars read in this session based on simple math or
+                // tracking the delta of storyTotalChars
+                // For now, let's use what we tracked in storyTotalChars for THIS session
+                await saveSession(currentStoryId, durationMinutes, storyTotalChars, cpmVal);
+            }
+        }
     }
 
     currentSessionStart = null;
+    currentStoryId = null; // Clear active story
 };
 
 export const updateReadingTime = async (minutes) => {
@@ -199,6 +213,82 @@ export const getCpmStats = () => {
     // User requested only ONE rolling 60s measure
     // We return recentCpm but maybe label it just 'cpm'
     return { cpm: recentCpm };
+};
+
+const dispatchCpmUpdate = () => {
+    // Only dispatch if we have data
+    // ...
+    // Simple dispatch
+    window.dispatchEvent(new CustomEvent('cpmUpdated', {
+        detail: getCpmStats()
+    }));
+};
+
+// --- Story Specific Stats & History ---
+
+// Get stats for a specific story
+export const getStoryStats = async (storyId) => {
+    if (!savedStats) await loadStats();
+
+    // Structure: { totalTime: min, totalChars: n, history: [] }
+    const storyData = (savedStats.storyStats && savedStats.storyStats[storyId]) || {
+        totalTime: 0,
+        totalChars: 0,
+        history: [], // { date, duration, cpm, chars }
+    };
+
+    // Calculate simple average from history if not stored, 
+    // or just return the aggregate.
+    // For "Avg CPM", we can average the history sessions weighted by duration?
+    // Or just simple average of sessions.
+
+    let totalCpm = 0;
+    let count = 0;
+    if (storyData.history) {
+        storyData.history.forEach(s => {
+            if (s.cpm > 0) {
+                totalCpm += s.cpm;
+                count++;
+            }
+        });
+    }
+
+    return {
+        ...storyData,
+        avgCpm: count > 0 ? Math.round(totalCpm / count) : '--'
+    };
+};
+
+export const saveSession = async (storyId, durationMinutes, charsRead, cpm) => {
+    if (!storyId || durationMinutes <= 0) return;
+    if (!savedStats) await loadStats();
+
+    if (!savedStats.storyStats) savedStats.storyStats = {};
+    if (!savedStats.storyStats[storyId]) {
+        savedStats.storyStats[storyId] = {
+            totalTime: 0,
+            totalChars: 0,
+            history: []
+        };
+    }
+
+    const stats = savedStats.storyStats[storyId];
+
+    // Update totals
+    stats.totalTime += durationMinutes;
+    stats.totalChars += charsRead;
+
+    // Add to history
+    stats.history.push({
+        date: new Date().toISOString(),
+        duration: durationMinutes,
+        chars: charsRead,
+        cpm: cpm
+    });
+
+    // Persist
+    await set(STATS_KEY, savedStats);
+}; return { cpm: recentCpm };
 };
 
 const dispatchCpmUpdate = () => {

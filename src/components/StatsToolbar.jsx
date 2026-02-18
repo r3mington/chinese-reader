@@ -1,18 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { getReadingStats } from '../lib/stats';
+import { getReadingStats, getStoryStats } from '../lib/stats';
 import { useIsMobile } from '../lib/useIsMobile';
 import '../styles/oled.css';
 
-const StatsToolbar = () => {
+const StatsToolbar = ({ currentStoryId }) => {
     const [stats, setStats] = useState({ daily: 0, weekly: 0, total: 0 });
     const [progress, setProgress] = useState({ percentage: 0, charsRead: 0 });
     const [cpm, setCpm] = useState({ cpm: '--' });
     const [isCollapsed, setIsCollapsed] = useState(true);
+    const [viewMode, setViewMode] = useState('BOOK'); // Default to BOOK stats when reading
     const isMobile = useIsMobile();
 
     const fetchStats = async () => {
         const data = await getReadingStats();
         setStats(data);
+
+        if (currentStoryId) {
+            const sData = await getStoryStats(currentStoryId);
+            setStoryStats(sData);
+        }
     };
 
     useEffect(() => {
@@ -21,9 +27,12 @@ const StatsToolbar = () => {
         // Listen for updates from stats.js
         const handleStatsUpdate = (e) => {
             if (e.detail) {
+                // If it's a full stats update, refresh everything
                 fetchStats();
             }
         };
+
+        // ... existing listeners ...
 
         // Listen for reading progress from Reader.jsx
         const handleProgressUpdate = (e) => {

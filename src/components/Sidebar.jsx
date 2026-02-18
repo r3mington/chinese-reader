@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { getStories, saveStory, deleteStory } from '../lib/storage';
 import { Link } from 'react-router-dom';
+import StoryStatsModal from './StoryStatsModal';
 
 const Sidebar = ({ onSelectStory, currentStoryId }) => {
     const [stories, setStories] = useState([]);
     const [isAdding, setIsAdding] = useState(false);
     const [newTitle, setNewTitle] = useState('');
     const [newContent, setNewContent] = useState('');
+    const [statsStory, setStatsStory] = useState(null);
 
     useEffect(() => {
         loadStories();
@@ -80,12 +82,24 @@ const Sidebar = ({ onSelectStory, currentStoryId }) => {
                         <div className="story-title">{story.title}</div>
                         <div className="story-meta">
                             {new Date(story.createdAt).toLocaleDateString()}
-                            <button
-                                className="delete-btn"
-                                onClick={(e) => handleDelete(story.id, e)}
-                            >
-                                ×
-                            </button>
+                            <div className="story-actions">
+                                <button
+                                    className="icon-btn stats-btn"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setStatsStory(story);
+                                    }}
+                                    title="View Stats & History"
+                                >
+                                    📊
+                                </button>
+                                <button
+                                    className="delete-btn"
+                                    onClick={(e) => handleDelete(story.id, e)}
+                                >
+                                    ×
+                                </button>
+                            </div>
                         </div>
                     </div>
                 ))}
@@ -99,6 +113,14 @@ const Sidebar = ({ onSelectStory, currentStoryId }) => {
                     View Vocabulary Stats →
                 </Link>
             </div>
+
+            {/* Stats Modal */}
+            {statsStory && (
+                <StoryStatsModal
+                    story={statsStory}
+                    onClose={() => setStatsStory(null)}
+                />
+            )}
         </div>
     );
 };
