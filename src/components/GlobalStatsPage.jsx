@@ -5,6 +5,7 @@ import { getStories } from '../lib/storage';
 const GlobalStatsPage = ({ onClose }) => {
     const [stats, setStats] = useState(null);
     const [storyMap, setStoryMap] = useState({});
+    const [uniqueChars, setUniqueChars] = useState(0);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -14,6 +15,17 @@ const GlobalStatsPage = ({ onClose }) => {
             stories.forEach(s => { map[s.id] = s.title; });
             setStats(data);
             setStoryMap(map);
+            // Count unique CJK chars across all story contents
+            const allChars = new Set();
+            stories.forEach(s => {
+                if (s.content) {
+                    [...s.content].forEach(c => {
+                        const cp = c.codePointAt(0);
+                        if (cp >= 0x4E00 && cp <= 0x9FFF) allChars.add(c);
+                    });
+                }
+            });
+            setUniqueChars(allChars.size);
             setLoading(false);
         };
         load();
@@ -86,7 +98,11 @@ const GlobalStatsPage = ({ onClose }) => {
                         </div>
                         <div className="ssp-stat-card">
                             <span className="ssp-card-value">{(stats.totalChars || 0).toLocaleString()}</span>
-                            <span className="ssp-card-label">Characters</span>
+                            <span className="ssp-card-label">Chars Read</span>
+                        </div>
+                        <div className="ssp-stat-card">
+                            <span className="ssp-card-value">{uniqueChars.toLocaleString()}</span>
+                            <span className="ssp-card-label">Unique Chars</span>
                         </div>
                         <div className="ssp-stat-card">
                             <span className="ssp-card-value">{stats.totalSessions}</span>
@@ -145,7 +161,7 @@ const GlobalStatsPage = ({ onClose }) => {
 
                     {/* 14-day Activity Bar Chart */}
                     <div className="ssp-section">
-                        <h2 className="ssp-section-title">Last 14 Days</h2>
+                        <h2 className="ssp-section-title">Minutes Per Day (Last 14 Days)</h2>
                         <div className="gsp-activity-chart">
                             {activityDays.map((day, i) => (
                                 <div key={i} className="gsp-activity-col" title={`${day.key}: ${day.mins}mn`}>

@@ -167,6 +167,30 @@ const StoryStatsPage = ({ story, onClose }) => {
     const bestCpm = stats?.history?.length > 0 ? Math.max(...stats.history.map(h => h.cpm || 0)) : '--';
     const estPages = stats?.totalChars ? Math.round(stats.totalChars / 500) : 0;
 
+    // Count unique CJK characters in the story text
+    const uniqueChars = story?.content
+        ? new Set([...story.content].filter(c => c.codePointAt(0) >= 0x4E00 && c.codePointAt(0) <= 0x9FFF)).size
+        : 0;
+
+    // Build 14-day daily minutes chart from per-book daily log
+    const buildDailyData = (dailyLog) => {
+        const days = [];
+        for (let i = 13; i >= 0; i--) {
+            const d = new Date();
+            d.setDate(d.getDate() - i);
+            const key = d.toISOString().split('T')[0];
+            days.push({
+                key,
+                label: d.toLocaleDateString('en-US', { weekday: 'short' }),
+                mins: Math.round((dailyLog[key] || 0))
+            });
+        }
+        return days;
+    };
+    const dailyData = buildDailyData(stats?.dailyLog || {});
+    const maxDailyMins = Math.max(...dailyData.map(d => d.mins), 1);
+    const hasAnyActivity = dailyData.some(d => d.mins > 0);
+
     return (
         <div className="ssp-overlay" onClick={onClose}>
             <div className="ssp-page" onClick={e => e.stopPropagation()}>
@@ -201,7 +225,11 @@ const StoryStatsPage = ({ story, onClose }) => {
                         </div>
                         <div className="ssp-stat-card">
                             <span className="ssp-card-value">{(stats?.totalChars || 0).toLocaleString()}</span>
-                            <span className="ssp-card-label">Characters</span>
+                            <span className="ssp-card-label">Chars Read</span>
+                        </div>
+                        <div className="ssp-stat-card">
+                            <span className="ssp-card-value">{uniqueChars.toLocaleString()}</span>
+                            <span className="ssp-card-label">Unique Chars</span>
                         </div>
                         <div className="ssp-stat-card">
                             <span className="ssp-card-value">{sessionCount}</span>
@@ -264,7 +292,29 @@ const StoryStatsPage = ({ story, onClose }) => {
                         </div>
                     )}
 
-                    {/* Section 3: CPM Chart */}
+                    {/* Section 3: Daily Minutes Chart */}
+                    {hasAnyActivity && (
+                        <div className="ssp-section">
+                            <h2 className="ssp-section-title">Minutes Per Day (Last 14 Days)</h2>
+                            <div className="gsp-activity-chart">
+                                {dailyData.map((day, i) => (
+                                    <div key={i} className="gsp-activity-col" title={`${day.key}: ${day.mins}mn`}>
+                                        <div className="gsp-activity-bar-wrap">
+                                            <div
+                                                className="gsp-activity-bar"
+                                                style={{ height: `${Math.round((day.mins / maxDailyMins) * 100)}%`, opacity: day.mins > 0 ? 1 : 0.15 }}
+                                            />
+                                        </div>
+                                        {(i === 0 || i === 6 || i === 13) && (
+                                            <div className="gsp-activity-label">{day.label}</div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Section 4: CPM Chart */}
                     {sessionCount >= 2 && (
                         <div className="ssp-section">
                             <h2 className="ssp-section-title">Speed Evolution</h2>

@@ -263,25 +263,27 @@ export const getStoryStats = async (storyId) => {
         history: [], // { date, duration, cpm, chars }
     };
 
-    // Calculate simple average from history if not stored, 
-    // or just return the aggregate.
-    // For "Avg CPM", we can average the history sessions weighted by duration?
-    // Or just simple average of sessions.
-
     let totalCpm = 0;
     let count = 0;
+    // Build daily log from session history
+    const dailyLog = {};
     if (storyData.history) {
         storyData.history.forEach(s => {
             if (s.cpm > 0) {
                 totalCpm += s.cpm;
                 count++;
             }
+            if (s.date && s.duration > 0) {
+                const day = new Date(s.date).toISOString().split('T')[0];
+                dailyLog[day] = (dailyLog[day] || 0) + s.duration;
+            }
         });
     }
 
     return {
         ...storyData,
-        avgCpm: count > 0 ? Math.round(totalCpm / count) : '--'
+        avgCpm: count > 0 ? Math.round(totalCpm / count) : '--',
+        dailyLog,
     };
 };
 
