@@ -1,4 +1,4 @@
-const CACHE_NAME = 'chinese-reader-v6';
+const CACHE_NAME = 'chinese-reader-v7';
 const urlsToCache = [
     '/',
     '/index.html',
@@ -30,28 +30,46 @@ self.addEventListener('activate', (event) => {
     self.clients.claim();
 });
 
-// Fetch event - serve from cache, fallback to network
+// Fetch event - Network First for HTML/Nav, Cache First for others
 self.addEventListener('fetch', (event) => {
+    // Navigation requests (HTML) -> Network First
+    if (event.request.mode === 'navigate') {
+        event.respondWith(
+            fetch(event.request)
+                .then((response) => {
+                    // Cache the latest version
+                    const responseToCache = response.clone();
+                    caches.open(CACHE_NAME).then((cache) => {
+                        cache.put(event.request, responseToCache);
+                    });
+                    return response;
+                })
+                .catch(() => {
+                    // Fallback to cache if offline
+                    return caches.match(event.request);
+                })
+        );
+        return;
+    }
+
+    // Asset requests -> Cache First, fall back to Network
     event.respondWith(
         caches.match(event.request)
             .then((response) => {
-                // Cache hit - return response
                 if (response) {
                     return response;
                 }
                 return fetch(event.request).then((response) => {
-                    // Don't cache non-successful responses
+                    // Don't cache non-successful responses or basic errors
                     if (!response || response.status !== 200 || response.type === 'error') {
                         return response;
                     }
 
-                    // Clone the response
+                    // Clone and cache
                     const responseToCache = response.clone();
-
-                    caches.open(CACHE_NAME)
-                        .then((cache) => {
-                            cache.put(event.request, responseToCache);
-                        });
+                    caches.open(CACHE_NAME).then((cache) => {
+                        cache.put(event.request, responseToCache);
+                    });
 
                     return response;
                 });
