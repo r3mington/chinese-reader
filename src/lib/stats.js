@@ -12,6 +12,7 @@ const defaultStats = {
 
 let currentSessionStart = null;
 let savedStats = null;
+let isPaused = false; // Global pause flag
 
 // CPM tracking
 let scrollEvents = []; // Array of { timestamp, charsRead }
@@ -35,11 +36,33 @@ export const loadStats = async () => {
 };
 
 export const startReadingSession = () => {
+    if (isPaused) return;
     currentSessionStart = Date.now();
 };
 
+export const pauseStats = () => {
+    isPaused = true;
+    window.dispatchEvent(new CustomEvent('statsPauseChanged', { detail: { paused: true } }));
+};
+
+export const resumeStats = () => {
+    isPaused = false;
+    // Reset session start to now so paused time isn't counted
+    if (currentSessionStart) currentSessionStart = Date.now();
+    // Reset story tracking anchor so paused time isn't counted in CPM
+    if (storyStartTime) {
+        storyStartTime = Date.now();
+        storyStartPosition = null;
+        storyTotalChars = 0;
+        scrollEvents = [];
+    }
+    window.dispatchEvent(new CustomEvent('statsPauseChanged', { detail: { paused: false } }));
+};
+
+export const getIsPaused = () => isPaused;
+
 export const endReadingSession = async () => {
-    if (!currentSessionStart) return;
+    if (!currentSessionStart || isPaused) return;
 
     const now = Date.now();
     const durationMinutes = (now - currentSessionStart) / 1000 / 60;
@@ -117,6 +140,7 @@ export const initStoryTracking = (storyId) => {
 };
 
 export const trackScrollProgress = (charsRead) => {
+    if (isPaused) return; // Don't track when paused
     const now = Date.now();
 
     // Initialize on first scroll
@@ -292,4 +316,13 @@ export const saveSession = async (storyId, durationMinutes, charsRead, cpm) => {
 
     // Dispatch stats update
     window.dispatchEvent(new CustomEvent('statsUpdated', { detail: savedStats }));
+};
+
+export const resetStoryStats = async (storyId) => {
+    if (!savedStats) await loadStats();
+    if (savedStats.storyStats && savedStats.storyStats[storyId]) {
+        savedStats.storyStats[storyId] = { totalTime: 0, totalChars: 0, history: [] };
+        await set(STATS_KEY, savedStats);
+        window.dispatchEvent(new CustomEvent('statsUpdated', { detail: savedStats }));
+    }
 };

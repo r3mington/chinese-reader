@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getReadingStats, getStoryStats } from '../lib/stats';
+import { getReadingStats, getStoryStats, pauseStats, resumeStats, getIsPaused } from '../lib/stats';
 import { useIsMobile } from '../lib/useIsMobile';
 import '../styles/oled.css';
 
@@ -11,6 +11,7 @@ const StatsToolbar = ({ currentStoryId }) => {
     const [viewMode, setViewMode] = useState('BOOK'); // Default to BOOK stats when reading
     const [sessionStartTime] = useState(Date.now()); // Track when this session started
     const [sessionElapsed, setSessionElapsed] = useState(0); // minutes elapsed this session
+    const [isPaused, setIsPaused] = useState(getIsPaused());
     const isMobile = useIsMobile();
 
     // Format minutes as Xh Ymn
@@ -63,16 +64,23 @@ const StatsToolbar = ({ currentStoryId }) => {
         window.addEventListener('readingProgressUpdated', handleProgressUpdate);
         window.addEventListener('cpmUpdated', handleCpmUpdate);
 
+        // Listen for pause/resume events
+        const handlePauseChange = (e) => setIsPaused(e.detail.paused);
+        window.addEventListener('statsPauseChanged', handlePauseChange);
+
         // Poll every minute + update session elapsed timer
         const interval = setInterval(() => {
-            fetchStats();
-            setSessionElapsed(Math.round((Date.now() - sessionStartTime) / 60000));
+            if (!getIsPaused()) {
+                fetchStats();
+                setSessionElapsed(Math.round((Date.now() - sessionStartTime) / 60000));
+            }
         }, 30000);
 
         return () => {
             window.removeEventListener('statsUpdated', handleStatsUpdate);
             window.removeEventListener('readingProgressUpdated', handleProgressUpdate);
             window.removeEventListener('cpmUpdated', handleCpmUpdate);
+            window.removeEventListener('statsPauseChanged', handlePauseChange);
             clearInterval(interval);
         };
     }, []);
@@ -108,10 +116,31 @@ const StatsToolbar = ({ currentStoryId }) => {
     }
 
     return (
-        <div className={`stats-toolbar ${isMobile ? 'mobile' : ''}`} onClick={toggleCollapse}>
+        <div className={`stats-toolbar ${isMobile ? 'mobile' : ''} ${isPaused ? 'paused' : ''}`} onClick={toggleCollapse}>
+            {/* Pause Button */}
+            <button
+                className="stats-pause-btn"
+                onClick={(e) => { e.stopPropagation(); isPaused ? resumeStats() : pauseStats(); }}
+                title={isPaused ? 'Resume tracking' : 'Pause tracking'}
+                aria-label={isPaused ? 'Resume' : 'Pause'}
+            >
+                {isPaused ? (
+                    // Play icon
+                    <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor">
+                        <polygon points="2,1 9,5 2,9" />
+                    </svg>
+                ) : (
+                    // Pause icon
+                    <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor">
+                        <rect x="1.5" y="1" width="3" height="8" />
+                        <rect x="5.5" y="1" width="3" height="8" />
+                    </svg>
+                )}
+            </button>
+
             {/* Toggle Button / Label */}
             <div className="stats-mode-toggle" onClick={toggleViewMode} title="Switch between Global and Book stats">
-                {viewMode === 'GLOBAL' ? 'GLOBAL' : 'BOOK'}
+                {isPaused ? 'PAUSED' : (viewMode === 'GLOBAL' ? 'GLOBAL' : 'BOOK')}
             </div>
 
             {viewMode === 'GLOBAL' ? (

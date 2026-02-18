@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getStoryStats } from '../lib/stats';
+import { getStoryStats, resetStoryStats } from '../lib/stats';
 
 const StoryStatsPage = ({ story, onClose }) => {
     const [stats, setStats] = useState(null);
@@ -13,6 +13,13 @@ const StoryStatsPage = ({ story, onClose }) => {
         };
         load();
     }, [story.id]);
+
+    const handleReset = async () => {
+        if (!confirm(`Reset all stats for "${story.title}"? This cannot be undone.`)) return;
+        await resetStoryStats(story.id);
+        const fresh = await getStoryStats(story.id);
+        setStats(fresh);
+    };
 
     // Format minutes as Xh Ymn
     const formatDuration = (mins) => {
@@ -175,6 +182,13 @@ const StoryStatsPage = ({ story, onClose }) => {
                         <span className="ssp-label">STATS</span>
                         <h1>{story.title}</h1>
                     </div>
+                    <button className="ssp-reset-btn" onClick={handleReset} title="Reset stats for this book">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                            <path d="M3 3v5h5" />
+                        </svg>
+                        Reset
+                    </button>
                 </div>
 
                 <div className="ssp-body">
