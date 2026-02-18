@@ -288,7 +288,9 @@ export const saveSession = async (storyId, durationMinutes, charsRead, cpm) => {
 
     // Persist
     await set(STATS_KEY, savedStats);
-}; return { cpm: recentCpm };
+
+    // Dispatch stats update
+    window.dispatchEvent(new CustomEvent('statsUpdated', { detail: savedStats }));
 };
 
 const dispatchCpmUpdate = () => {
