@@ -16,6 +16,7 @@ let isPaused = false; // Global pause flag
 let sessionStartChars = 0; // chars at the moment the current session started
 let isCurrentStoryRead = false; // If true, don't save per-book session stats
 let sessionLookups = 0; // Track dictionary lookups in current session
+let accumulatedSessionTime = 0; // ms accumulated in this session before current active segment
 
 // Use LOCAL date string (YYYY-MM-DD) so timezone doesn't shift sessions to wrong day
 const localDateKey = (date = new Date()) => {
@@ -49,6 +50,7 @@ export const loadStats = async () => {
 export const startReadingSession = () => {
     if (isPaused) return;
     currentSessionStart = Date.now();
+    accumulatedSessionTime = 0;
     // Snapshot chars at session start so we can compute the delta on end
     sessionStartChars = storyTotalChars;
     sessionLookups = 0;
@@ -59,14 +61,20 @@ export const trackSessionLookup = () => {
 };
 
 export const pauseStats = () => {
+    if (!isPaused && currentSessionStart) {
+        // Accumulate the time spent in the current active segment
+        accumulatedSessionTime += (Date.now() - currentSessionStart);
+        currentSessionStart = null;
+    }
     isPaused = true;
     window.dispatchEvent(new CustomEvent('statsPauseChanged', { detail: { paused: true } }));
 };
 
 export const resumeStats = () => {
     isPaused = false;
-    // Reset session start to now so paused time isn't counted
-    if (currentSessionStart) currentSessionStart = Date.now();
+    // Start a new active segment
+    currentSessionStart = Date.now();
+
     // Reset story tracking anchor so paused time isn't counted in CPM
     if (storyStartTime) {
         storyStartTime = Date.now();
@@ -79,11 +87,27 @@ export const resumeStats = () => {
 
 export const getIsPaused = () => isPaused;
 
+export const getCurrentSessionDuration = () => {
+    let checkTime = accumulatedSessionTime;
+    if (currentSessionStart && !isPaused) {
+        checkTime += (Date.now() - currentSessionStart);
+    }
+    // Return minutes
+    return checkTime / 1000 / 60;
+};
+
 export const endReadingSession = async () => {
-    if (!currentSessionStart || isPaused) return;
+    if (isPaused && accumulatedSessionTime === 0 && !currentSessionStart) return;
 
     const now = Date.now();
-    const durationMinutes = (now - currentSessionStart) / 1000 / 60;
+
+    // Calculate final duration: accumulated + current segment (if active)
+    let totalDurationMs = accumulatedSessionTime;
+    if (currentSessionStart && !isPaused) {
+        totalDurationMs += (now - currentSessionStart);
+    }
+
+    const durationMinutes = totalDurationMs / 1000 / 60;
 
     // Only save sessions of at least 1 minute
     if (durationMinutes >= 1) {
@@ -102,6 +126,7 @@ export const endReadingSession = async () => {
     }
 
     currentSessionStart = null;
+    accumulatedSessionTime = 0;
     sessionStartChars = storyTotalChars; // update snapshot for next session
 };
 

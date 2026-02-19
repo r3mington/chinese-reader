@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getReadingStats, getStoryStats, pauseStats, resumeStats, getIsPaused } from '../lib/stats';
+import { getReadingStats, getStoryStats, pauseStats, resumeStats, getIsPaused, getCurrentSessionDuration } from '../lib/stats';
 import { useIsMobile } from '../lib/useIsMobile';
 import '../styles/oled.css';
 
@@ -8,8 +8,8 @@ const StatsToolbar = ({ currentStoryId }) => {
     const [progress, setProgress] = useState({ percentage: 0, charsRead: 0 });
     const [cpm, setCpm] = useState({ cpm: '--' });
     const [isCollapsed, setIsCollapsed] = useState(true);
+    // Track when this session started
     const [viewMode, setViewMode] = useState('BOOK'); // Default to BOOK stats when reading
-    const [sessionStartTime] = useState(Date.now()); // Track when this session started
     const [sessionElapsed, setSessionElapsed] = useState(0); // minutes elapsed this session
     const [isPaused, setIsPaused] = useState(getIsPaused());
     const isMobile = useIsMobile();
@@ -69,12 +69,18 @@ const StatsToolbar = ({ currentStoryId }) => {
         window.addEventListener('statsPauseChanged', handlePauseChange);
 
         // Poll every minute + update session elapsed timer
+        // We poll more frequently (1s) to show accurate seconds/minutes if we wanted,
+        // but sticking to 30s or so is fine. However, to show accurate time while reading,
+        // 1 minute resolution might feel "laggy" if it doesn't match wall clock exactly.
+        // Let's toggle slightly faster to ensure 'sessionElapsed' updates reasonably well.
         const interval = setInterval(() => {
+            // Always update session elapsed, even if paused (it will just stay constant)
+            setSessionElapsed(Math.round(getCurrentSessionDuration()));
+
             if (!getIsPaused()) {
                 fetchStats();
-                setSessionElapsed(Math.round((Date.now() - sessionStartTime) / 60000));
             }
-        }, 30000);
+        }, 5000); // Updated to 5s for smoother updates (though UI only shows minutes)
 
         return () => {
             window.removeEventListener('statsUpdated', handleStatsUpdate);
