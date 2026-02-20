@@ -2,8 +2,8 @@ import React from 'react';
 import { getCharacterTone, getTonesFromPinyin } from '../lib/tones';
 import { lookupAt } from '../lib/dictionary';
 
-const ColorizedText = ({ text, enabled = true }) => {
-    if (!enabled || !text) {
+const ColorizedText = ({ text, enabled = true, lookedUpWords = new Set(), overrideToneColors = null }) => {
+    if ((!enabled && overrideToneColors !== false) || !text) {
         return <>{text}</>;
     }
 
@@ -20,42 +20,32 @@ const ColorizedText = ({ text, enabled = true }) => {
                 const wordLength = result.word.length;
                 const pinyin = result.entries[0].pinyin;
                 const tones = getTonesFromPinyin(pinyin);
+                const isLookedUp = lookedUpWords.has(result.word);
+                const lookedUpClass = isLookedUp ? ' word-looked-up' : '';
 
                 // Render each character of the word with its specific tone
                 for (let j = 0; j < wordLength; j++) {
                     const char = text[i + j];
                     const tone = tones[j]; // Tone corresponding to this char position
+                    let toneClass = '';
 
-                    if (tone && tone >= 1 && tone <= 4) {
-                        elements.push(
-                            <span
-                                key={`${i + j}`}
-                                className={`char-with-tone tone-${tone}`}
-                                data-word={result.word}
-                            >
-                                {char}
-                            </span>
-                        );
+                    if (overrideToneColors === false) {
+                        toneClass = '';
+                    } else if (tone && tone >= 1 && tone <= 4) {
+                        toneClass = ` tone-${tone}`;
                     } else if (tone === 5) {
-                        elements.push(
-                            <span
-                                key={`${i + j}`}
-                                className={`char-with-tone tone-neutral`}
-                                data-word={result.word}
-                            >
-                                {char}
-                            </span>
-                        );
-                    } else {
-                        elements.push(
-                            <span
-                                key={`${i + j}`}
-                                data-word={result.word}
-                            >
-                                {char}
-                            </span>
-                        );
+                        toneClass = ` tone-neutral`;
                     }
+
+                    elements.push(
+                        <span
+                            key={`${i + j}`}
+                            className={`char-with-tone${toneClass}${lookedUpClass}`}
+                            data-word={result.word}
+                        >
+                            {char}
+                        </span>
+                    );
                 }
 
                 i += wordLength;
@@ -63,16 +53,17 @@ const ColorizedText = ({ text, enabled = true }) => {
                 // No word found, render single char (try single char lookup fallback)
                 const char = text[i];
                 const tone = getCharacterTone(char);
+                let toneClass = '';
 
-                if (tone) {
-                    elements.push(
-                        <span key={i} className={`char-with-tone tone-${tone}`}>
-                            {char}
-                        </span>
-                    );
-                } else {
-                    elements.push(<span key={i}>{char}</span>);
+                if (overrideToneColors !== false && tone) {
+                    toneClass = ` tone-${tone}`;
                 }
+
+                elements.push(
+                    <span key={i} className={`char-with-tone${toneClass}`}>
+                        {char}
+                    </span>
+                );
                 i++;
             }
         }

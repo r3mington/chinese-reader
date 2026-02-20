@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { lookupAt } from '../lib/dictionary';
 import { saveBookmark, getBookmark } from '../lib/storage';
 import { startReadingSession, endReadingSession, initStoryTracking, trackScrollProgress, trackSessionLookup } from '../lib/stats';
-import { trackWordClick } from '../lib/vocabulary';
+import { trackWordClick, getVocabularyList } from '../lib/vocabulary';
 import { useIsMobile } from '../lib/useIsMobile';
 import WordPopup from './WordPopup';
 import MobileBottomSheet from './MobileBottomSheet';
@@ -18,9 +18,18 @@ const Reader = ({ story }) => {
     const [toneColorsEnabled, setToneColorsEnabled] = useState(() => {
         return localStorage.getItem('toneColorsEnabled') === 'true';
     });
+    const [lookedUpWords, setLookedUpWords] = useState(new Set());
     const [readingProgress, setReadingProgress] = useState(0);
     const contentRef = useRef(null);
     const isMobile = useIsMobile();
+
+    useEffect(() => {
+        const loadWords = async () => {
+            const list = await getVocabularyList();
+            setLookedUpWords(new Set(list.map(w => w.word)));
+        };
+        loadWords();
+    }, []);
 
     useEffect(() => {
         localStorage.setItem('toneColorsEnabled', toneColorsEnabled);
@@ -163,6 +172,7 @@ const Reader = ({ story }) => {
                 trackSessionLookup(); // Track stats
 
                 setPopupData(result);
+                setLookedUpWords(prev => new Set(prev).add(result.word));
                 // Calculate position relative to viewport
                 const rect = target.getBoundingClientRect();
                 setPopupPos({ x: e.clientX, y: e.clientY });
@@ -211,6 +221,7 @@ const Reader = ({ story }) => {
         if (result) {
             trackSessionLookup(); // Track stats
             setPopupData(result);
+            setLookedUpWords(prev => new Set(prev).add(result.word));
             setPopupPos({ x: e.clientX, y: e.clientY });
 
             if (story && story.id) {
@@ -275,9 +286,9 @@ const Reader = ({ story }) => {
                 {story.content.split('\n').map((para, idx) => (
                     <p key={idx} className="reader-para">
                         {toneColorsEnabled ? (
-                            <ColorizedText text={para} enabled={toneColorsEnabled} />
+                            <ColorizedText text={para} enabled={toneColorsEnabled} lookedUpWords={lookedUpWords} />
                         ) : (
-                            para
+                            <ColorizedText text={para} enabled={true} lookedUpWords={lookedUpWords} overrideToneColors={false} />
                         )}
                     </p>
                 ))}

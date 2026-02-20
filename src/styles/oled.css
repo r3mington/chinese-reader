@@ -1771,3 +1771,8 @@ button:active {
     color: #ef4444;
     border-color: rgba(239, 68, 68, 0.4);
 }
+/* Faded Text for Looked Up Words */
+.word-looked-up {
+    opacity: 0.4;
+    transition: opacity 0.3s ease;
+}
