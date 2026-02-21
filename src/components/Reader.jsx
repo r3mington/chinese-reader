@@ -20,6 +20,7 @@ const Reader = ({ story }) => {
     });
     const [lookedUpWords, setLookedUpWords] = useState(new Set());
     const [readingProgress, setReadingProgress] = useState(0);
+    const [activeHighlight, setActiveHighlight] = useState(null);
     const contentRef = useRef(null);
     const isMobile = useIsMobile();
 
@@ -30,6 +31,14 @@ const Reader = ({ story }) => {
         };
         loadWords();
     }, []);
+
+    // Clear active word highlight 1 second after popup closes to allow CSS fade
+    useEffect(() => {
+        if (!popupData && activeHighlight !== null) {
+            const timer = setTimeout(() => setActiveHighlight(null), 1000);
+            return () => clearTimeout(timer);
+        }
+    }, [popupData, activeHighlight]);
 
     useEffect(() => {
         localStorage.setItem('toneColorsEnabled', toneColorsEnabled);
@@ -161,12 +170,21 @@ const Reader = ({ story }) => {
         setPopupData(null);
 
         // Check if the clicked element (or parent) has a data-word attribute
-        const target = e.target.closest('[data-word]');
+        const target = e.target.closest('[data-word], [data-index]');
 
         if (target) {
+            const indexStr = target.getAttribute('data-index');
+            const paraEl = target.closest('[data-para-index]');
+            if (indexStr !== null && paraEl) {
+                setActiveHighlight({
+                    charIdx: parseInt(indexStr, 10),
+                    paraIdx: parseInt(paraEl.getAttribute('data-para-index'), 10)
+                });
+            }
+
             const word = target.getAttribute('data-word');
             // Look up the word directly
-            const result = lookupAt(word, 0);
+            const result = word ? lookupAt(word, 0) : null;
 
             if (result) {
                 trackSessionLookup(); // Track stats
@@ -284,12 +302,14 @@ const Reader = ({ story }) => {
                     <h2 className="mobile-story-title">{story.title}</h2>
                 )}
                 {story.content.split('\n').map((para, idx) => (
-                    <p key={idx} className="reader-para">
-                        {toneColorsEnabled ? (
-                            <ColorizedText text={para} enabled={toneColorsEnabled} lookedUpWords={lookedUpWords} />
-                        ) : (
-                            <ColorizedText text={para} enabled={true} lookedUpWords={lookedUpWords} overrideToneColors={false} />
-                        )}
+                    <p key={idx} className="reader-para" data-para-index={idx}>
+                        <ColorizedText
+                            text={para}
+                            enabled={true}
+                            lookedUpWords={lookedUpWords}
+                            overrideToneColors={toneColorsEnabled ? null : false}
+                            activeIndex={activeHighlight?.paraIdx === idx ? activeHighlight.charIdx : null}
+                        />
                     </p>
                 ))}
             </div>

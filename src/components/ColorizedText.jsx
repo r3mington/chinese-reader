@@ -2,7 +2,7 @@ import React from 'react';
 import { getCharacterTone, getTonesFromPinyin } from '../lib/tones';
 import { lookupAt } from '../lib/dictionary';
 
-const ColorizedText = ({ text, enabled = true, lookedUpWords = new Set(), overrideToneColors = null }) => {
+const ColorizedText = ({ text, enabled = true, lookedUpWords = new Set(), overrideToneColors = null, activeIndex = null }) => {
     if ((!enabled && overrideToneColors !== false) || !text) {
         return <>{text}</>;
     }
@@ -22,6 +22,8 @@ const ColorizedText = ({ text, enabled = true, lookedUpWords = new Set(), overri
                 const tones = getTonesFromPinyin(pinyin);
                 const isLookedUp = lookedUpWords.has(result.word);
                 const lookedUpClass = isLookedUp ? ' word-looked-up' : '';
+                const isHighlighted = activeIndex !== null && activeIndex >= i && activeIndex < i + wordLength;
+                const highlightClass = isHighlighted ? ' word-active-highlight' : '';
 
                 // Render each character of the word with its specific tone
                 for (let j = 0; j < wordLength; j++) {
@@ -40,8 +42,9 @@ const ColorizedText = ({ text, enabled = true, lookedUpWords = new Set(), overri
                     elements.push(
                         <span
                             key={`${i + j}`}
-                            className={`char-with-tone${toneClass}${lookedUpClass}`}
+                            className={`char-with-tone${toneClass}${lookedUpClass}${highlightClass}`}
                             data-word={result.word}
+                            data-index={i + j}
                         >
                             {char}
                         </span>
@@ -54,13 +57,15 @@ const ColorizedText = ({ text, enabled = true, lookedUpWords = new Set(), overri
                 const char = text[i];
                 const tone = getCharacterTone(char);
                 let toneClass = '';
+                const isHighlighted = activeIndex !== null && activeIndex === i;
+                const highlightClass = isHighlighted ? ' word-active-highlight' : '';
 
                 if (overrideToneColors !== false && tone) {
                     toneClass = ` tone-${tone}`;
                 }
 
                 elements.push(
-                    <span key={i} className={`char-with-tone${toneClass}`}>
+                    <span key={i} className={`char-with-tone${toneClass}${highlightClass}`} data-index={i}>
                         {char}
                     </span>
                 );
