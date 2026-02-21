@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { getStories, saveStory, deleteStory, setStoryRead } from '../lib/storage';
 import { Link } from 'react-router-dom';
 
 const Sidebar = ({ onSelectStory, currentStoryId, onViewStats, onViewGlobalStats }) => {
     const [stories, setStories] = useState([]);
     const [isAdding, setIsAdding] = useState(false);
-    const [newTitle, setNewTitle] = useState('');
-    const [newContent, setNewContent] = useState('');
+    const titleRef = useRef(null);
+    const contentRef = useRef(null);
 
     useEffect(() => {
         loadStories();
@@ -20,14 +20,36 @@ const Sidebar = ({ onSelectStory, currentStoryId, onViewStats, onViewGlobalStats
 
     const handleCreate = async (e) => {
         e.preventDefault();
-        if (!newTitle.trim() || !newContent.trim()) return;
+        const title = titleRef.current?.value || '';
+        const content = contentRef.current?.value || '';
 
-        const story = await saveStory(newTitle, newContent);
+        if (!title.trim() || !content.trim()) return;
+
+        const story = await saveStory(title, content);
         setStories([story, ...stories]);
         setIsAdding(false);
-        setNewTitle('');
-        setNewContent('');
         onSelectStory(story);
+    };
+
+    const handleFileUpload = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        // Auto-fill title from filename
+        let title = file.name;
+        if (title.endsWith('.txt')) {
+            title = title.slice(0, -4);
+        }
+        if (titleRef.current) titleRef.current.value = title;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const text = event.target.result;
+            if (contentRef.current) {
+                contentRef.current.value = text;
+            }
+        };
+        reader.readAsText(file);
     };
 
     const handleDelete = async (id, e) => {
@@ -62,17 +84,24 @@ const Sidebar = ({ onSelectStory, currentStoryId, onViewStats, onViewGlobalStats
                     <input
                         type="text"
                         placeholder="Title"
-                        value={newTitle}
-                        onChange={(e) => setNewTitle(e.target.value)}
+                        ref={titleRef}
                         className="input-field"
                         autoFocus
                     />
                     <textarea
-                        placeholder="Paste Chinese text here..."
-                        value={newContent}
-                        onChange={(e) => setNewContent(e.target.value)}
+                        placeholder="Paste Chinese text here (handles 100k+ chars natively)..."
+                        ref={contentRef}
                         className="input-textarea"
                     />
+                    <div style={{ display: 'flex', gap: '8px', marginBottom: '12px', alignItems: 'center' }}>
+                        <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Or select a .txt file:</span>
+                        <input
+                            type="file"
+                            accept=".txt"
+                            onChange={handleFileUpload}
+                            style={{ fontSize: '12px', color: 'var(--text-secondary)' }}
+                        />
+                    </div>
                     <button type="submit" className="btn-block">Save Story</button>
                 </form>
             )}
