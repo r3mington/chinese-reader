@@ -690,6 +690,14 @@ button:active {
     border: 1px solid rgba(var(--accent-blue-rgb), 0.3);
 }
 
+.sandhi-badge {
+    background: rgba(245, 158, 11, 0.15);
+    /* amber/yellow */
+    color: #f59e0b;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    cursor: help;
+}
+
 .bottom-sheet-definitions {
     font-size: 16px;
     line-height: 1.7;
@@ -810,6 +818,16 @@ button:active {
     overflow: hidden;
     text-overflow: ellipsis;
     max-width: 140px;
+}
+
+.breakdown-etymology {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.4);
+    font-style: italic;
+    margin-top: 2px;
+    border-top: 1px dashed rgba(255, 255, 255, 0.1);
+    padding-top: 4px;
+    width: 100%;
 }
 
 .sheet-section-title {

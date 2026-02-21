@@ -3,6 +3,8 @@ import { convertPinyin } from '../lib/pinyin';
 import { toggleStarred, getWordStats } from '../lib/vocabulary';
 import { lookupAt } from '../lib/dictionary';
 import { getHskLevel } from '../lib/hsk';
+import { getEtymology } from '../lib/etymology';
+import { checkToneSandhi } from '../lib/tones';
 import '../styles/oled.css';
 
 const MobileBottomSheet = ({ data, onClose }) => {
@@ -41,6 +43,13 @@ const MobileBottomSheet = ({ data, onClose }) => {
     const showTrad = trad && trad !== word;
     const hskLevel = getHskLevel(word);
 
+    // Tone Sandhi Check
+    // Get pinyin array for the word. If multi-character, try to split.
+    const pinyinStr = mainEntry.pinyin || '';
+    // Typically pinyin in dictionary looks like "ni3 hao3". Standardize to array:
+    const pinyinArr = pinyinStr.split(/\s+/).filter(Boolean);
+    const toneSandhiRule = checkToneSandhi(word, pinyinArr);
+
     const handleCopy = () => {
         navigator.clipboard.writeText(word);
         // Could show a toast here
@@ -59,10 +68,12 @@ const MobileBottomSheet = ({ data, onClose }) => {
             return word.split('').map((char, index) => {
                 const result = lookupAt(char, 0);
                 const entry = result?.entries?.[0];
+                const etymology = getEtymology(char);
                 return {
                     char,
                     pinyin: entry?.pinyin || '',
-                    definition: entry?.definitions?.[0] || 'No definition'
+                    definition: entry?.definitions?.[0] || 'No definition',
+                    etymology
                 };
             });
         } catch (e) {
@@ -88,6 +99,11 @@ const MobileBottomSheet = ({ data, onClose }) => {
                                 {showTrad && <span className="bottom-sheet-trad">{trad}</span>}
                                 <span className="bottom-sheet-pinyin">{convertPinyin(mainEntry.pinyin)}</span>
                                 {hskLevel && <span className="sheet-badge hsk-badge">HSK {hskLevel}</span>}
+                                {toneSandhiRule && (
+                                    <span className="sheet-badge sandhi-badge" title={toneSandhiRule}>
+                                        ⚠️ Sandhi
+                                    </span>
+                                )}
                             </div>
                             <div className="sheet-actions">
                                 <button className="sheet-action-btn" onClick={() => {
@@ -153,12 +169,19 @@ const MobileBottomSheet = ({ data, onClose }) => {
                         <div className="sheet-breakdown-section">
                             <div className="sheet-breakdown-list-inline">
                                 {breakdown.map((item, idx) => (
-                                    <div key={idx} className="breakdown-chip">
-                                        <span className="breakdown-chip-char">{item.char}</span>
-                                        <span className="breakdown-chip-pinyin">{convertPinyin(item.pinyin)}</span>
-                                        <span className="breakdown-chip-def">
-                                            {item.definition.split(' ').slice(0, 4).join(' ')}
-                                        </span>
+                                    <div key={idx} className="breakdown-chip" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '2px' }}>
+                                        <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+                                            <span className="breakdown-chip-char">{item.char}</span>
+                                            <span className="breakdown-chip-pinyin">{convertPinyin(item.pinyin)}</span>
+                                            <span className="breakdown-chip-def">
+                                                {item.definition.split(' ').slice(0, 4).join(' ')}
+                                            </span>
+                                        </div>
+                                        {item.etymology && (
+                                            <div className="breakdown-etymology">
+                                                ⚛️ {item.etymology}
+                                            </div>
+                                        )}
                                     </div>
                                 ))}
                             </div>
