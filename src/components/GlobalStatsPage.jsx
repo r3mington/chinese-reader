@@ -47,18 +47,18 @@ const GlobalStatsPage = ({ onClose }) => {
         return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     };
 
-    // Last 14 days activity heatmap data
-    const buildActivityData = (dailyLog) => {
+    // Build 14-day bar data from any daily log
+    const buildActivityData = (dailyLog, valueKey = 'mins') => {
         const days = [];
         for (let i = 13; i >= 0; i--) {
             const d = new Date();
             d.setDate(d.getDate() - i);
-            // Use LOCAL date string to match how sessions are stored
             const y = d.getFullYear();
             const mo = String(d.getMonth() + 1).padStart(2, '0');
             const day = String(d.getDate()).padStart(2, '0');
             const key = `${y}-${mo}-${day}`;
-            days.push({ key, label: d.toLocaleDateString('en-US', { weekday: 'short' }), mins: Math.round(dailyLog[key] || 0) });
+            const val = Math.round(dailyLog[key] || 0);
+            days.push({ key, label: d.toLocaleDateString('en-US', { weekday: 'short' }), [valueKey]: val });
         }
         return days;
     };
@@ -71,8 +71,10 @@ const GlobalStatsPage = ({ onClose }) => {
         );
     }
 
-    const activityDays = buildActivityData(stats.dailyLog || {});
+    const activityDays = buildActivityData(stats.dailyLog || {}, 'mins');
     const maxMins = Math.max(...activityDays.map(d => d.mins), 1);
+    const charsDays = buildActivityData(stats.dailyCharsLog || {}, 'chars');
+    const maxChars = Math.max(...charsDays.map(d => d.chars), 1);
     const estPages = stats.totalChars ? Math.round(stats.totalChars / 500) : 0;
 
     return (
@@ -232,6 +234,74 @@ const GlobalStatsPage = ({ onClose }) => {
                             );
                         })()}
                     </div>
+
+                    {/* Chars Per Day Chart */}
+                    {charsDays.some(d => d.chars > 0) && (
+                        <div className="ssp-section">
+                            <h2 className="ssp-section-title">Characters Per Day
+                                <span style={{ fontSize: 10, fontWeight: 400, opacity: 0.45, marginLeft: 8 }}>LAST 14 DAYS</span>
+                            </h2>
+                            {(() => {
+                                const BAR_W = 600;
+                                const LABEL_TOP = 14;
+                                const BAR_AREA = 100;
+                                const LABEL_BOT = 20;
+                                const BAR_H = LABEL_TOP + BAR_AREA + LABEL_BOT;
+                                const colW = BAR_W / charsDays.length;
+                                const gap = 4;
+                                const totalCharsInRange = charsDays.reduce((a, d) => a + d.chars, 0);
+                                const fmtChars = (n) => n >= 1000 ? `${(n / 1000).toFixed(1)}k` : `${n}`;
+                                return (
+                                    <>
+                                        <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', marginBottom: 6 }}>
+                                            {totalCharsInRange.toLocaleString()} chars total in range
+                                        </div>
+                                        <svg viewBox={`0 0 ${BAR_W} ${BAR_H}`} className="ssp-chart-svg" preserveAspectRatio="xMidYMid meet" style={{ height: BAR_H }}>
+                                            {charsDays.map((day, i) => {
+                                                const barH = day.chars > 0 ? Math.max(4, Math.round((day.chars / maxChars) * BAR_AREA)) : 3;
+                                                const x = i * colW + gap / 2;
+                                                const w = colW - gap;
+                                                const barY = LABEL_TOP + BAR_AREA - barH;
+                                                const isToday = i === charsDays.length - 1;
+                                                const barColor = isToday ? '#4ade80' : '#7c3aed';
+                                                return (
+                                                    <g key={i}>
+                                                        <rect
+                                                            x={x} y={barY} width={w} height={barH}
+                                                            rx="3"
+                                                            fill={barColor}
+                                                            opacity={day.chars > 0 ? 0.85 : 0.1}
+                                                        />
+                                                        {day.chars > 0 && (
+                                                            <text
+                                                                x={x + w / 2}
+                                                                y={barY - 3}
+                                                                textAnchor="middle"
+                                                                fill={isToday ? '#4ade80' : 'rgba(255,255,255,0.7)'}
+                                                                fontSize="8"
+                                                                fontWeight="600"
+                                                            >
+                                                                {fmtChars(day.chars)}
+                                                            </text>
+                                                        )}
+                                                        <text
+                                                            x={x + w / 2}
+                                                            y={LABEL_TOP + BAR_AREA + LABEL_BOT - 2}
+                                                            textAnchor="middle"
+                                                            fill={isToday ? 'rgba(74,222,128,0.6)' : 'rgba(255,255,255,0.25)'}
+                                                            fontSize="8"
+                                                        >
+                                                            {isToday ? 'T' : day.label.slice(0, 1)}
+                                                        </text>
+                                                    </g>
+                                                );
+                                            })}
+                                        </svg>
+                                    </>
+                                );
+                            })()}
+                        </div>
+                    )}
 
                     {/* Today's Reading */}
                     {Object.keys(stats.todayByBook || {}).length > 0 && (() => {

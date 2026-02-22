@@ -446,6 +446,14 @@ export const getGlobalStats = async () => {
     // Daily activity: sum minutes per day across all books
     const dailyLog = savedStats.dailyLog || {};
 
+    // Daily chars log: sum chars per day from session history
+    const dailyCharsLog = {};
+    allSessions.forEach(s => {
+        if (!s.date || !s.chars) return;
+        const key = localDateKey(new Date(s.date));
+        dailyCharsLog[key] = (dailyCharsLog[key] || 0) + (s.chars || 0);
+    });
+
     // Global avg CPM
     const validCpms = allSessions.filter(s => s.cpm > 0).map(s => s.cpm);
     const avgCpm = validCpms.length > 0 ? Math.round(validCpms.reduce((a, b) => a + b, 0) / validCpms.length) : 0;
@@ -485,6 +493,7 @@ export const getGlobalStats = async () => {
         bestCpm,
         streak,
         dailyLog,
+        dailyCharsLog,
         books: books.sort((a, b) => new Date(b.lastSession) - new Date(a.lastSession)),
         todayByBook,
     };
