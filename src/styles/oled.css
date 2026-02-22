@@ -548,27 +548,22 @@ button:active {
 
 .char-with-tone.tone-1::before {
     content: 'ˉ';
-    color: var(--tone-1);
 }
 
 .char-with-tone.tone-2::before {
     content: 'ˊ';
-    color: var(--tone-2);
 }
 
 .char-with-tone.tone-3::before {
     content: 'ˇ';
-    color: var(--tone-3);
 }
 
 .char-with-tone.tone-4::before {
     content: 'ˋ';
-    color: var(--tone-4);
 }
 
 .char-with-tone.tone-neutral::before {
     content: '·';
-    color: var(--tone-neutral);
 }
 
 /* ========================================
