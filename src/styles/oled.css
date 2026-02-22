@@ -584,8 +584,8 @@ button:active {
     bottom: 0;
     background: rgba(0, 0, 0, 0.3);
     /* 70% of story showing */
-    backdrop-filter: blur(2px);
-    -webkit-backdrop-filter: blur(2px);
+    backdrop-filter: blur(1.2px);
+    -webkit-backdrop-filter: blur(1.2px);
     z-index: 999;
     animation: fadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
