@@ -169,46 +169,66 @@ const GlobalStatsPage = ({ onClose }) => {
 
                     {/* 14-day Activity Bar Chart */}
                     <div className="ssp-section">
-                        <h2 className="ssp-section-title">Minutes Per Day (Last 14 Days)</h2>
+                        <h2 className="ssp-section-title">Minutes Per Day
+                            <span style={{ fontSize: 10, fontWeight: 400, opacity: 0.45, marginLeft: 8 }}>LAST 14 DAYS</span>
+                        </h2>
                         {(() => {
                             const BAR_W = 600;
-                            const BAR_H = 80;
-                            const PAD_BOTTOM = 18;
-                            const chartH = BAR_H - PAD_BOTTOM;
+                            const LABEL_TOP = 14;
+                            const BAR_AREA = 100;
+                            const LABEL_BOT = 20;
+                            const BAR_H = LABEL_TOP + BAR_AREA + LABEL_BOT;
                             const colW = BAR_W / activityDays.length;
-                            const gap = 3;
+                            const gap = 4;
+                            const activeDaysCount = activityDays.filter(d => d.mins > 0).length;
+                            const totalMins = activityDays.reduce((a, d) => a + d.mins, 0);
                             return (
-                                <svg viewBox={`0 0 ${BAR_W} ${BAR_H}`} className="ssp-chart-svg" preserveAspectRatio="xMidYMid meet" style={{ height: 80 }}>
-                                    {activityDays.map((day, i) => {
-                                        const barH = day.mins > 0 ? Math.max(2, Math.round((day.mins / maxMins) * chartH)) : 2;
-                                        const x = i * colW + gap / 2;
-                                        const w = colW - gap;
-                                        const y = chartH - barH;
-                                        const showLabel = i === 0 || i === 6 || i === 13;
-                                        return (
-                                            <g key={i}>
-                                                <title>{day.key}: {day.mins}mn</title>
-                                                <rect
-                                                    x={x} y={y} width={w} height={barH}
-                                                    rx="2"
-                                                    fill="#2962FF"
-                                                    opacity={day.mins > 0 ? 0.9 : 0.12}
-                                                />
-                                                {showLabel && (
+                                <>
+                                    <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', marginBottom: 6 }}>
+                                        {activeDaysCount} active day{activeDaysCount !== 1 ? 's' : ''} · {totalMins}mn total
+                                    </div>
+                                    <svg viewBox={`0 0 ${BAR_W} ${BAR_H}`} className="ssp-chart-svg" preserveAspectRatio="xMidYMid meet" style={{ height: BAR_H }}>
+                                        {activityDays.map((day, i) => {
+                                            const barH = day.mins > 0 ? Math.max(4, Math.round((day.mins / maxMins) * BAR_AREA)) : 3;
+                                            const x = i * colW + gap / 2;
+                                            const w = colW - gap;
+                                            const barY = LABEL_TOP + BAR_AREA - barH;
+                                            const isToday = i === activityDays.length - 1;
+                                            const barColor = isToday ? '#4ade80' : '#2962FF';
+                                            return (
+                                                <g key={i}>
+                                                    <rect
+                                                        x={x} y={barY} width={w} height={barH}
+                                                        rx="3"
+                                                        fill={barColor}
+                                                        opacity={day.mins > 0 ? 0.85 : 0.1}
+                                                    />
+                                                    {day.mins > 0 && (
+                                                        <text
+                                                            x={x + w / 2}
+                                                            y={barY - 3}
+                                                            textAnchor="middle"
+                                                            fill={isToday ? '#4ade80' : 'rgba(255,255,255,0.7)'}
+                                                            fontSize="8"
+                                                            fontWeight="600"
+                                                        >
+                                                            {day.mins}
+                                                        </text>
+                                                    )}
                                                     <text
                                                         x={x + w / 2}
-                                                        y={BAR_H - 2}
+                                                        y={LABEL_TOP + BAR_AREA + LABEL_BOT - 2}
                                                         textAnchor="middle"
-                                                        fill="rgba(255,255,255,0.35)"
-                                                        fontSize="9"
+                                                        fill={isToday ? 'rgba(74,222,128,0.6)' : 'rgba(255,255,255,0.25)'}
+                                                        fontSize="8"
                                                     >
-                                                        {day.label}
+                                                        {isToday ? 'T' : day.label.slice(0, 1)}
                                                     </text>
-                                                )}
-                                            </g>
-                                        );
-                                    })}
-                                </svg>
+                                                </g>
+                                            );
+                                        })}
+                                    </svg>
+                                </>
                             );
                         })()}
                     </div>
