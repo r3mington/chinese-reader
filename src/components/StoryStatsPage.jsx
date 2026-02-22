@@ -301,41 +301,65 @@ const StoryStatsPage = ({ story, onClose }) => {
                         );
                     })()}
 
-                    {/* Section 1: Hero Summary */}
-                    <div className="ssp-hero-grid">
-                        <div className="ssp-stat-card">
-                            <span className="ssp-card-value">{formatDuration(stats?.totalTime)}</span>
-                            <span className="ssp-card-label">Total Time</span>
-                        </div>
-                        <div className="ssp-stat-card">
-                            <span className="ssp-card-value">{(stats?.totalChars || 0).toLocaleString()}</span>
-                            <span className="ssp-card-label">Chars Read</span>
-                        </div>
-                        <div className="ssp-stat-card">
-                            <span className="ssp-card-value">{(stats?.totalLookups || 0).toLocaleString()}</span>
-                            <span className="ssp-card-label">Lookups</span>
-                        </div>
-                        <div className="ssp-stat-card">
-                            <span className="ssp-card-value">{uniqueChars.toLocaleString()}</span>
-                            <span className="ssp-card-label">Unique Chars</span>
-                        </div>
-                        <div className="ssp-stat-card">
-                            <span className="ssp-card-value">{sessionCount}</span>
-                            <span className="ssp-card-label">Sessions</span>
-                        </div>
-                        <div className="ssp-stat-card">
-                            <span className="ssp-card-value">{stats?.avgCpm || '--'}</span>
-                            <span className="ssp-card-label">Avg CPM</span>
-                        </div>
-                        <div className="ssp-stat-card ssp-card-accent">
-                            <span className="ssp-card-value">{bestCpm}</span>
-                            <span className="ssp-card-label">Best CPM</span>
-                        </div>
-                        <div className="ssp-stat-card">
-                            <span className="ssp-card-value">{estPages}</span>
-                            <span className="ssp-card-label">Est. Pages</span>
-                        </div>
-                    </div>
+                    {/* Section 1: Hero Summary — compact 4-up top row */}
+                    {(() => {
+                        // Compute this-week totals
+                        const allSessions = stats?.history || [];
+                        const todayKey = localDateKeyFromISO(new Date().toISOString());
+                        const todaySessions = allSessions.filter(s => localDateKeyFromISO(s.date) === todayKey);
+                        const todayMins = todaySessions.reduce((a, s) => a + (s.duration || 0), 0);
+                        const todayChars = todaySessions.reduce((a, s) => a + (s.chars || 0), 0);
+                        const lookupRate = stats?.totalChars > 0 ? ((stats.totalLookups || 0) / stats.totalChars * 100).toFixed(1) : 0;
+                        const charsPerSession = sessionCount > 0 ? Math.round((stats?.totalChars || 0) / sessionCount) : 0;
+                        return (
+                            <div className="ssp-hero-grid">
+                                <div className="ssp-stat-card">
+                                    <span className="ssp-card-value">{formatDuration(stats?.totalTime)}</span>
+                                    <span className="ssp-card-label">Total Time</span>
+                                </div>
+                                <div className="ssp-stat-card">
+                                    <span className="ssp-card-value">{(stats?.totalChars || 0).toLocaleString()}</span>
+                                    <span className="ssp-card-label">Chars Read</span>
+                                </div>
+                                <div className="ssp-stat-card">
+                                    <span className="ssp-card-value">{sessionCount}</span>
+                                    <span className="ssp-card-label">Sessions</span>
+                                </div>
+                                <div className="ssp-stat-card">
+                                    <span className="ssp-card-value">{stats?.avgCpm || '--'}</span>
+                                    <span className="ssp-card-label">Avg CPM</span>
+                                </div>
+                                <div className="ssp-stat-card ssp-card-accent">
+                                    <span className="ssp-card-value">{bestCpm}</span>
+                                    <span className="ssp-card-label">Best CPM</span>
+                                </div>
+                                <div className="ssp-stat-card">
+                                    <span className="ssp-card-value">{(stats?.totalLookups || 0).toLocaleString()}</span>
+                                    <span className="ssp-card-label">Lookups</span>
+                                </div>
+                                <div className="ssp-stat-card">
+                                    <span className="ssp-card-value">{lookupRate}%</span>
+                                    <span className="ssp-card-label">Lookup Rate</span>
+                                </div>
+                                <div className="ssp-stat-card">
+                                    <span className="ssp-card-value">{charsPerSession.toLocaleString()}</span>
+                                    <span className="ssp-card-label">Chars/Session</span>
+                                </div>
+                                {todayMins > 0 && (
+                                    <div className="ssp-stat-card" style={{ borderColor: 'rgba(74,222,128,0.3)', background: 'rgba(74,222,128,0.04)' }}>
+                                        <span className="ssp-card-value" style={{ color: '#4ade80' }}>{formatDuration(todayMins)}</span>
+                                        <span className="ssp-card-label">Today</span>
+                                    </div>
+                                )}
+                                {todayChars > 0 && (
+                                    <div className="ssp-stat-card">
+                                        <span className="ssp-card-value">{todayChars.toLocaleString()}</span>
+                                        <span className="ssp-card-label">Chars Today</span>
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })()}
 
                     {/* Section 2: Insights */}
                     {insights && (
@@ -380,49 +404,71 @@ const StoryStatsPage = ({ story, onClose }) => {
                         </div>
                     )}
 
-                    {/* Section 3: Daily Minutes Chart */}
+                    {/* Section 3: Daily Minutes Chart — redesigned */}
                     {hasAnyActivity && (
                         <div className="ssp-section">
-                            <h2 className="ssp-section-title">Minutes Per Day (Last 14 Days)</h2>
+                            <h2 className="ssp-section-title">Minutes Per Day
+                                <span style={{ fontSize: 10, fontWeight: 400, opacity: 0.45, marginLeft: 8 }}>LAST 14 DAYS</span>
+                            </h2>
                             {(() => {
                                 const BAR_W = 600;
-                                const BAR_H = 80;
-                                const PAD_BOTTOM = 18; // for labels
-                                const chartH = BAR_H - PAD_BOTTOM;
+                                const LABEL_TOP = 14;   // space above bars for minute values
+                                const BAR_AREA = 100;   // height of bars
+                                const LABEL_BOT = 20;   // space below bars for date labels
+                                const BAR_H = LABEL_TOP + BAR_AREA + LABEL_BOT;
                                 const colW = BAR_W / dailyData.length;
-                                const gap = 3;
+                                const gap = 4;
+                                const activeDaysInRange = dailyData.filter(d => d.mins > 0).length;
                                 return (
-                                    <svg viewBox={`0 0 ${BAR_W} ${BAR_H}`} className="ssp-chart-svg" preserveAspectRatio="xMidYMid meet" style={{ height: 80 }}>
-                                        {dailyData.map((day, i) => {
-                                            const barH = day.mins > 0 ? Math.max(2, Math.round((day.mins / maxDailyMins) * chartH)) : 2;
-                                            const x = i * colW + gap / 2;
-                                            const w = colW - gap;
-                                            const y = chartH - barH;
-                                            const showLabel = i === 0 || i === 6 || i === 13;
-                                            return (
-                                                <g key={i}>
-                                                    <title>{day.key}: {day.mins}mn</title>
-                                                    <rect
-                                                        x={x} y={y} width={w} height={barH}
-                                                        rx="2"
-                                                        fill="#2962FF"
-                                                        opacity={day.mins > 0 ? 0.9 : 0.12}
-                                                    />
-                                                    {showLabel && (
+                                    <>
+                                        <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', marginBottom: 6 }}>
+                                            {activeDaysInRange} active day{activeDaysInRange !== 1 ? 's' : ''} · {Math.round(dailyData.reduce((a, d) => a + d.mins, 0))}mn total
+                                        </div>
+                                        <svg viewBox={`0 0 ${BAR_W} ${BAR_H}`} className="ssp-chart-svg" preserveAspectRatio="xMidYMid meet" style={{ height: BAR_H }}>
+                                            {dailyData.map((day, i) => {
+                                                const barH = day.mins > 0 ? Math.max(4, Math.round((day.mins / maxDailyMins) * BAR_AREA)) : 3;
+                                                const x = i * colW + gap / 2;
+                                                const w = colW - gap;
+                                                const barY = LABEL_TOP + BAR_AREA - barH;
+                                                const isToday = i === dailyData.length - 1;
+                                                const barColor = isToday ? '#4ade80' : '#2962FF';
+                                                return (
+                                                    <g key={i}>
+                                                        {/* Bar */}
+                                                        <rect
+                                                            x={x} y={barY} width={w} height={barH}
+                                                            rx="3"
+                                                            fill={barColor}
+                                                            opacity={day.mins > 0 ? 0.85 : 0.1}
+                                                        />
+                                                        {/* Minute value above bar */}
+                                                        {day.mins > 0 && (
+                                                            <text
+                                                                x={x + w / 2}
+                                                                y={barY - 3}
+                                                                textAnchor="middle"
+                                                                fill={isToday ? '#4ade80' : 'rgba(255,255,255,0.7)'}
+                                                                fontSize="8"
+                                                                fontWeight="600"
+                                                            >
+                                                                {day.mins}
+                                                            </text>
+                                                        )}
+                                                        {/* Date label below */}
                                                         <text
                                                             x={x + w / 2}
-                                                            y={BAR_H - 2}
+                                                            y={LABEL_TOP + BAR_AREA + LABEL_BOT - 2}
                                                             textAnchor="middle"
-                                                            fill="rgba(255,255,255,0.35)"
-                                                            fontSize="9"
+                                                            fill={isToday ? 'rgba(74,222,128,0.6)' : 'rgba(255,255,255,0.25)'}
+                                                            fontSize="8"
                                                         >
-                                                            {day.label}
+                                                            {isToday ? 'Today' : day.label.slice(0, 1)}
                                                         </text>
-                                                    )}
-                                                </g>
-                                            );
-                                        })}
-                                    </svg>
+                                                    </g>
+                                                );
+                                            })}
+                                        </svg>
+                                    </>
                                 );
                             })()}
                         </div>
