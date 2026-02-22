@@ -448,10 +448,18 @@ export const getGlobalStats = async () => {
 
     // Daily chars log: sum chars per day from session history
     const dailyCharsLog = {};
+    const dailyMinsLog = {}; // for CPM calculation
     allSessions.forEach(s => {
-        if (!s.date || !s.chars) return;
+        if (!s.date) return;
         const key = localDateKey(new Date(s.date));
-        dailyCharsLog[key] = (dailyCharsLog[key] || 0) + (s.chars || 0);
+        if (s.chars) dailyCharsLog[key] = (dailyCharsLog[key] || 0) + (s.chars || 0);
+        if (s.duration) dailyMinsLog[key] = (dailyMinsLog[key] || 0) + (s.duration || 0);
+    });
+    // Daily CPM = totalChars / totalMins for that day
+    const dailyCpmLog = {};
+    Object.keys(dailyCharsLog).forEach(key => {
+        const mins = dailyMinsLog[key] || 0;
+        dailyCpmLog[key] = mins > 0 ? Math.round(dailyCharsLog[key] / mins) : 0;
     });
 
     // Global avg CPM
@@ -494,6 +502,7 @@ export const getGlobalStats = async () => {
         streak,
         dailyLog,
         dailyCharsLog,
+        dailyCpmLog,
         books: books.sort((a, b) => new Date(b.lastSession) - new Date(a.lastSession)),
         todayByBook,
     };

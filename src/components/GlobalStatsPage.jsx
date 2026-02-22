@@ -75,6 +75,8 @@ const GlobalStatsPage = ({ onClose }) => {
     const maxMins = Math.max(...activityDays.map(d => d.mins), 1);
     const charsDays = buildActivityData(stats.dailyCharsLog || {}, 'chars');
     const maxChars = Math.max(...charsDays.map(d => d.chars), 1);
+    const cpmDays = buildActivityData(stats.dailyCpmLog || {}, 'cpm');
+    const maxCpmDay = Math.max(...cpmDays.map(d => d.cpm), 1);
     const estPages = stats.totalChars ? Math.round(stats.totalChars / 500) : 0;
 
     return (
@@ -298,6 +300,67 @@ const GlobalStatsPage = ({ onClose }) => {
                                             })}
                                         </svg>
                                     </>
+                                );
+                            })()}
+                        </div>
+                    )}
+
+                    {/* Avg CPM Per Day Chart */}
+                    {cpmDays.some(d => d.cpm > 0) && (
+                        <div className="ssp-section">
+                            <h2 className="ssp-section-title">Avg CPM Per Day
+                                <span style={{ fontSize: 10, fontWeight: 400, opacity: 0.45, marginLeft: 8 }}>LAST 14 DAYS · CHARS / MINS</span>
+                            </h2>
+                            {(() => {
+                                const BAR_W = 600;
+                                const LABEL_TOP = 14;
+                                const BAR_AREA = 100;
+                                const LABEL_BOT = 20;
+                                const BAR_H = LABEL_TOP + BAR_AREA + LABEL_BOT;
+                                const colW = BAR_W / cpmDays.length;
+                                const gap = 4;
+                                return (
+                                    <svg viewBox={`0 0 ${BAR_W} ${BAR_H}`} className="ssp-chart-svg" preserveAspectRatio="xMidYMid meet" style={{ height: BAR_H }}>
+                                        {cpmDays.map((day, i) => {
+                                            const barH = day.cpm > 0 ? Math.max(4, Math.round((day.cpm / maxCpmDay) * BAR_AREA)) : 3;
+                                            const x = i * colW + gap / 2;
+                                            const w = colW - gap;
+                                            const barY = LABEL_TOP + BAR_AREA - barH;
+                                            const isToday = i === cpmDays.length - 1;
+                                            const barColor = isToday ? '#4ade80' : '#f59e0b';
+                                            return (
+                                                <g key={i}>
+                                                    <rect
+                                                        x={x} y={barY} width={w} height={barH}
+                                                        rx="3"
+                                                        fill={barColor}
+                                                        opacity={day.cpm > 0 ? 0.85 : 0.1}
+                                                    />
+                                                    {day.cpm > 0 && (
+                                                        <text
+                                                            x={x + w / 2}
+                                                            y={barY - 3}
+                                                            textAnchor="middle"
+                                                            fill={isToday ? '#4ade80' : 'rgba(255,255,255,0.7)'}
+                                                            fontSize="8"
+                                                            fontWeight="600"
+                                                        >
+                                                            {day.cpm}
+                                                        </text>
+                                                    )}
+                                                    <text
+                                                        x={x + w / 2}
+                                                        y={LABEL_TOP + BAR_AREA + LABEL_BOT - 2}
+                                                        textAnchor="middle"
+                                                        fill={isToday ? 'rgba(74,222,128,0.6)' : 'rgba(255,255,255,0.25)'}
+                                                        fontSize="8"
+                                                    >
+                                                        {isToday ? 'T' : day.label.slice(0, 1)}
+                                                    </text>
+                                                </g>
+                                            );
+                                        })}
+                                    </svg>
                                 );
                             })()}
                         </div>
