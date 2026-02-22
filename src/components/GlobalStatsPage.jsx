@@ -213,6 +213,50 @@ const GlobalStatsPage = ({ onClose }) => {
                         })()}
                     </div>
 
+                    {/* Today's Reading */}
+                    {Object.keys(stats.todayByBook || {}).length > 0 && (() => {
+                        const todayEntries = Object.entries(stats.todayByBook);
+                        const totalTodayMins = todayEntries.reduce((a, [, v]) => a + v.mins, 0);
+                        const totalTodayChars = todayEntries.reduce((a, [, v]) => a + v.chars, 0);
+                        const totalTodayCpm = totalTodayMins > 0 ? Math.round(totalTodayChars / totalTodayMins) : 0;
+                        return (
+                            <div className="ssp-section" style={{ borderColor: 'rgba(74,222,128,0.2)', background: 'rgba(74,222,128,0.02)' }}>
+                                <h2 className="ssp-section-title" style={{ color: '#4ade80' }}>
+                                    Today
+                                    <span style={{ fontSize: 10, fontWeight: 400, color: 'rgba(74,222,128,0.5)', marginLeft: 8 }}>
+                                        {formatDuration(totalTodayMins)} · {totalTodayChars.toLocaleString()} chars · {totalTodayCpm} CPM
+                                    </span>
+                                </h2>
+                                <div className="ssp-table-wrapper">
+                                    <table className="ssp-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Book</th>
+                                                <th>Time</th>
+                                                <th>Chars</th>
+                                                <th>Sessions</th>
+                                                <th>CPM</th>
+                                                <th>Lookups</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {todayEntries.map(([storyId, v], i) => (
+                                                <tr key={i}>
+                                                    <td style={{ fontWeight: 600, color: '#fff' }}>{storyMap[storyId] || storyId}</td>
+                                                    <td style={{ color: '#4ade80' }}>{formatDuration(v.mins)}</td>
+                                                    <td>{v.chars.toLocaleString()}</td>
+                                                    <td className="ssp-td-muted">{v.sessions}</td>
+                                                    <td>{v.cpm || '--'}</td>
+                                                    <td className="ssp-td-muted">{v.lookups}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        );
+                    })()}
+
                     {/* Per-book breakdown */}
                     {stats.books.length > 0 && (
                         <div className="ssp-section">

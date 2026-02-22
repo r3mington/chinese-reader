@@ -462,6 +462,20 @@ export const getGlobalStats = async () => {
         d.setDate(d.getDate() - 1);
     }
 
+    // Today's activity per book
+    const todayKey = localDateKey();
+    const todayByBook = {};
+    for (const [storyId, data] of Object.entries(storyStats)) {
+        if (!data || !data.history) continue;
+        const todaySessions = data.history.filter(s => s.date && localDateKey(new Date(s.date)) === todayKey);
+        if (todaySessions.length === 0) continue;
+        const mins = todaySessions.reduce((a, s) => a + (s.duration || 0), 0);
+        const chars = todaySessions.reduce((a, s) => a + (s.chars || 0), 0);
+        const lookups = todaySessions.reduce((a, s) => a + (s.lookups || 0), 0);
+        const cpm = mins > 0 ? Math.round(chars / mins) : 0;
+        todayByBook[storyId] = { mins, chars, lookups, cpm, sessions: todaySessions.length };
+    }
+
     return {
         totalTime,
         totalChars,
@@ -469,7 +483,9 @@ export const getGlobalStats = async () => {
         totalSessions: allSessions.length,
         avgCpm,
         bestCpm,
+        streak,
         dailyLog,
-        books: books.sort((a, b) => new Date(b.lastSession) - new Date(a.lastSession))
+        books: books.sort((a, b) => new Date(b.lastSession) - new Date(a.lastSession)),
+        todayByBook,
     };
 };
