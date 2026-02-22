@@ -117,9 +117,8 @@ export const endReadingSession = async () => {
             // Chars read in THIS session = delta from when session started
             const sessionChars = Math.max(0, storyTotalChars - sessionStartChars);
 
-            // Get CPM — use 0 if unavailable, don't gate the save on it
-            const { cpm } = getCpmStats();
-            const cpmVal = (typeof cpm === 'number' && !isNaN(cpm)) ? cpm : 0;
+            // Calculate session CPM explicitly as chars / duration
+            const cpmVal = durationMinutes > 0 ? Math.round(sessionChars / durationMinutes) : 0;
 
             await saveSession(currentStoryId, durationMinutes, sessionChars, cpmVal, sessionLookups); // Pass lookups
         }
@@ -308,8 +307,14 @@ export const getStoryStats = async (storyId) => {
     let count = 0;
     // Build daily log from session history
     const dailyLog = {};
+    let recalculatedHistory = [];
     if (storyData.history) {
-        storyData.history.forEach(s => {
+        recalculatedHistory = storyData.history.map(s => {
+            const recalculatedCpm = s.duration > 0 ? Math.round((s.chars || 0) / s.duration) : 0;
+            return { ...s, cpm: recalculatedCpm };
+        });
+
+        recalculatedHistory.forEach(s => {
             if (s.cpm > 0) {
                 totalCpm += s.cpm;
                 count++;
@@ -323,6 +328,7 @@ export const getStoryStats = async (storyId) => {
 
     return {
         ...storyData,
+        history: recalculatedHistory,
         avgCpm: count > 0 ? Math.round(totalCpm / count) : '--',
         dailyLog,
     };
@@ -412,7 +418,10 @@ export const getGlobalStats = async () => {
         totalChars += data.totalChars || 0;
         totalLookups += data.totalLookups || 0;
 
-        const sessions = data.history || [];
+        const sessions = (data.history || []).map(s => ({
+            ...s,
+            cpm: s.duration > 0 ? Math.round((s.chars || 0) / s.duration) : 0
+        }));
         allSessions = allSessions.concat(sessions);
 
         const validCpms = sessions.filter(s => s.cpm > 0).map(s => s.cpm);
@@ -458,7 +467,7 @@ export const getGlobalStats = async () => {
         totalChars,
         totalLookups,
         totalSessions: allSessions.length,
-        avgCpm: globalAvgCpm,
+        avgCpm,
         bestCpm,
         dailyLog,
         books: books.sort((a, b) => new Date(b.lastSession) - new Date(a.lastSession))

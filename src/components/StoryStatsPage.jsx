@@ -358,21 +358,47 @@ const StoryStatsPage = ({ story, onClose }) => {
                     {hasAnyActivity && (
                         <div className="ssp-section">
                             <h2 className="ssp-section-title">Minutes Per Day (Last 14 Days)</h2>
-                            <div className="gsp-activity-chart">
-                                {dailyData.map((day, i) => (
-                                    <div key={i} className="gsp-activity-col" title={`${day.key}: ${day.mins}mn`}>
-                                        <div className="gsp-activity-bar-wrap">
-                                            <div
-                                                className="gsp-activity-bar"
-                                                style={{ height: `${Math.round((day.mins / maxDailyMins) * 100)}%`, opacity: day.mins > 0 ? 1 : 0.15 }}
-                                            />
-                                        </div>
-                                        {(i === 0 || i === 6 || i === 13) && (
-                                            <div className="gsp-activity-label">{day.label}</div>
-                                        )}
-                                    </div>
-                                ))}
-                            </div>
+                            {(() => {
+                                const BAR_W = 600;
+                                const BAR_H = 80;
+                                const PAD_BOTTOM = 18; // for labels
+                                const chartH = BAR_H - PAD_BOTTOM;
+                                const colW = BAR_W / dailyData.length;
+                                const gap = 3;
+                                return (
+                                    <svg viewBox={`0 0 ${BAR_W} ${BAR_H}`} className="ssp-chart-svg" preserveAspectRatio="xMidYMid meet" style={{ height: 80 }}>
+                                        {dailyData.map((day, i) => {
+                                            const barH = day.mins > 0 ? Math.max(2, Math.round((day.mins / maxDailyMins) * chartH)) : 2;
+                                            const x = i * colW + gap / 2;
+                                            const w = colW - gap;
+                                            const y = chartH - barH;
+                                            const showLabel = i === 0 || i === 6 || i === 13;
+                                            return (
+                                                <g key={i}>
+                                                    <title>{day.key}: {day.mins}mn</title>
+                                                    <rect
+                                                        x={x} y={y} width={w} height={barH}
+                                                        rx="2"
+                                                        fill="#2962FF"
+                                                        opacity={day.mins > 0 ? 0.9 : 0.12}
+                                                    />
+                                                    {showLabel && (
+                                                        <text
+                                                            x={x + w / 2}
+                                                            y={BAR_H - 2}
+                                                            textAnchor="middle"
+                                                            fill="rgba(255,255,255,0.35)"
+                                                            fontSize="9"
+                                                        >
+                                                            {day.label}
+                                                        </text>
+                                                    )}
+                                                </g>
+                                            );
+                                        })}
+                                    </svg>
+                                );
+                            })()}
                         </div>
                     )}
 
@@ -409,7 +435,8 @@ const StoryStatsPage = ({ story, onClose }) => {
                                     <tbody>
                                         {history.map((session, i) => {
                                             const originalIndex = sessionCount - 1 - i; // history is reversed
-                                            const cpmPct = bestCpm > 0 ? Math.round((session.cpm / bestCpm) * 100) : 0;
+                                            const sessionCpm = session.duration > 0 ? Math.round((session.chars || 0) / session.duration) : 0;
+                                            const cpmPct = bestCpm > 0 ? Math.round((sessionCpm / bestCpm) * 100) : 0;
                                             return (
                                                 <tr key={i}>
                                                     <td className="ssp-td-num">{sessionCount - i}</td>
@@ -420,8 +447,8 @@ const StoryStatsPage = ({ story, onClose }) => {
                                                     <td>{(session.lookups || 0).toLocaleString()}</td>
                                                     <td>
                                                         <div className="ssp-cpm-cell">
-                                                            <span>{session.cpm || '--'}</span>
-                                                            {session.cpm > 0 && (
+                                                            <span>{sessionCpm || '--'}</span>
+                                                            {sessionCpm > 0 && (
                                                                 <div className="ssp-cpm-bar-track">
                                                                     <div className="ssp-cpm-bar-fill" style={{ width: `${cpmPct}%` }} />
                                                                 </div>

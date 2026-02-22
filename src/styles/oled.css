@@ -3,7 +3,7 @@
     --bg-primary: rgba(10, 10, 10, 0.95);
     --bg-secondary: rgba(20, 20, 20, 0.95);
     --text-primary: #E0E0E0;
-    --text-secondary: var(--text-secondary)999;
+    --text-secondary: #999;
     --accent-blue: #2962FF;
     --border-color: #333333;
 
@@ -1658,7 +1658,7 @@ button:active {
 }
 
 .sidebar-footer-link {
-    color: var(--primary-color);
+    color: var(--accent-blue);
     text-decoration: none;
     font-size: 13px;
     font-weight: 500;
@@ -1765,16 +1765,19 @@ button:active {
 .gsp-activity-bar-wrap {
     flex: 1;
     width: 100%;
-    display: flex;
-    align-items: flex-end;
+    position: relative;
+    height: 100%;
 }
 
 .gsp-activity-bar {
     width: 100%;
-    background: var(--primary-color);
+    background: var(--accent-blue);
     border-radius: 3px 3px 0 0;
     min-height: 2px;
     transition: height 0.3s ease;
+    position: absolute;
+    bottom: 0;
+    left: 0;
 }
 
 .gsp-activity-label {

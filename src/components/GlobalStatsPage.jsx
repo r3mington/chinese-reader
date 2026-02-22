@@ -170,21 +170,47 @@ const GlobalStatsPage = ({ onClose }) => {
                     {/* 14-day Activity Bar Chart */}
                     <div className="ssp-section">
                         <h2 className="ssp-section-title">Minutes Per Day (Last 14 Days)</h2>
-                        <div className="gsp-activity-chart">
-                            {activityDays.map((day, i) => (
-                                <div key={i} className="gsp-activity-col" title={`${day.key}: ${day.mins}mn`}>
-                                    <div className="gsp-activity-bar-wrap">
-                                        <div
-                                            className="gsp-activity-bar"
-                                            style={{ height: `${Math.round((day.mins / maxMins) * 100)}%`, opacity: day.mins > 0 ? 1 : 0.15 }}
-                                        />
-                                    </div>
-                                    {(i === 0 || i === 6 || i === 13) && (
-                                        <div className="gsp-activity-label">{day.label}</div>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
+                        {(() => {
+                            const BAR_W = 600;
+                            const BAR_H = 80;
+                            const PAD_BOTTOM = 18;
+                            const chartH = BAR_H - PAD_BOTTOM;
+                            const colW = BAR_W / activityDays.length;
+                            const gap = 3;
+                            return (
+                                <svg viewBox={`0 0 ${BAR_W} ${BAR_H}`} className="ssp-chart-svg" preserveAspectRatio="xMidYMid meet" style={{ height: 80 }}>
+                                    {activityDays.map((day, i) => {
+                                        const barH = day.mins > 0 ? Math.max(2, Math.round((day.mins / maxMins) * chartH)) : 2;
+                                        const x = i * colW + gap / 2;
+                                        const w = colW - gap;
+                                        const y = chartH - barH;
+                                        const showLabel = i === 0 || i === 6 || i === 13;
+                                        return (
+                                            <g key={i}>
+                                                <title>{day.key}: {day.mins}mn</title>
+                                                <rect
+                                                    x={x} y={y} width={w} height={barH}
+                                                    rx="2"
+                                                    fill="#2962FF"
+                                                    opacity={day.mins > 0 ? 0.9 : 0.12}
+                                                />
+                                                {showLabel && (
+                                                    <text
+                                                        x={x + w / 2}
+                                                        y={BAR_H - 2}
+                                                        textAnchor="middle"
+                                                        fill="rgba(255,255,255,0.35)"
+                                                        fontSize="9"
+                                                    >
+                                                        {day.label}
+                                                    </text>
+                                                )}
+                                            </g>
+                                        );
+                                    })}
+                                </svg>
+                            );
+                        })()}
                     </div>
 
                     {/* Per-book breakdown */}
