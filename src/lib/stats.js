@@ -307,6 +307,8 @@ export const getStoryStats = async (storyId) => {
     let count = 0;
     // Build daily log from session history
     const dailyLog = {};
+    const dailyCharsLog = {};
+    const dailyMinsLog = {};
     let recalculatedHistory = [];
     if (storyData.history) {
         recalculatedHistory = storyData.history.map(s => {
@@ -319,18 +321,32 @@ export const getStoryStats = async (storyId) => {
                 totalCpm += s.cpm;
                 count++;
             }
-            if (s.date && s.duration > 0) {
+            if (s.date) {
                 const day = localDateKey(new Date(s.date));
-                dailyLog[day] = (dailyLog[day] || 0) + s.duration;
+                if (s.duration > 0) {
+                    dailyLog[day] = (dailyLog[day] || 0) + s.duration;
+                    dailyMinsLog[day] = (dailyMinsLog[day] || 0) + s.duration;
+                }
+                if (s.chars > 0) {
+                    dailyCharsLog[day] = (dailyCharsLog[day] || 0) + s.chars;
+                }
             }
         });
     }
+
+    const dailyCpmLog = {};
+    Object.keys(dailyCharsLog).forEach(key => {
+        const mins = dailyMinsLog[key] || 0;
+        dailyCpmLog[key] = mins > 0 ? Math.round(dailyCharsLog[key] / mins) : 0;
+    });
 
     return {
         ...storyData,
         history: recalculatedHistory,
         avgCpm: count > 0 ? Math.round(totalCpm / count) : '--',
         dailyLog,
+        dailyCharsLog,
+        dailyCpmLog,
     };
 };
 
