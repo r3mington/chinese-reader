@@ -1,6 +1,6 @@
 import React from 'react';
 import { getCharacterTone, getTonesFromPinyin } from '../lib/tones';
-import { lookupAt } from '../lib/dictionary';
+import { lookupStartingAt } from '../lib/dictionary';
 
 const ColorizedText = ({ text, enabled = true, lookedUpWords = new Set(), overrideToneColors = null, activeIndex = null }) => {
     if ((!enabled && overrideToneColors !== false) || !text) {
@@ -13,7 +13,7 @@ const ColorizedText = ({ text, enabled = true, lookedUpWords = new Set(), overri
 
         while (i < text.length) {
             // Try to find a word at current position
-            const result = lookupAt(text, i);
+            const result = lookupStartingAt(text, i);
 
             if (result) {
                 // We found a word! Use its tones.

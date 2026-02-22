@@ -101,8 +101,31 @@ const buildIndex = (data) => {
     dictionary = data;
 };
 
+// Strictly look for a word starting AT the given index (for sequential text tokenization)
+export const lookupStartingAt = (text, index) => {
+    if (!dictionaryMap) return null;
+
+    if (!/[\u4E00-\u9FFF]/.test(text[index])) return null;
+
+    for (let len = maxWordLength; len > 0; len--) {
+        if (index + len > text.length) continue;
+
+        const substring = text.substring(index, index + len);
+        if (dictionaryMap.has(substring)) {
+            return {
+                word: substring,
+                entries: dictionaryMap.get(substring),
+                start: index,
+                end: index + len
+            };
+        }
+    }
+
+    return null;
+};
+
 // Smart segmentation / text lookup
-// Returns the longest matching word starting at `index` in `text`
+// Returns the longest matching word containing the `index` in `text`
 export const lookupAt = (text, index) => {
     if (!dictionaryMap) return null;
 

@@ -184,7 +184,13 @@ const Reader = ({ story }) => {
 
             const word = target.getAttribute('data-word');
             // Look up the word directly
-            const result = word ? lookupAt(word, 0) : null;
+            let result = word ? lookupAt(word, 0) : null;
+
+            // If no word attribute, use the exact index from the span itself
+            if (!result && indexStr !== null && paraEl) {
+                const exactIndex = parseInt(indexStr, 10);
+                result = lookupAt(paraEl.textContent, exactIndex);
+            }
 
             if (result) {
                 trackSessionLookup(); // Track stats
