@@ -95,10 +95,29 @@ const StoryStatsPage = ({ story, onClose }) => {
         return { best, streak, trend, lastSession: history[history.length - 1] };
     };
 
-    // SVG Line Chart
+    // SVG Line Chart — one point per day, CPM = totalChars / totalMins
     const renderChart = (history) => {
-        const sessions = history.filter(h => h.cpm > 0);
-        if (sessions.length < 2) {
+        // Aggregate sessions by local date
+        const dayMap = {};
+        history.forEach(s => {
+            if (!s.date || !s.duration || s.duration <= 0) return;
+            const chars = s.chars || 0;
+            const key = localDateKeyFromISO(s.date);
+            if (!dayMap[key]) dayMap[key] = { chars: 0, mins: 0, date: s.date };
+            dayMap[key].chars += chars;
+            dayMap[key].mins += s.duration;
+        });
+
+        const daySessions = Object.entries(dayMap)
+            .sort((a, b) => a[0].localeCompare(b[0]))
+            .map(([key, v]) => ({
+                key,
+                cpm: v.mins > 0 ? Math.round(v.chars / v.mins) : 0,
+                date: formatDate(v.date),
+            }))
+            .filter(d => d.cpm > 0);
+
+        if (daySessions.length < 2) {
             return <div className="ssp-chart-empty">Not enough sessions for a chart yet.</div>;
         }
 
@@ -106,24 +125,23 @@ const StoryStatsPage = ({ story, onClose }) => {
         const chartW = W - PAD.left - PAD.right;
         const chartH = H - PAD.top - PAD.bottom;
 
-        const cpms = sessions.map(s => s.cpm);
+        const cpms = daySessions.map(s => s.cpm);
         const minCpm = Math.max(0, Math.min(...cpms) - 10);
         const maxCpm = Math.max(...cpms) + 10;
 
-        const xStep = chartW / (sessions.length - 1);
+        const xStep = chartW / (daySessions.length - 1);
         const yScale = (cpm) => chartH - ((cpm - minCpm) / (maxCpm - minCpm)) * chartH;
 
-        const points = sessions.map((s, i) => ({
+        const points = daySessions.map((s, i) => ({
             x: PAD.left + i * xStep,
             y: PAD.top + yScale(s.cpm),
             cpm: s.cpm,
-            date: formatDate(s.date),
+            date: s.date,
         }));
 
         const pathD = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
         const fillD = `${pathD} L ${points[points.length - 1].x} ${PAD.top + chartH} L ${points[0].x} ${PAD.top + chartH} Z`;
 
-        // Y-axis labels
         const yLabels = [minCpm, Math.round((minCpm + maxCpm) / 2), maxCpm];
 
         return (
@@ -150,14 +168,22 @@ const StoryStatsPage = ({ story, onClose }) => {
                     <g key={i}>
                         <circle cx={p.x} cy={p.y} r="4" fill="#3b82f6" stroke="#0a0a0a" strokeWidth="2" />
                         <title>{p.date}: {p.cpm} CPM</title>
-                        {/* X-axis date label every other point if many */}
-                        {(sessions.length <= 6 || i % 2 === 0) && (
+                        {(daySessions.length <= 6 || i % 2 === 0) && (
                             <text x={p.x} y={H - 6} textAnchor="middle" fill="rgba(255,255,255,0.35)" fontSize="9">{p.date}</text>
                         )}
                     </g>
                 ))}
             </svg>
         );
+    };
+
+    // Helper: extract YYYY-MM-DD from ISO string in local time
+    const localDateKeyFromISO = (isoStr) => {
+        const d = new Date(isoStr);
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${y}-${m}-${day}`;
     };
 
     if (loading) {
