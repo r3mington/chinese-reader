@@ -109,8 +109,8 @@ export const endReadingSession = async () => {
 
     const durationMinutes = totalDurationMs / 1000 / 60;
 
-    // Only save sessions of at least 1 minute
-    if (durationMinutes >= 1) {
+    // Only save sessions of at least 3 minutes
+    if (durationMinutes >= 3) {
         await updateReadingTime(durationMinutes);
 
         if (currentStoryId && !isCurrentStoryRead) {
@@ -311,10 +311,26 @@ export const getStoryStats = async (storyId) => {
     const dailyMinsLog = {};
     let recalculatedHistory = [];
     if (storyData.history) {
-        recalculatedHistory = storyData.history.map(s => {
+        // Exclude old short sessions (< 3 mins) dynamically from stats
+        const validHistory = storyData.history.filter(s => s.duration >= 3);
+
+        let validTime = 0;
+        let validChars = 0;
+        let validLookups = 0;
+
+        recalculatedHistory = validHistory.map(s => {
+            validTime += (s.duration || 0);
+            validChars += (s.chars || 0);
+            validLookups += (s.lookups || 0);
+
             const recalculatedCpm = s.duration > 0 ? Math.round((s.chars || 0) / s.duration) : 0;
             return { ...s, cpm: recalculatedCpm };
         });
+
+        // Override the raw cached numbers dynamically so UI shows updated sums
+        storyData.totalTime = validTime;
+        storyData.totalChars = validChars;
+        storyData.totalLookups = validLookups;
 
         recalculatedHistory.forEach(s => {
             if (s.cpm > 0) {
@@ -351,7 +367,7 @@ export const getStoryStats = async (storyId) => {
 };
 
 export const saveSession = async (storyId, durationMinutes, charsRead, cpm, lookups = 0) => {
-    if (!storyId || durationMinutes <= 0) return;
+    if (!storyId || durationMinutes < 3) return;
     if (!savedStats) await loadStats();
 
     if (!savedStats.storyStats) savedStats.storyStats = {};
@@ -430,17 +446,23 @@ export const getGlobalStats = async () => {
 
     for (const [storyId, data] of Object.entries(storyStats)) {
         if (!data || !data.history) continue;
-        // (totalTime will be computed from allSessions natively)
-        totalChars += data.totalChars || 0;
-        totalLookups += data.totalLookups || 0;
 
-        const sessions = (data.history || []).map(s => ({
-            ...s,
-            cpm: s.duration > 0 ? Math.round((s.chars || 0) / s.duration) : 0
-        }));
+        // Filter out existing < 3 min sessions
+        const sessions = (data.history || [])
+            .filter(s => s.duration >= 3)
+            .map(s => ({
+                ...s,
+                cpm: s.duration > 0 ? Math.round((s.chars || 0) / s.duration) : 0
+            }));
 
-        // Accumulate exactly from sessions
-        totalTime += sessions.reduce((sum, s) => sum + (s.duration || 0), 0);
+        // Accumulate totals exclusively from valid sessions
+        const bookTime = sessions.reduce((sum, s) => sum + (s.duration || 0), 0);
+        const bookChars = sessions.reduce((sum, s) => sum + (s.chars || 0), 0);
+        const bookLookups = sessions.reduce((sum, s) => sum + (s.lookups || 0), 0);
+
+        totalTime += bookTime;
+        totalChars += bookChars;
+        totalLookups += bookLookups;
 
         allSessions = allSessions.concat(sessions);
 
@@ -451,8 +473,8 @@ export const getGlobalStats = async () => {
 
         books.push({
             storyId,
-            totalTime: data.totalTime || 0,
-            totalChars: data.totalChars || 0,
+            totalTime: bookTime,
+            totalChars: bookChars,
             sessions: sessions.length,
             avgCpm: bookAvg,
             bestCpm: bookBest,
