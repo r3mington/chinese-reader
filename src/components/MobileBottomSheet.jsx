@@ -5,6 +5,7 @@ import { lookupAt } from '../lib/dictionary';
 import { getHskLevel } from '../lib/hsk';
 import { getEtymology } from '../lib/etymology';
 import { checkToneSandhi } from '../lib/tones';
+import { loadSentencesDb, getExampleSentences } from '../lib/sentences';
 import '../styles/oled.css';
 
 const MobileBottomSheet = ({ data, onClose }) => {
@@ -14,6 +15,8 @@ const MobileBottomSheet = ({ data, onClose }) => {
 
     // Check stats when data changes
     useEffect(() => {
+        loadSentencesDb(); // Make sure DB is loaded
+
         if (data && data.entries && data.entries.length > 0) {
             const word = data.entries[0].simplified;
             getWordStats(word).then(s => {
@@ -164,6 +167,41 @@ const MobileBottomSheet = ({ data, onClose }) => {
                             <span> · 📅 Since: {new Date(stats.firstSeen).toLocaleDateString()}</span>
                         )}
                     </div>
+
+                    {(() => {
+                        const examples = getExampleSentences(word);
+                        if (!examples || examples.length === 0) return null;
+                        const mainExample = examples[0];
+
+                        // Highlight the target word in the sentence
+                        const parts = mainExample.zh.split(word);
+                        return (
+                            <div className="sheet-example-card">
+                                <div className="example-header">
+                                    <span style={{ fontSize: 11, fontWeight: 'bold', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Example</span>
+                                    <button className="sheet-action-btn" style={{ padding: 4 }} onClick={() => {
+                                        const utterance = new SpeechSynthesisUtterance(mainExample.zh);
+                                        utterance.lang = 'zh-CN';
+                                        window.speechSynthesis.speak(utterance);
+                                    }} title="Listen to example">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                                            <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div className="example-zh">
+                                    {parts.map((part, i) => (
+                                        <React.Fragment key={i}>
+                                            {part}
+                                            {i < parts.length - 1 && <span style={{ color: 'var(--accent-blue)', fontWeight: 'bold' }}>{word}</span>}
+                                        </React.Fragment>
+                                    ))}
+                                </div>
+                                <div className="example-en">{mainExample.en}</div>
+                            </div>
+                        );
+                    })()}
 
                     {breakdown && breakdown.length > 1 && (
                         <div className="sheet-breakdown-section">

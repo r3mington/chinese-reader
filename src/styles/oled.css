@@ -167,6 +167,28 @@ button:active {
     color: var(--text-primary);
 }
 
+/* Word Popup Example Sentence */
+.popup-example-card {
+    margin-top: 12px;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.popup-example-card .example-zh {
+    font-size: 16px;
+    color: var(--text-primary);
+    margin-bottom: 6px;
+    line-height: 1.4;
+}
+
+.popup-example-card .example-en {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.3;
+}
+
 /* Reading Progress Bar */
 .reading-progress-bar {
     position: fixed;
@@ -790,6 +812,64 @@ button:active {
     border-top: 1px solid rgba(255, 255, 255, 0.08);
     padding-top: 16px;
     animation: fadeIn 0.4s ease;
+}
+
+/* Mobile Sheet Example Sentence */
+.sheet-example-card {
+    margin-top: 16px;
+    padding: 14px;
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.example-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+.example-zh {
+    font-size: 18px;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+    line-height: 1.4;
+}
+
+.example-en {
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.3;
+}
+
+/* Mobile Sheet Example Sentence */
+.sheet-example-card {
+    margin-top: 16px;
+    padding: 14px;
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.example-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+.example-zh {
+    font-size: 18px;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+    line-height: 1.4;
+}
+
+.example-en {
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.3;
 }
 
 .sheet-breakdown-list-inline {

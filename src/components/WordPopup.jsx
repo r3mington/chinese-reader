@@ -1,11 +1,14 @@
 import React, { useEffect, useRef } from 'react';
 import { convertPinyin } from '../lib/pinyin';
+import { loadSentencesDb, getExampleSentences } from '../lib/sentences';
 import '../styles/oled.css';
 
 const WordPopup = ({ data, position, onClose }) => {
     const ref = useRef(null);
 
     useEffect(() => {
+        loadSentencesDb(); // Ensure DB is loaded
+
         const handleClickOutside = (event) => {
             if (ref.current && !ref.current.contains(event.target)) {
                 onClose();
@@ -42,6 +45,31 @@ const WordPopup = ({ data, position, onClose }) => {
                         <div className="popup-definitions-text">
                             {entry.definitions.join(' ◆ ')}
                         </div>
+
+                        {/* Example sentence block */}
+                        {(() => {
+                            // Only show example for the main entry to save space
+                            if (idx !== 0) return null;
+                            const word = entry.simplified;
+                            const examples = getExampleSentences(word);
+                            if (!examples || examples.length === 0) return null;
+                            const mainExample = examples[0];
+                            const parts = mainExample.zh.split(word);
+
+                            return (
+                                <div className="popup-example-card">
+                                    <div className="example-zh">
+                                        {parts.map((part, i) => (
+                                            <React.Fragment key={i}>
+                                                {part}
+                                                {i < parts.length - 1 && <span style={{ color: 'var(--accent-blue)', fontWeight: 'bold' }}>{word}</span>}
+                                            </React.Fragment>
+                                        ))}
+                                    </div>
+                                    <div className="example-en">{mainExample.en}</div>
+                                </div>
+                            );
+                        })()}
                     </div>
                 ))}
             </div>
