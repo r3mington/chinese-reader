@@ -9,6 +9,7 @@ import GlobalStatsPage from './components/GlobalStatsPage';
 import { initDictionary } from './lib/dictionary';
 import { getStories } from './lib/storage';
 import { endReadingSession, startReadingSession } from './lib/stats';
+import { loadFrequencyDb } from './lib/frequency';
 import './styles/oled.css';
 
 function App() {
@@ -24,7 +25,10 @@ function App() {
     const loadDict = async () => {
       setIsLoadingDict(true);
       try {
+        setLoadingStatus('Loading dictionary...');
         await initDictionary((status) => setLoadingStatus(status));
+        setLoadingStatus('Loading word frequencies...');
+        await loadFrequencyDb();
       } catch (err) {
         console.error('Dictionary load failed', err);
         setLoadingStatus('Failed to load dictionary. Please check connection and refresh.');

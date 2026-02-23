@@ -5,6 +5,7 @@ import { lookupAt } from '../lib/dictionary';
 import { getHskLevel } from '../lib/hsk';
 import { getEtymology } from '../lib/etymology';
 import { checkToneSandhi } from '../lib/tones';
+import { getFrequencyRank } from '../lib/frequency';
 import { loadSentencesDb, getExampleSentences } from '../lib/sentences';
 import '../styles/oled.css';
 
@@ -45,6 +46,7 @@ const MobileBottomSheet = ({ data, onClose }) => {
     const trad = mainEntry.traditional;
     const showTrad = trad && trad !== word;
     const hskLevel = getHskLevel(word);
+    const freqRank = getFrequencyRank(word);
 
     // Tone Sandhi Check
     // Get pinyin array for the word. If multi-character, try to split.
@@ -102,6 +104,7 @@ const MobileBottomSheet = ({ data, onClose }) => {
                                 {showTrad && <span className="bottom-sheet-trad">{trad}</span>}
                                 <span className="bottom-sheet-pinyin">{convertPinyin(mainEntry.pinyin)}</span>
                                 {hskLevel && <span className="sheet-badge hsk-badge">HSK {hskLevel}</span>}
+                                {freqRank && <span className="sheet-badge freq-badge">🏆 #{freqRank}</span>}
                                 {toneSandhiRule && (
                                     <span className="sheet-badge sandhi-badge" title={toneSandhiRule}>
                                         ⚠️ Sandhi

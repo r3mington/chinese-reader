@@ -6,6 +6,7 @@ import { getHskLevel } from '../lib/hsk';
 import { getEtymology } from '../lib/etymology';
 import { checkToneSandhi } from '../lib/tones';
 import { loadSentencesDb, getExampleSentences } from '../lib/sentences';
+import { getFrequencyRank } from '../lib/frequency';
 import '../styles/oled.css';
 
 const WordPopup = ({ data, position, onClose, onMouseEnter, onMouseLeave }) => {
@@ -61,6 +62,7 @@ const WordPopup = ({ data, position, onClose, onMouseEnter, onMouseLeave }) => {
                     const pinyinStr = entry.pinyin || '';
                     const pinyinArr = pinyinStr.split(/\s+/).filter(Boolean);
                     const toneSandhiRule = idx === 0 ? checkToneSandhi(word, pinyinArr) : null;
+                    const freqRank = idx === 0 ? getFrequencyRank(word) : null;
 
                     const handleCopy = () => {
                         navigator.clipboard.writeText(word);
@@ -79,6 +81,7 @@ const WordPopup = ({ data, position, onClose, onMouseEnter, onMouseLeave }) => {
                                     {showTrad && <span className="bottom-sheet-trad" style={{ fontSize: 16 }}>{trad}</span>}
                                     <span className="popup-pinyin-text">{convertPinyin(entry.pinyin)}</span>
                                     {hskLevel && <span className="sheet-badge hsk-badge">HSK {hskLevel}</span>}
+                                    {freqRank && <span className="sheet-badge freq-badge">🏆 #{freqRank}</span>}
                                     {toneSandhiRule && (
                                         <span className="sheet-badge sandhi-badge" title={toneSandhiRule}>
                                             ⚠️ Sandhi

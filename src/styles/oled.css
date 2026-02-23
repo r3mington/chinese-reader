@@ -722,6 +722,13 @@ button:active {
     border: 1px solid rgba(var(--accent-blue-rgb), 0.3);
 }
 
+.freq-badge {
+    background: rgba(16, 185, 129, 0.15);
+    /* Emerald/Green */
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
 .sandhi-badge {
     background: rgba(245, 158, 11, 0.15);
     /* amber/yellow */
