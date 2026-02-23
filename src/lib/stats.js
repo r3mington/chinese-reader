@@ -430,7 +430,7 @@ export const getGlobalStats = async () => {
 
     for (const [storyId, data] of Object.entries(storyStats)) {
         if (!data || !data.history) continue;
-        totalTime += data.totalTime || 0;
+        // (totalTime will be computed from allSessions natively)
         totalChars += data.totalChars || 0;
         totalLookups += data.totalLookups || 0;
 
@@ -438,6 +438,10 @@ export const getGlobalStats = async () => {
             ...s,
             cpm: s.duration > 0 ? Math.round((s.chars || 0) / s.duration) : 0
         }));
+
+        // Accumulate exactly from sessions
+        totalTime += sessions.reduce((sum, s) => sum + (s.duration || 0), 0);
+
         allSessions = allSessions.concat(sessions);
 
         const validCpms = sessions.filter(s => s.cpm > 0).map(s => s.cpm);
