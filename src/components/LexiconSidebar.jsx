@@ -1,7 +1,16 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { getHskLevel } from '../lib/hsk';
+import { checkToneSandhi } from '../lib/tones';
+import { getFrequencyRank } from '../lib/frequency';
+import { loadSentencesDb, getExampleSentences } from '../lib/sentences';
 import '../styles/oled.css';
 
 const LexiconSidebar = ({ history = [] }) => {
+    // Ensure sentences DB is loaded
+    useEffect(() => {
+        loadSentencesDb();
+    }, []);
+
     // history is an array of word data objects, ordered [newest, older, oldest]
 
     // Convert numbered pinyin to marks if needed, but our database usually has marks
@@ -36,28 +45,42 @@ const LexiconSidebar = ({ history = [] }) => {
             <div className="lexicon-scroll-area">
                 {history.map((data, index) => {
                     const isLatest = index === 0;
+                    const word = data.word;
+                    const mainEntry = data.entries?.[0] || {};
+                    const pinyin = mainEntry.pinyin || '';
+                    const definitions = mainEntry.definitions || [];
+
+                    const hskLevel = getHskLevel(word);
+                    const freqRank = getFrequencyRank(word);
+
+                    const pinyinArr = pinyin.split(/\s+/).filter(Boolean);
+                    const toneSandhiRule = checkToneSandhi(word, pinyinArr);
+
+                    const examples = getExampleSentences(word);
+                    const example = examples && examples.length > 0 ? examples[0] : null;
+
                     return (
-                        <div key={data.word + index} className={`lexicon-entry ${!isLatest ? 'historical' : ''}`}>
+                        <div key={word + index} className={`lexicon-entry ${!isLatest ? 'historical' : ''}`}>
                             <div className="lexicon-analyzing">
                                 <span className="analyzing-label">ANALYZING:</span>
-                                <span className="analyzing-word">{data.word}</span>
+                                <span className="analyzing-word">{word}</span>
                             </div>
 
                             <div className="lexicon-phonetics">
                                 <span className="lexicon-badge pinyin-badge">PY</span>
-                                <span className="lexicon-pinyin">{renderPinyin(data.pinyin)}</span>
-                                {data.hsk && (
-                                    <span className="lexicon-badge hsk-badge ml-auto">HSK {data.hsk}</span>
+                                <span className="lexicon-pinyin">{renderPinyin(pinyin)}</span>
+                                {hskLevel && (
+                                    <span className="lexicon-badge hsk-badge ml-auto">HSK {hskLevel}</span>
                                 )}
-                                {data.freqRank && (
-                                    <span className="lexicon-badge freq-badge">🏆 #{data.freqRank}</span>
+                                {freqRank && (
+                                    <span className="lexicon-badge freq-badge">🏆 #{freqRank}</span>
                                 )}
                             </div>
 
                             <div className="lexicon-definitions">
-                                {data.definitions && data.definitions.length > 0 ? (
+                                {definitions && definitions.length > 0 ? (
                                     <ul className="lexicon-def-list">
-                                        {data.definitions.map((def, i) => (
+                                        {definitions.map((def, i) => (
                                             <li key={i}>{def}</li>
                                         ))}
                                     </ul>
@@ -66,23 +89,21 @@ const LexiconSidebar = ({ history = [] }) => {
                                 )}
                             </div>
 
-                            {data.example && (
+                            {example && (
                                 <div className="lexicon-scholar-note">
                                     <div className="scholar-label">SCHOLAR'S NOTE</div>
                                     <div className="scholar-content">
-                                        <div className="scholar-zh">{data.example.zh}</div>
-                                        <div className="scholar-en">"{data.example.en}"</div>
+                                        <div className="scholar-zh">{example.zh}</div>
+                                        <div className="scholar-en">"{example.en}"</div>
                                     </div>
                                 </div>
                             )}
 
                             {/* Tone Sandhi warnings could go here too */}
-                            {data.sandhiRules && data.sandhiRules.length > 0 && (
+                            {toneSandhiRule && (
                                 <div className="lexicon-sandhi">
                                     <span className="sandhi-label">TONE MUTATION DETECTED</span>
-                                    {data.sandhiRules.map((rule, idx) => (
-                                        <div key={idx} className="sandhi-rule-text">⚠️ {rule}</div>
-                                    ))}
+                                    <div className="sandhi-rule-text">⚠️ {toneSandhiRule}</div>
                                 </div>
                             )}
                         </div>
