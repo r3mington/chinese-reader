@@ -9,13 +9,14 @@ import MobileBottomSheet from './MobileBottomSheet';
 import ColorizedText from './ColorizedText';
 import FloatingActionMenu from './FloatingActionMenu';
 import RecentLookups from './RecentLookups';
+import LexiconSidebar from './LexiconSidebar';
 
 const Reader = ({ story }) => {
     const [fontSize, setFontSize] = useState(() => {
         return parseInt(localStorage.getItem('fontSize')) || 20;
     });
     const [popupData, setPopupData] = useState(null);
-    const [popupPos, setPopupPos] = useState({ x: 0, y: 0 });
+    const [lexiconHistory, setLexiconHistory] = useState([]);
     const [toneColorsEnabled, setToneColorsEnabled] = useState(() => {
         return localStorage.getItem('toneColorsEnabled') === 'true';
     });
@@ -200,16 +201,21 @@ const Reader = ({ story }) => {
             if (result) {
                 trackSessionLookup(); // Track stats
                 setPopupData(result);
-                // Update history
+
+                // Update Sidebar history
+                setLexiconHistory(prev => {
+                    if (prev.length > 0 && prev[0].word === result.word) return prev;
+                    const filtered = prev.filter(item => item.word !== result.word);
+                    return [result, ...filtered].slice(0, 3);
+                });
+
+                // Update Background watermark history
                 setLookedUpWords(prev => new Set(prev).add(result.word));
                 setRecentWordsList(prev => {
                     // Remove if already exists so it moves to front, keep max 5
                     const filtered = prev.filter(w => w !== result.word);
                     return [...filtered, result.word].slice(-5);
                 });
-                // Calculate position relative to viewport
-                const rect = target.getBoundingClientRect();
-                setPopupPos({ x: e.clientX, y: e.clientY });
 
                 if (story && story.id) {
                     trackWordClick(result.word, story.id);
@@ -255,13 +261,20 @@ const Reader = ({ story }) => {
         if (result) {
             trackSessionLookup(); // Track stats
             setPopupData(result);
-            // Update history
+
+            // Update Sidebar history
+            setLexiconHistory(prev => {
+                if (prev.length > 0 && prev[0].word === result.word) return prev;
+                const filtered = prev.filter(item => item.word !== result.word);
+                return [result, ...filtered].slice(0, 3);
+            });
+
+            // Update Background watermark history
             setLookedUpWords(prev => new Set(prev).add(result.word));
             setRecentWordsList(prev => {
                 const filtered = prev.filter(w => w !== result.word);
                 return [...filtered, result.word].slice(-5);
             });
-            setPopupPos({ x: e.clientX, y: e.clientY });
 
             if (story && story.id) {
                 trackWordClick(result.word, story.id);
@@ -298,16 +311,19 @@ const Reader = ({ story }) => {
             trackSessionLookup();
             setPopupData(result);
 
-            // Update history
+            // Update Sidebar history
+            setLexiconHistory(prev => {
+                if (prev.length > 0 && prev[0].word === result.word) return prev;
+                const filtered = prev.filter(item => item.word !== result.word);
+                return [result, ...filtered].slice(0, 3);
+            });
+
+            // Update background watermark history
             setLookedUpWords(prev => new Set(prev).add(result.word));
             setRecentWordsList(prev => {
                 const filtered = prev.filter(w => w !== result.word);
                 return [...filtered, result.word].slice(-5);
             });
-
-            const rect = target.getBoundingClientRect();
-            // Position near the bottom-left of the hovered word
-            setPopupPos({ x: rect.left, y: rect.bottom });
 
             if (indexStr !== null && paraEl) {
                 setActiveHighlight({
@@ -330,24 +346,11 @@ const Reader = ({ story }) => {
 
         if (hoverTimer.current) clearTimeout(hoverTimer.current);
         hoverTimer.current = setTimeout(() => {
-            setPopupData(null);
+            // We NO LONGER clear popupData on mouse out for desktop,
+            // because the Lexicon Sidebar is persistent!
+            // However, we DO clear the active highlight from the text.
             setActiveHighlight(null);
-        }, 300); // Give user time to move mouse into popup
-    };
-
-    const handlePopupEnter = () => {
-        if (hoverTimer.current) {
-            clearTimeout(hoverTimer.current);
-            hoverTimer.current = null;
-        }
-    };
-
-    const handlePopupLeave = () => {
-        if (hoverTimer.current) clearTimeout(hoverTimer.current);
-        hoverTimer.current = setTimeout(() => {
-            setPopupData(null);
-            setActiveHighlight(null);
-        }, 300);
+        }, 300); // Give user time to move mouse before clearing highlight
     };
 
     const toggleToneColors = () => {
@@ -372,51 +375,53 @@ const Reader = ({ story }) => {
                 />
             </div>
 
-            {!isMobile && (
-                <div className="reader-toolbar">
-                    <RecentLookups words={recentWordsList} />
-                    <div className="toolbar-left">
-                        <h3>{story.title}</h3>
+            <div className="reader-main">
+                {!isMobile && (
+                    <div className="reader-toolbar">
+                        <RecentLookups words={recentWordsList} />
+                        <div className="toolbar-left">
+                            <h3>{story.title}</h3>
+                        </div>
+                        <div className="toolbar-right">
+                            <button onClick={() => handleFontSizeChange(-2)}>A-</button>
+                            <span style={{ margin: '0 8px' }}>{fontSize}px</span>
+                            <button onClick={() => handleFontSizeChange(2)}>A+</button>
+                            <button
+                                onClick={toggleToneColors}
+                                className={toneColorsEnabled ? 'active' : ''}
+                                style={{ marginLeft: '8px' }}
+                                title="Toggle tone dots"
+                            >
+                                •
+                            </button>
+                        </div>
                     </div>
-                    <div className="toolbar-right">
-                        <button onClick={() => handleFontSizeChange(-2)}>A-</button>
-                        <span style={{ margin: '0 8px' }}>{fontSize}px</span>
-                        <button onClick={() => handleFontSizeChange(2)}>A+</button>
-                        <button
-                            onClick={toggleToneColors}
-                            className={toneColorsEnabled ? 'active' : ''}
-                            style={{ marginLeft: '8px' }}
-                            title="Toggle tone dots"
-                        >
-                            •
-                        </button>
-                    </div>
-                </div>
-            )}
-
-            <div
-                className="reader-content"
-                style={{ fontSize: `${fontSize}px` }}
-                onClick={handleTextClick}
-                onMouseOver={!isMobile ? handleTextHover : undefined}
-                onMouseOut={!isMobile ? handleTextOut : undefined}
-                onScroll={handleScroll}
-                ref={contentRef}
-            >
-                {isMobile && story.title && (
-                    <h2 className="mobile-story-title">{story.title}</h2>
                 )}
-                {story.content.split('\n').map((para, idx) => (
-                    <p key={idx} className="reader-para" data-para-index={idx}>
-                        <ColorizedText
-                            text={para}
-                            enabled={true}
-                            lookedUpWords={lookedUpWords}
-                            overrideToneColors={toneColorsEnabled ? null : false}
-                            activeIndex={activeHighlight?.paraIdx === idx ? activeHighlight.charIdx : null}
-                        />
-                    </p>
-                ))}
+
+                <div
+                    className="reader-content"
+                    style={{ fontSize: `${fontSize}px` }}
+                    onClick={handleTextClick}
+                    onMouseOver={!isMobile ? handleTextHover : undefined}
+                    onMouseOut={!isMobile ? handleTextOut : undefined}
+                    onScroll={handleScroll}
+                    ref={contentRef}
+                >
+                    {isMobile && story.title && (
+                        <h2 className="mobile-story-title">{story.title}</h2>
+                    )}
+                    {story.content.split('\n').map((para, idx) => (
+                        <p key={idx} className="reader-para" data-para-index={idx}>
+                            <ColorizedText
+                                text={para}
+                                enabled={true}
+                                lookedUpWords={lookedUpWords}
+                                overrideToneColors={toneColorsEnabled ? null : false}
+                                activeIndex={activeHighlight?.paraIdx === idx ? activeHighlight.charIdx : null}
+                            />
+                        </p>
+                    ))}
+                </div>
             </div>
 
             {isMobile ? (
@@ -437,13 +442,7 @@ const Reader = ({ story }) => {
                     />
                 </>
             ) : (
-                <WordPopup
-                    data={popupData}
-                    position={popupPos}
-                    onClose={() => setPopupData(null)}
-                    onMouseEnter={handlePopupEnter}
-                    onMouseLeave={handlePopupLeave}
-                />
+                <LexiconSidebar history={lexiconHistory} />
             )}
         </div>
     );

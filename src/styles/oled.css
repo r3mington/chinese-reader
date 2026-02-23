@@ -330,9 +330,17 @@ button:active {
 .reader-container {
     flex: 1;
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     height: 100vh;
     position: relative;
+}
+
+.reader-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
 }
 
 .reader-empty {
@@ -2067,4 +2075,205 @@ button:active {
 
 .pwa-toast-btn.outline:hover {
     background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* ========================================
+   LEXICON ENGINE SIDEBAR
+   ======================================== */
+.lexicon-sidebar {
+    width: 340px;
+    flex-shrink: 0;
+    background-color: #0b110e;
+    /* Subtle dark green/slate terminal vibe */
+    border-left: 1px solid rgba(255, 255, 255, 0.06);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    color: var(--text-primary);
+    font-family: 'Berkeley Mono', 'Fira Code', 'Courier New', monospace;
+}
+
+.lexicon-header {
+    padding: 20px 24px;
+    border-bottom: 1px dotted rgba(167, 243, 208, 0.2);
+    /* Faint emerald dotted */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: var(--text-muted);
+    font-size: 11px;
+    letter-spacing: 1px;
+}
+
+.lexicon-title {
+    opacity: 0.7;
+}
+
+.lexicon-idle {
+    padding: 40px 24px;
+    color: var(--text-muted);
+    font-size: 13px;
+    line-height: 1.8;
+    opacity: 0.5;
+}
+
+.lexicon-scroll-area {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0;
+}
+
+.lexicon-entry {
+    padding: 28px 24px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    transition: opacity 0.3s ease;
+}
+
+.lexicon-entry.historical {
+    opacity: 0.35;
+}
+
+.lexicon-entry.historical:hover {
+    opacity: 0.8;
+}
+
+.lexicon-analyzing {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    margin-bottom: 16px;
+}
+
+.analyzing-label {
+    font-size: 11px;
+    color: #eab308;
+    /* Terminal yellow */
+    font-weight: 600;
+    letter-spacing: 1px;
+}
+
+.analyzing-word {
+    font-family: 'Noto Serif SC', var(--font-chinese), serif;
+    font-size: 24px;
+    color: #eab308;
+}
+
+.lexicon-phonetics {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.lexicon-badge {
+    padding: 3px 6px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.pinyin-badge {
+    background: rgba(74, 222, 128, 0.15);
+    color: #4ade80;
+    /* Terminal green */
+}
+
+.hsk-badge {
+    background: rgba(96, 165, 250, 0.15);
+    color: #60a5fa;
+    /* Terminal blue */
+}
+
+.freq-badge {
+    background: rgba(250, 204, 21, 0.15);
+    color: #facc15;
+}
+
+.ml-auto {
+    margin-left: auto;
+}
+
+.lexicon-pinyin {
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.lexicon-definitions {
+    margin-bottom: 24px;
+}
+
+.lexicon-def-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-family: var(--font-main);
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--text-primary);
+    opacity: 0.9;
+}
+
+.lexicon-def-list li {
+    margin-bottom: 8px;
+}
+
+.no-def {
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.lexicon-scholar-note {
+    border: 1px solid rgba(167, 243, 208, 0.1);
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 6px;
+    padding: 16px;
+}
+
+.scholar-label {
+    font-size: 10px;
+    color: #34d399;
+    /* Emerald */
+    margin-bottom: 12px;
+    letter-spacing: 1px;
+}
+
+.scholar-content {
+    font-family: var(--font-main);
+}
+
+.scholar-zh {
+    font-size: 15px;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+    line-height: 1.5;
+}
+
+.scholar-en {
+    font-size: 14px;
+    color: var(--text-secondary);
+    font-style: italic;
+    line-height: 1.4;
+}
+
+.lexicon-sandhi {
+    margin-top: 16px;
+    padding: 12px;
+    background: rgba(239, 68, 68, 0.1);
+    border-left: 2px solid #ef4444;
+}
+
+.sandhi-label {
+    display: block;
+    font-size: 10px;
+    color: #ef4444;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+}
+
+.sandhi-rule-text {
+    font-size: 13px;
+    color: var(--text-primary);
+    font-family: var(--font-main);
 }
