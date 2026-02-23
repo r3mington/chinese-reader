@@ -10,6 +10,7 @@ import { initDictionary } from './lib/dictionary';
 import { getStories } from './lib/storage';
 import { endReadingSession, startReadingSession } from './lib/stats';
 import { loadFrequencyDb } from './lib/frequency';
+import ReloadPrompt from './components/ReloadPrompt';
 import './styles/oled.css';
 
 function App() {
@@ -118,6 +119,7 @@ function App() {
       {globalStatsOpen && (
         <GlobalStatsPage onClose={() => setGlobalStatsOpen(false)} />
       )}
+      <ReloadPrompt />
     </Router>
   );
 }
