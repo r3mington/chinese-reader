@@ -16,7 +16,6 @@ const Reader = ({ story }) => {
         return parseInt(localStorage.getItem('fontSize')) || 20;
     });
     const [popupData, setPopupData] = useState(null);
-    const [lexiconHistory, setLexiconHistory] = useState([]);
     const [toneColorsEnabled, setToneColorsEnabled] = useState(() => {
         return localStorage.getItem('toneColorsEnabled') === 'true';
     });
@@ -202,13 +201,6 @@ const Reader = ({ story }) => {
                 trackSessionLookup(); // Track stats
                 setPopupData(result);
 
-                // Update Sidebar history
-                setLexiconHistory(prev => {
-                    if (prev.length > 0 && prev[0].word === result.word) return prev;
-                    const filtered = prev.filter(item => item.word !== result.word);
-                    return [result, ...filtered].slice(0, 3);
-                });
-
                 // Update Background watermark history
                 setLookedUpWords(prev => new Set(prev).add(result.word));
                 setRecentWordsList(prev => {
@@ -262,13 +254,6 @@ const Reader = ({ story }) => {
             trackSessionLookup(); // Track stats
             setPopupData(result);
 
-            // Update Sidebar history
-            setLexiconHistory(prev => {
-                if (prev.length > 0 && prev[0].word === result.word) return prev;
-                const filtered = prev.filter(item => item.word !== result.word);
-                return [result, ...filtered].slice(0, 3);
-            });
-
             // Update Background watermark history
             setLookedUpWords(prev => new Set(prev).add(result.word));
             setRecentWordsList(prev => {
@@ -310,13 +295,6 @@ const Reader = ({ story }) => {
 
             trackSessionLookup();
             setPopupData(result);
-
-            // Update Sidebar history
-            setLexiconHistory(prev => {
-                if (prev.length > 0 && prev[0].word === result.word) return prev;
-                const filtered = prev.filter(item => item.word !== result.word);
-                return [result, ...filtered].slice(0, 3);
-            });
 
             // Update background watermark history
             setLookedUpWords(prev => new Set(prev).add(result.word));
@@ -442,7 +420,7 @@ const Reader = ({ story }) => {
                     />
                 </>
             ) : (
-                <LexiconSidebar history={lexiconHistory} />
+                <LexiconSidebar data={popupData} />
             )}
         </div>
     );
