@@ -1970,6 +1970,40 @@ button:active {
 }
 
 /* ========================================
+   RECENT LOOKUPS WATERMARK (Framer Motion)
+   ======================================== */
+.recent-lookups-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 300px;
+    /* Constrain to top section */
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 3vw;
+    padding-top: 40px;
+    z-index: 0;
+    /* Important: must be behind the reading text! */
+    pointer-events: none;
+    /* Never intercept clicks */
+}
+
+.recent-lookup-watermark {
+    font-family: 'Noto Serif SC', var(--font-chinese), serif;
+    font-size: min(10vw, 120px);
+    /* Responsive giant text */
+    font-weight: 700;
+    color: var(--text-primary);
+    white-space: nowrap;
+    /* Opacity is handled by framer-motion inline, 
+       but we set a fallback just in case */
+    opacity: 0.08;
+}
+
+/* ========================================
    PWA TOAST NOTIFICATION
    ======================================== */
 .pwa-toast-container {

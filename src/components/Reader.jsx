@@ -8,6 +8,7 @@ import WordPopup from './WordPopup';
 import MobileBottomSheet from './MobileBottomSheet';
 import ColorizedText from './ColorizedText';
 import FloatingActionMenu from './FloatingActionMenu';
+import RecentLookups from './RecentLookups';
 
 const Reader = ({ story }) => {
     const [fontSize, setFontSize] = useState(() => {
@@ -19,6 +20,7 @@ const Reader = ({ story }) => {
         return localStorage.getItem('toneColorsEnabled') === 'true';
     });
     const [lookedUpWords, setLookedUpWords] = useState(new Set());
+    const [recentWordsList, setRecentWordsList] = useState([]); // Track recent words for watermark animation
     const [readingProgress, setReadingProgress] = useState(0);
     const [activeHighlight, setActiveHighlight] = useState(null);
     const contentRef = useRef(null);
@@ -197,9 +199,14 @@ const Reader = ({ story }) => {
 
             if (result) {
                 trackSessionLookup(); // Track stats
-
                 setPopupData(result);
+                // Update history
                 setLookedUpWords(prev => new Set(prev).add(result.word));
+                setRecentWordsList(prev => {
+                    // Remove if already exists so it moves to front, keep max 5
+                    const filtered = prev.filter(w => w !== result.word);
+                    return [...filtered, result.word].slice(-5);
+                });
                 // Calculate position relative to viewport
                 const rect = target.getBoundingClientRect();
                 setPopupPos({ x: e.clientX, y: e.clientY });
@@ -248,7 +255,12 @@ const Reader = ({ story }) => {
         if (result) {
             trackSessionLookup(); // Track stats
             setPopupData(result);
+            // Update history
             setLookedUpWords(prev => new Set(prev).add(result.word));
+            setRecentWordsList(prev => {
+                const filtered = prev.filter(w => w !== result.word);
+                return [...filtered, result.word].slice(-5);
+            });
             setPopupPos({ x: e.clientX, y: e.clientY });
 
             if (story && story.id) {
@@ -285,7 +297,13 @@ const Reader = ({ story }) => {
 
             trackSessionLookup();
             setPopupData(result);
+
+            // Update history
             setLookedUpWords(prev => new Set(prev).add(result.word));
+            setRecentWordsList(prev => {
+                const filtered = prev.filter(w => w !== result.word);
+                return [...filtered, result.word].slice(-5);
+            });
 
             const rect = target.getBoundingClientRect();
             // Position near the bottom-left of the hovered word
@@ -346,6 +364,9 @@ const Reader = ({ story }) => {
 
     return (
         <div className="reader-container">
+            {/* The beautiful animated background watermark container */}
+            <RecentLookups words={recentWordsList} />
+
             {/* Reading Progress Bar */}
             <div className="reading-progress-bar">
                 <div
