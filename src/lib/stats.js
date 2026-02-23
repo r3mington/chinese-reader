@@ -463,9 +463,8 @@ export const getGlobalStats = async () => {
     // Sort books by last session date (most recent first)
     books.sort((a, b) => new Date(b.lastSession || 0) - new Date(a.lastSession || 0));
 
-    // Daily activity: sum minutes per day across all books
-    const dailyLog = savedStats.dailyLog || {};
-
+    // (dailyLog previously tracked cached minutes per day, but could be out of sync.
+    //  We'll use dailyMinsLog natively computed from allSessions below)
     // Daily chars log: sum chars per day from session history
     const dailyCharsLog = {};
     const dailyMinsLog = {}; // for CPM calculation
@@ -488,7 +487,7 @@ export const getGlobalStats = async () => {
 
     // Reading streak (consecutive days with any activity)
     const activeDays = new Set([
-        ...Object.keys(dailyLog).filter(d => dailyLog[d] > 0),
+        ...Object.keys(dailyMinsLog).filter(d => dailyMinsLog[d] > 0),
         ...allSessions.map(s => new Date(s.date).toISOString().split('T')[0])
     ]);
     let streak = 0;
@@ -520,7 +519,7 @@ export const getGlobalStats = async () => {
         avgCpm,
         bestCpm,
         streak,
-        dailyLog,
+        dailyLog: dailyMinsLog, // exactly matches session history
         dailyCharsLog,
         dailyCpmLog,
         books: books.sort((a, b) => new Date(b.lastSession) - new Date(a.lastSession)),
