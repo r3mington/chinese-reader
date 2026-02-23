@@ -52,7 +52,7 @@ const LexiconSidebar = ({ data }) => {
                     <span className="lexicon-icon">✧</span>
                 </div>
                 <div className="lexicon-idle">
-                    <div style={{ color: '#4ade80', marginBottom: 16 }}>[ SYSTEM IDLE ]</div>
+                    <div style={{ color: 'rgba(255, 255, 255, 0.4)', marginBottom: 16 }}>[ SYSTEM IDLE ]</div>
 
                     <div style={{ opacity: 0.6, fontSize: 11, letterSpacing: 1, marginBottom: 8 }}>SESSION STATUS</div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -204,7 +204,7 @@ const LexiconSidebar = ({ data }) => {
                                             {parts.map((part, pIdx) => (
                                                 <React.Fragment key={pIdx}>
                                                     {part}
-                                                    {pIdx < parts.length - 1 && <span style={{ color: '#eab308', fontWeight: 'bold' }}>{word}</span>}
+                                                    {pIdx < parts.length - 1 && <span style={{ color: 'rgba(255, 255, 255, 0.9)', fontWeight: 'bold' }}>{word}</span>}
                                                 </React.Fragment>
                                             ))}
                                         </div>

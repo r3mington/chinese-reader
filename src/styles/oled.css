@@ -2148,8 +2148,7 @@ button:active {
 
 .analyzing-label {
     font-size: 11px;
-    color: #eab308;
-    /* Terminal yellow */
+    color: rgba(255, 255, 255, 0.3);
     font-weight: 600;
     letter-spacing: 1px;
 }
@@ -2157,7 +2156,7 @@ button:active {
 .analyzing-word {
     font-family: 'Noto Serif SC', var(--font-chinese), serif;
     font-size: 24px;
-    color: #eab308;
+    color: var(--text-primary);
 }
 
 .lexicon-phonetics {
@@ -2175,20 +2174,18 @@ button:active {
 }
 
 .pinyin-badge {
-    background: rgba(74, 222, 128, 0.15);
-    color: #4ade80;
-    /* Terminal green */
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text-secondary);
 }
 
 .hsk-badge {
-    background: rgba(96, 165, 250, 0.15);
-    color: #60a5fa;
-    /* Terminal blue */
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text-secondary);
 }
 
 .freq-badge {
-    background: rgba(250, 204, 21, 0.15);
-    color: #facc15;
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text-secondary);
 }
 
 .ml-auto {
@@ -2233,8 +2230,7 @@ button:active {
 
 .scholar-label {
     font-size: 10px;
-    color: #34d399;
-    /* Emerald */
+    color: rgba(255, 255, 255, 0.3);
     margin-bottom: 12px;
     letter-spacing: 1px;
 }
@@ -2260,14 +2256,14 @@ button:active {
 .lexicon-sandhi {
     margin-top: 16px;
     padding: 12px;
-    background: rgba(239, 68, 68, 0.1);
-    border-left: 2px solid #ef4444;
+    background: rgba(239, 68, 68, 0.05);
+    border-left: 1px solid rgba(239, 68, 68, 0.4);
 }
 
 .sandhi-label {
     display: block;
     font-size: 10px;
-    color: #ef4444;
+    color: rgba(239, 68, 68, 0.7);
     letter-spacing: 1px;
     margin-bottom: 6px;
 }
@@ -2329,7 +2325,7 @@ button:active {
 
 .breakdown-label {
     font-size: 10px;
-    color: var(--accent-blue);
+    color: rgba(255, 255, 255, 0.3);
     margin-bottom: 12px;
     letter-spacing: 1px;
 }
@@ -2362,7 +2358,7 @@ button:active {
 
 .breakdown-pinyin {
     font-size: 12px;
-    color: #4ade80;
+    color: var(--text-secondary);
     /* Terminal green */
     margin-bottom: 4px;
 }
