@@ -8,7 +8,7 @@ import { checkToneSandhi } from '../lib/tones';
 import { loadSentencesDb, getExampleSentences } from '../lib/sentences';
 import '../styles/oled.css';
 
-const WordPopup = ({ data, position, onClose }) => {
+const WordPopup = ({ data, position, onClose, onMouseEnter, onMouseLeave }) => {
     const ref = useRef(null);
     const [stats, setStats] = React.useState(null);
     const starred = stats?.starred || false;
@@ -47,6 +47,8 @@ const WordPopup = ({ data, position, onClose }) => {
             ref={ref}
             className="word-popup"
             style={style}
+            onMouseEnter={onMouseEnter}
+            onMouseLeave={onMouseLeave}
         >
             <button className="popup-close-btn" onClick={onClose}>×</button>
             <div className="popup-content">

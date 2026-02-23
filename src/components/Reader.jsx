@@ -22,6 +22,7 @@ const Reader = ({ story }) => {
     const [readingProgress, setReadingProgress] = useState(0);
     const [activeHighlight, setActiveHighlight] = useState(null);
     const contentRef = useRef(null);
+    const hoverTimer = useRef(null);
     const isMobile = useIsMobile();
 
     useEffect(() => {
@@ -167,6 +168,8 @@ const Reader = ({ story }) => {
     };
 
     const handleTextClick = (e) => {
+        if (!isMobile) return; // Desktop uses hover instead of click
+
         setPopupData(null);
 
         // Check if the clicked element (or parent) has a data-word attribute
@@ -254,6 +257,81 @@ const Reader = ({ story }) => {
         }
     };
 
+    const handleTextHover = (e) => {
+        if (isMobile) return;
+
+        const target = e.target.closest('[data-word], [data-index]');
+        if (!target) return;
+
+        if (hoverTimer.current) {
+            clearTimeout(hoverTimer.current);
+            hoverTimer.current = null;
+        }
+
+        const indexStr = target.getAttribute('data-index');
+        const paraEl = target.closest('[data-para-index]');
+
+        let word = target.getAttribute('data-word');
+        let result = word ? lookupAt(word, 0) : null;
+
+        if (!result && indexStr !== null && paraEl) {
+            const exactIndex = parseInt(indexStr, 10);
+            result = lookupAt(paraEl.textContent, exactIndex);
+        }
+
+        if (result) {
+            // Prevent flicker if hovering the same word
+            if (popupData && popupData.word === result.word) return;
+
+            trackSessionLookup();
+            setPopupData(result);
+            setLookedUpWords(prev => new Set(prev).add(result.word));
+
+            const rect = target.getBoundingClientRect();
+            // Position near the bottom-left of the hovered word
+            setPopupPos({ x: rect.left, y: rect.bottom });
+
+            if (indexStr !== null && paraEl) {
+                setActiveHighlight({
+                    charIdx: parseInt(indexStr, 10),
+                    paraIdx: parseInt(paraEl.getAttribute('data-para-index'), 10)
+                });
+            }
+
+            if (story && story.id) {
+                trackWordClick(result.word, story.id);
+            }
+        }
+    };
+
+    const handleTextOut = (e) => {
+        if (isMobile) return;
+
+        const target = e.target.closest('[data-word], [data-index]');
+        if (!target) return;
+
+        if (hoverTimer.current) clearTimeout(hoverTimer.current);
+        hoverTimer.current = setTimeout(() => {
+            setPopupData(null);
+            setActiveHighlight(null);
+        }, 300); // Give user time to move mouse into popup
+    };
+
+    const handlePopupEnter = () => {
+        if (hoverTimer.current) {
+            clearTimeout(hoverTimer.current);
+            hoverTimer.current = null;
+        }
+    };
+
+    const handlePopupLeave = () => {
+        if (hoverTimer.current) clearTimeout(hoverTimer.current);
+        hoverTimer.current = setTimeout(() => {
+            setPopupData(null);
+            setActiveHighlight(null);
+        }, 300);
+    };
+
     const toggleToneColors = () => {
         setToneColorsEnabled(!toneColorsEnabled);
     };
@@ -301,6 +379,8 @@ const Reader = ({ story }) => {
                 className="reader-content"
                 style={{ fontSize: `${fontSize}px` }}
                 onClick={handleTextClick}
+                onMouseOver={!isMobile ? handleTextHover : undefined}
+                onMouseOut={!isMobile ? handleTextOut : undefined}
                 onScroll={handleScroll}
                 ref={contentRef}
             >
@@ -342,6 +422,8 @@ const Reader = ({ story }) => {
                     data={popupData}
                     position={popupPos}
                     onClose={() => setPopupData(null)}
+                    onMouseEnter={handlePopupEnter}
+                    onMouseLeave={handlePopupLeave}
                 />
             )}
         </div>
