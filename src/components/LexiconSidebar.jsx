@@ -6,6 +6,7 @@ import { loadSentencesDb, getExampleSentences } from '../lib/sentences';
 import { toggleStarred, getWordStats } from '../lib/vocabulary';
 import { getEtymology } from '../lib/etymology';
 import { lookupAt } from '../lib/dictionary';
+import { convertPinyin } from '../lib/pinyin';
 import { getCurrentSessionDuration } from '../lib/stats';
 import '../styles/oled.css';
 
@@ -38,10 +39,9 @@ const LexiconSidebar = ({ data }) => {
         return () => window.removeEventListener('readingProgressUpdated', handleProgress);
     }, []);
 
-    // Convert numbered pinyin to marks if needed, but our database usually has marks
-    // Or just display it as is.
+    // Use convertPinyin from our lib to render tone marks instead of numbers
     const renderPinyin = (pinyin) => {
-        return pinyin ? pinyin.toLowerCase() : '';
+        return pinyin ? convertPinyin(pinyin.toLowerCase()) : '';
     };
 
     if (!data || !data.word) {
