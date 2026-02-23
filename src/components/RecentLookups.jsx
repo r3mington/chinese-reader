@@ -23,7 +23,7 @@ const RecentLookups = ({ words = [] }) => {
                         // 1. Entry Animation: Scale up from 0.8, fade in to low opacity
                         initial={{ opacity: 0, scale: 0.8, x: 20 }}
                         animate={{
-                            opacity: 0.08,
+                            opacity: 0.03,
                             scale: 1,
                             x: 0,
                             // 2. Passive Breathing Animation overlay (runs forever)

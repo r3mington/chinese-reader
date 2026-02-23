@@ -364,9 +364,6 @@ const Reader = ({ story }) => {
 
     return (
         <div className="reader-container">
-            {/* The beautiful animated background watermark container */}
-            <RecentLookups words={recentWordsList} />
-
             {/* Reading Progress Bar */}
             <div className="reading-progress-bar">
                 <div
@@ -377,6 +374,7 @@ const Reader = ({ story }) => {
 
             {!isMobile && (
                 <div className="reader-toolbar">
+                    <RecentLookups words={recentWordsList} />
                     <div className="toolbar-left">
                         <h3>{story.title}</h3>
                     </div>

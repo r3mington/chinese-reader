@@ -352,6 +352,13 @@ button:active {
     align-items: center;
     background: var(--bg-primary);
     z-index: 10;
+    position: relative;
+    overflow: hidden;
+}
+
+.reader-toolbar>* {
+    position: relative;
+    z-index: 1;
 }
 
 .toolbar-right {
@@ -1977,14 +1984,13 @@ button:active {
     top: 0;
     left: 0;
     right: 0;
-    height: 300px;
-    /* Constrain to top section */
+    height: 100%;
+    /* Constrain to toolbar height */
     overflow: hidden;
     display: flex;
     justify-content: center;
-    align-items: flex-start;
-    gap: 3vw;
-    padding-top: 40px;
+    align-items: center;
+    gap: 2vw;
     z-index: 0;
     /* Important: must be behind the reading text! */
     pointer-events: none;
@@ -1993,14 +1999,14 @@ button:active {
 
 .recent-lookup-watermark {
     font-family: 'Noto Serif SC', var(--font-chinese), serif;
-    font-size: min(10vw, 120px);
-    /* Responsive giant text */
+    font-size: min(7vw, 80px);
+    /* Responsive giant text, reduced by 30% */
     font-weight: 700;
     color: var(--text-primary);
     white-space: nowrap;
     /* Opacity is handled by framer-motion inline, 
        but we set a fallback just in case */
-    opacity: 0.08;
+    opacity: 0.03;
 }
 
 /* ========================================
