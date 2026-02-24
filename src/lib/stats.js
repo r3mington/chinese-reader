@@ -432,6 +432,34 @@ export const deleteSession = async (storyId, sessionIndex) => {
     window.dispatchEvent(new CustomEvent('statsUpdated', { detail: savedStats }));
 };
 
+export const updateSession = async (storyId, sessionIndex, { duration, chars, lookups }) => {
+    if (!savedStats) await loadStats();
+    const storyData = savedStats.storyStats?.[storyId];
+    if (!storyData || !storyData.history) return;
+
+    const session = storyData.history[sessionIndex];
+    if (!session) return;
+
+    // Remove old values from totals
+    storyData.totalTime = Math.max(0, (storyData.totalTime || 0) - (session.duration || 0));
+    storyData.totalChars = Math.max(0, (storyData.totalChars || 0) - (session.chars || 0));
+    storyData.totalLookups = Math.max(0, (storyData.totalLookups || 0) - (session.lookups || 0));
+
+    // Update session object
+    session.duration = Math.max(0, duration);
+    session.chars = Math.max(0, chars);
+    session.lookups = Math.max(0, lookups);
+    session.cpm = session.duration > 0 ? Math.round(session.chars / session.duration) : 0;
+
+    // Add new values to totals
+    storyData.totalTime += session.duration;
+    storyData.totalChars += session.chars;
+    storyData.totalLookups += session.lookups;
+
+    await set(STATS_KEY, savedStats);
+    window.dispatchEvent(new CustomEvent('statsUpdated', { detail: savedStats }));
+};
+
 export const getGlobalStats = async () => {
     if (!savedStats) await loadStats();
 

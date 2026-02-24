@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { getStoryStats, resetStoryStats, deleteSession } from '../lib/stats';
+import { getStoryStats, resetStoryStats, deleteSession, updateSession } from '../lib/stats';
 
 const StoryStatsPage = ({ story, onClose }) => {
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [editingSession, setEditingSession] = useState(null);
+    const [editForm, setEditForm] = useState({ duration: 0, chars: 0, lookups: 0 });
 
     useEffect(() => {
         const load = async () => {
@@ -26,6 +28,22 @@ const StoryStatsPage = ({ story, onClose }) => {
         await deleteSession(story.id, originalIndex);
         const fresh = await getStoryStats(story.id);
         setStats(fresh);
+    };
+
+    const handleEditClick = (session, originalIndex) => {
+        setEditingSession(originalIndex);
+        setEditForm({
+            duration: Math.round(session.duration || 0),
+            chars: session.chars || 0,
+            lookups: session.lookups || 0
+        });
+    };
+
+    const handleSaveEdit = async (originalIndex) => {
+        await updateSession(story.id, originalIndex, editForm);
+        const fresh = await getStoryStats(story.id);
+        setStats(fresh);
+        setEditingSession(null);
     };
 
     // Format minutes as Xh Ymn
@@ -642,14 +660,60 @@ const StoryStatsPage = ({ story, onClose }) => {
                                             const originalIndex = sessionCount - 1 - i; // history is reversed
                                             const sessionCpm = session.duration > 0 ? Math.round((session.chars || 0) / session.duration) : 0;
                                             const cpmPct = bestCpm > 0 ? Math.round((sessionCpm / bestCpm) * 100) : 0;
+                                            const isEditing = editingSession === originalIndex;
+
+                                            if (isEditing) {
+                                                return (
+                                                    <tr key={i} className="ssp-row-editing">
+                                                        <td className="ssp-td-num">{sessionCount - i}</td>
+                                                        <td>{formatDate(session.date)}</td>
+                                                        <td className="ssp-td-muted">{formatTime(session.startTime || session.date)}</td>
+                                                        <td>
+                                                            <input
+                                                                type="number"
+                                                                className="ssp-edit-input"
+                                                                value={editForm.duration}
+                                                                onChange={e => setEditForm(prev => ({ ...prev, duration: Number(e.target.value) }))}
+                                                                min="0"
+                                                            /> mn
+                                                        </td>
+                                                        <td>
+                                                            <input
+                                                                type="number"
+                                                                className="ssp-edit-input"
+                                                                value={editForm.chars}
+                                                                onChange={e => setEditForm(prev => ({ ...prev, chars: Number(e.target.value) }))}
+                                                                min="0"
+                                                            />
+                                                        </td>
+                                                        <td>
+                                                            <input
+                                                                type="number"
+                                                                className="ssp-edit-input"
+                                                                value={editForm.lookups}
+                                                                onChange={e => setEditForm(prev => ({ ...prev, lookups: Number(e.target.value) }))}
+                                                                min="0"
+                                                            />
+                                                        </td>
+                                                        <td>--</td>
+                                                        <td style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                                                            <button className="ssp-edit-save" onClick={() => handleSaveEdit(originalIndex)}>Save</button>
+                                                            <button className="ssp-edit-cancel" onClick={() => setEditingSession(null)}>Cancel</button>
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            }
+
                                             return (
                                                 <tr key={i}>
                                                     <td className="ssp-td-num">{sessionCount - i}</td>
-                                                    <td>{formatDate(session.date)}</td>
+                                                    <td style={{ cursor: 'pointer' }} onClick={() => handleEditClick(session, originalIndex)} title="Click to edit session">
+                                                        {formatDate(session.date)}
+                                                    </td>
                                                     <td className="ssp-td-muted">{formatTime(session.startTime || session.date)}</td>
-                                                    <td>{formatDuration(session.duration)}</td>
-                                                    <td>{(session.chars || 0).toLocaleString()}</td>
-                                                    <td>{(session.lookups || 0).toLocaleString()}</td>
+                                                    <td style={{ cursor: 'pointer' }} onClick={() => handleEditClick(session, originalIndex)}>{formatDuration(session.duration)}</td>
+                                                    <td style={{ cursor: 'pointer' }} onClick={() => handleEditClick(session, originalIndex)}>{(session.chars || 0).toLocaleString()}</td>
+                                                    <td style={{ cursor: 'pointer' }} onClick={() => handleEditClick(session, originalIndex)}>{(session.lookups || 0).toLocaleString()}</td>
                                                     <td>
                                                         <div className="ssp-cpm-cell">
                                                             <span>{sessionCpm || '--'}</span>

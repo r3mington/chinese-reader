@@ -2471,4 +2471,64 @@ button:active {
     font-size: 12px;
     color: var(--text-secondary);
     line-height: 1.5;
+}/* --- Inline Edit Styles for StoryStatsPage --- */
+.ssp-row-editing {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.ssp-edit-input {
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+    padding: 6px 8px;
+    border-radius: 6px;
+    width: 60px;
+    font-size: 13px;
+    font-family: var(--font-main);
+    outline: none;
+    transition: all 0.2s;
+}
+
+.ssp-edit-input:focus {
+    border-color: var(--accent-blue);
+    background: rgba(41, 98, 255, 0.1);
+}
+
+.ssp-edit-input::-webkit-outer-spin-button,
+.ssp-edit-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.ssp-edit-save {
+    background: rgba(74, 222, 128, 0.1);
+    color: #4ade80;
+    border: 1px solid rgba(74, 222, 128, 0.2);
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.ssp-edit-save:hover {
+    background: rgba(74, 222, 128, 0.2);
+}
+
+.ssp-edit-cancel {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-secondary);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.ssp-edit-cancel:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
 }
