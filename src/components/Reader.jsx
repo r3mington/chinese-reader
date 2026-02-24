@@ -85,36 +85,31 @@ const Reader = ({ story }) => {
                     while (cIdx < paraText.length) {
                         const result = lookupStartingAt(paraText, cIdx);
                         if (result) {
-                            if (!lookedUpWords.has(result.word)) {
-                                // Found the next unknown word!
-                                trackSessionLookup();
-                                setPopupData(result);
+                            // Found the next word!
+                            trackSessionLookup();
+                            setPopupData(result);
 
-                                setActiveHighlight({
-                                    paraIdx: pIdx,
-                                    charIdx: cIdx
-                                });
+                            setActiveHighlight({
+                                paraIdx: pIdx,
+                                charIdx: cIdx
+                            });
 
-                                // Scroll smoothly to the paragraph
-                                const paraEl = contentRef.current?.querySelector(`[data-para-index="${pIdx}"]`);
-                                if (paraEl) {
-                                    paraEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                                }
-
-                                // Update history
-                                setLookedUpWords(prev => new Set(prev).add(result.word));
-                                setRecentWordsList(prev => {
-                                    const filtered = prev.filter(w => w !== result.word);
-                                    return [...filtered, result.word].slice(-5);
-                                });
-                                trackWordClick(result.word, story.id);
-
-                                found = true;
-                                break;
-                            } else {
-                                // Skip known word length
-                                cIdx += result.word.length;
+                            // Scroll smoothly to the paragraph
+                            const paraEl = contentRef.current?.querySelector(`[data-para-index="${pIdx}"]`);
+                            if (paraEl) {
+                                paraEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
                             }
+
+                            // Update history
+                            setLookedUpWords(prev => new Set(prev).add(result.word));
+                            setRecentWordsList(prev => {
+                                const filtered = prev.filter(w => w !== result.word);
+                                return [...filtered, result.word].slice(-5);
+                            });
+                            trackWordClick(result.word, story.id);
+
+                            found = true;
+                            break;
                         } else {
                             // Single character, not a dictionary word
                             cIdx++;
