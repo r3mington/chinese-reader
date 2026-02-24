@@ -5,7 +5,8 @@ import { getFrequencyRank } from '../lib/frequency';
 import { loadSentencesDb, getExampleSentences } from '../lib/sentences';
 import { toggleStarred, getWordStats } from '../lib/vocabulary';
 import { getEtymology } from '../lib/etymology';
-import { lookupAt } from '../lib/dictionary';
+import { lookupAt, getWordFamilies } from '../lib/dictionary';
+import { loadLinguisticDatasets, getRadical, getMnemonic, getSynonyms } from '../lib/linguistics';
 import { convertPinyin } from '../lib/pinyin';
 import { getCurrentSessionDuration } from '../lib/stats';
 import '../styles/oled.css';
@@ -18,6 +19,7 @@ const LexiconSidebar = ({ data }) => {
     // Ensure sentences DB is loaded
     useEffect(() => {
         loadSentencesDb();
+        loadLinguisticDatasets();
     }, []);
 
     useEffect(() => {
@@ -77,11 +79,25 @@ const LexiconSidebar = ({ data }) => {
 
     const word = data.word;
     const mainEntry = data.entries?.[0] || {};
+    const traditional = mainEntry.traditional || word;
     const pinyin = mainEntry.pinyin || '';
     const definitions = mainEntry.definitions || [];
 
+    // Extract Measure Words (CL)
+    const measureWords = [];
+    const cleanDefinitions = [];
+    definitions.forEach(def => {
+        if (def.startsWith('CL:')) {
+            measureWords.push(def.replace('CL:', ''));
+        } else {
+            cleanDefinitions.push(def);
+        }
+    });
+
     const hskLevel = getHskLevel(word);
     const freqRank = getFrequencyRank(word);
+    const wordFamilies = getWordFamilies(word);
+    const synonymsList = getSynonyms(word);
 
     const pinyinArr = pinyin.split(/\s+/).filter(Boolean);
     const toneSandhiRule = checkToneSandhi(word, pinyinArr);
@@ -106,11 +122,15 @@ const LexiconSidebar = ({ data }) => {
                 const result = lookupAt(char, 0);
                 const entry = result?.entries?.[0];
                 const etymology = getEtymology(char);
+                const radical = getRadical(char);
+                const mnemonic = getMnemonic(char);
                 return {
                     char,
                     pinyin: entry?.pinyin || '',
                     definition: entry?.definitions?.[0] || 'No definition',
-                    etymology
+                    etymology,
+                    radical,
+                    mnemonic
                 };
             });
         } catch (e) {
@@ -133,6 +153,9 @@ const LexiconSidebar = ({ data }) => {
                     <div className="lexicon-analyzing">
                         <span className="analyzing-label">ANALYZING:</span>
                         <span className="analyzing-word">{word}</span>
+                        {traditional && traditional !== word && (
+                            <span style={{ fontSize: '14px', color: 'rgba(255,255,255,0.3)', marginLeft: '-8px' }}>({traditional})</span>
+                        )}
                     </div>
 
                     <div className="lexicon-phonetics">
@@ -144,12 +167,15 @@ const LexiconSidebar = ({ data }) => {
                         {freqRank && (
                             <span className="lexicon-badge freq-badge">🏆 #{freqRank}</span>
                         )}
+                        {measureWords.length > 0 && (
+                            <span className="lexicon-badge mw-badge" style={{ background: 'rgba(255, 255, 255, 0.08)', color: 'var(--text-secondary)' }}>CL: {measureWords.join(', ')}</span>
+                        )}
                     </div>
 
                     <div className="lexicon-definitions" style={{ marginBottom: 24 }}>
-                        {definitions && definitions.length > 0 ? (
+                        {cleanDefinitions && cleanDefinitions.length > 0 ? (
                             <ul className="lexicon-def-list">
-                                {definitions.map((def, i) => (
+                                {cleanDefinitions.map((def, i) => (
                                     <li key={i}>{def}</li>
                                 ))}
                             </ul>
@@ -157,6 +183,33 @@ const LexiconSidebar = ({ data }) => {
                             <p className="no-def">No definition found.</p>
                         )}
                     </div>
+
+                    {wordFamilies.length > 0 && (
+                        <div className="lexicon-families" style={{ marginBottom: 24, fontSize: '13px' }}>
+                            <div style={{ fontSize: '10px', color: 'rgba(255, 255, 255, 0.3)', letterSpacing: '1px', marginBottom: '8px' }}>WORD FAMILY</div>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                                {wordFamilies.map((fam, i) => (
+                                    <div key={i} style={{ background: 'rgba(255,255,255,0.05)', padding: '6px 10px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                                        <span style={{ color: 'var(--text-primary)', marginRight: '6px' }}>{fam.word}</span>
+                                        <span style={{ color: 'var(--text-secondary)', fontSize: '11px' }}>{convertPinyin(fam.pinyin.toLowerCase())}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {synonymsList && synonymsList.length > 0 && (
+                        <div className="lexicon-families" style={{ marginBottom: 24, fontSize: '13px' }}>
+                            <div style={{ fontSize: '10px', color: 'rgba(255, 255, 255, 0.3)', letterSpacing: '1px', marginBottom: '8px' }}>SYNONYMS (TEST DATA)</div>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                                {synonymsList.map((syn, i) => (
+                                    <div key={i} style={{ background: 'rgba(255,255,255,0.05)', padding: '6px 10px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.05)', color: 'var(--text-primary)' }}>
+                                        {syn}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
 
                     {/* Action Bar */}
                     <div className="lexicon-actions">
@@ -224,8 +277,18 @@ const LexiconSidebar = ({ data }) => {
                                     <div className="breakdown-details">
                                         <div className="breakdown-pinyin">{renderPinyin(item.pinyin)}</div>
                                         <div className="breakdown-def">{item.definition}</div>
+                                        {item.radical && (
+                                            <div className="breakdown-etym" style={{ marginTop: 6 }}>
+                                                <span style={{ color: 'rgba(255,255,255,0.4)' }}>Radical:</span> {item.radical}
+                                            </div>
+                                        )}
+                                        {item.mnemonic && (
+                                            <div className="breakdown-etym" style={{ marginTop: 6 }}>
+                                                <span style={{ color: 'rgba(255,255,255,0.4)', fontStyle: 'italic' }}>Mnemonic:</span> {item.mnemonic}
+                                            </div>
+                                        )}
                                         {item.etymology && (
-                                            <div className="breakdown-etym">
+                                            <div className="breakdown-etym" style={{ marginTop: 6 }}>
                                                 <span style={{ color: 'rgba(255,255,255,0.4)', fontStyle: 'italic' }}>Origin:</span> {item.etymology}
                                             </div>
                                         )}
@@ -237,9 +300,15 @@ const LexiconSidebar = ({ data }) => {
 
                     {/* Tone Sandhi warnings could go here too */}
                     {toneSandhiRule && (
-                        <div className="lexicon-sandhi">
+                        <div className="lexicon-sandhi" style={{ marginBottom: 16 }}>
                             <span className="sandhi-label">TONE MUTATION DETECTED</span>
                             <div className="sandhi-rule-text">⚠️ {toneSandhiRule}</div>
+                        </div>
+                    )}
+
+                    {stats?.firstSeen && (
+                        <div style={{ fontSize: '11px', color: 'rgba(255, 255, 255, 0.2)', textAlign: 'center', marginTop: 32, paddingBottom: 16 }}>
+                            First encountered on {new Date(stats.firstSeen).toLocaleDateString()}
                         </div>
                     )}
                 </div>

@@ -156,4 +156,22 @@ export const lookupAt = (text, index) => {
     }
 
     return null;
-};
+}
+
+export const getWordFamilies = (char, limit = 5) => {
+    if (!dictionaryMap || !char) return [];
+
+    const families = [];
+    for (const [key, entries] of dictionaryMap.entries()) {
+        // Find words longer than 1 character that contain the given character
+        if (key.length > 1 && key.includes(char)) {
+            families.push({
+                word: key,
+                pinyin: entries[0]?.pinyin || '',
+                definition: entries[0]?.definitions?.[0] || ''
+            });
+            if (families.length >= limit) break;
+        }
+    }
+    return families;
+};;

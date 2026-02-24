@@ -2145,7 +2145,8 @@ button:active {
 .lexicon-scroll-area {
     flex: 1;
     overflow-y: auto;
-    padding: 0;
+    padding: 16px 20px;
+    padding-bottom: 40px;
 }
 
 .lexicon-entry {
@@ -2164,31 +2165,32 @@ button:active {
 
 .lexicon-analyzing {
     display: flex;
-    align-items: baseline;
-    gap: 16px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    align-items: center;
+    gap: 12px;
     margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .analyzing-label {
-    font-size: 11px;
-    color: rgba(255, 255, 255, 0.3);
-    font-weight: 600;
-    letter-spacing: 1px;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--text-muted);
 }
 
 .analyzing-word {
-    font-family: 'Noto Serif SC', var(--font-chinese), serif;
-    font-size: 24px;
+    font-size: 28px;
+    font-weight: 300;
     color: var(--text-primary);
+    font-family: var(--font-zh);
+    letter-spacing: 2px;
 }
 
 .lexicon-phonetics {
     display: flex;
     align-items: center;
-    gap: 12px;
-    margin-bottom: 20px;
+    gap: 10px;
+    margin-bottom: 16px;
 }
 
 .lexicon-badge {
@@ -2218,8 +2220,10 @@ button:active {
 }
 
 .lexicon-pinyin {
-    font-size: 14px;
-    color: var(--text-secondary);
+    font-family: var(--font-mono);
+    font-size: 15px;
+    color: var(--text-primary);
+    letter-spacing: 1px;
 }
 
 .lexicon-definitions {
@@ -2302,9 +2306,9 @@ button:active {
 .lexicon-actions {
     display: flex;
     gap: 8px;
-    margin-bottom: 24px;
+    margin-bottom: 20px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    padding-bottom: 20px;
+    padding-bottom: 16px;
 }
 
 .lex-action-btn {
@@ -2349,31 +2353,32 @@ button:active {
 
 .breakdown-label {
     font-size: 10px;
+    letter-spacing: 1px;
     color: rgba(255, 255, 255, 0.3);
     margin-bottom: 12px;
-    letter-spacing: 1px;
 }
 
 .breakdown-item {
     display: flex;
     gap: 16px;
-    margin-bottom: 16px;
-    padding-bottom: 16px;
-    border-bottom: 1px dotted rgba(255, 255, 255, 0.1);
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    margin-bottom: 8px;
 }
 
 .breakdown-item:last-child {
     margin-bottom: 0;
-    padding-bottom: 0;
-    border-bottom: none;
 }
 
 .breakdown-char {
-    font-family: 'Noto Serif SC', var(--font-chinese), serif;
     font-size: 32px;
+    font-family: var(--font-zh);
     color: var(--text-primary);
+    font-weight: 300;
     line-height: 1;
-    opacity: 0.9;
+    padding-top: 4px;
 }
 
 .breakdown-details {
@@ -2381,22 +2386,21 @@ button:active {
 }
 
 .breakdown-pinyin {
+    font-family: var(--font-mono);
     font-size: 12px;
     color: var(--text-secondary);
-    /* Terminal green */
     margin-bottom: 4px;
 }
 
 .breakdown-def {
     font-size: 13px;
     color: var(--text-primary);
-    margin-bottom: 6px;
-    font-family: var(--font-main);
+    line-height: 1.4;
 }
 
 .breakdown-etym {
+    margin-top: 8px;
     font-size: 12px;
-    color: var(--text-muted);
-    line-height: 1.4;
-    font-family: var(--font-main);
+    color: var(--text-secondary);
+    line-height: 1.5;
 }
