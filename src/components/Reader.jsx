@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { lookupAt } from '../lib/dictionary';
 import { saveBookmark, getBookmark } from '../lib/storage';
-import { startReadingSession, endReadingSession, initStoryTracking, trackScrollProgress, trackSessionLookup } from '../lib/stats';
+import { startReadingSession, endReadingSession, initStoryTracking, trackScrollProgress, trackSessionLookup, pauseStats, resumeStats, getIsPaused } from '../lib/stats';
 import { trackWordClick, getVocabularyList } from '../lib/vocabulary';
 import { useIsMobile } from '../lib/useIsMobile';
 import WordPopup from './WordPopup';
@@ -44,6 +44,22 @@ const Reader = ({ story }) => {
             return () => clearTimeout(timer);
         }
     }, [popupData, activeHighlight]);
+
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            // Only trigger if user is not typing in an input
+            if (e.code === 'Space' && e.target === document.body) {
+                e.preventDefault();
+                if (getIsPaused()) {
+                    resumeStats();
+                } else {
+                    pauseStats();
+                }
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, []);
 
     useEffect(() => {
         localStorage.setItem('toneColorsEnabled', toneColorsEnabled);
