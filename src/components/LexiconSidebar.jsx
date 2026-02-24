@@ -46,7 +46,7 @@ const LexiconSidebar = ({ data }) => {
         return pinyin ? convertPinyin(pinyin.toLowerCase()) : '';
     };
 
-    if (!data || !data.word) {
+    if (!data || (!data.word && data.type !== 'sentence')) {
         return (
             <div className="lexicon-sidebar empty">
                 <div className="lexicon-header">
@@ -71,6 +71,53 @@ const LexiconSidebar = ({ data }) => {
                     <div style={{ marginTop: 40, opacity: 0.4 }}>
                         Awaiting input...<br />
                         Click any highlighted word in the text to begin analysis.
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    if (data.type === 'sentence') {
+        return (
+            <div className="lexicon-sidebar">
+                <div className="lexicon-header">
+                    <span className="lexicon-title" style={{ color: 'var(--accent-blue)' }}>CONTEXT_MODE</span>
+                    <span className="lexicon-icon">✧</span>
+                </div>
+
+                <div className="lexicon-scroll-area" style={{ padding: '24px 20px' }}>
+                    <div style={{ marginBottom: 16, borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: 16 }}>
+                        <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', letterSpacing: '2px', marginBottom: 12 }}>
+                            ACTIVE PARAGRAPH
+                        </div>
+                        <p style={{
+                            fontFamily: 'var(--font-chinese)',
+                            fontSize: '20px',
+                            lineHeight: 1.6,
+                            color: 'var(--text-primary)',
+                            margin: 0
+                        }}>
+                            {data.text}
+                        </p>
+                    </div>
+
+                    <div>
+                        <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', letterSpacing: '2px', marginBottom: 12, marginTop: 16 }}>
+                            TRANSLATION
+                        </div>
+                        {data.isLoading ? (
+                            <p style={{ color: 'var(--text-secondary)', fontStyle: 'italic', margin: 0 }}>Translating...</p>
+                        ) : (
+                            <p style={{
+                                fontFamily: 'var(--font-main)',
+                                fontSize: '15.5px',
+                                lineHeight: 1.6,
+                                color: 'var(--text-primary)',
+                                margin: 0
+                            }}>
+                                {data.translation}
+                            </p>
+                        )}
                     </div>
                 </div>
             </div>

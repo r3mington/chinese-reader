@@ -5,6 +5,7 @@ import { startReadingSession, endReadingSession, initStoryTracking, trackScrollP
 import { trackWordClick, getVocabularyList } from '../lib/vocabulary';
 import { useIsMobile } from '../lib/useIsMobile';
 import { lookupStartingAt } from '../lib/dictionary';
+import { translateParagraph } from '../lib/translate';
 import WordPopup from './WordPopup';
 import MobileBottomSheet from './MobileBottomSheet';
 import ColorizedText from './ColorizedText';
@@ -117,6 +118,47 @@ const Reader = ({ story }) => {
                     }
                     if (found) break;
                 }
+            } else if (e.key === 'm' && !isMobile && story) {
+                // Sentence Context Translation Mode
+                e.preventDefault();
+
+                const paras = story.content.split('\n');
+                let activeParaIdx = 0;
+
+                if (activeHighlight) {
+                    activeParaIdx = activeHighlight.paraIdx;
+                } else if (contentRef.current) {
+                    // Try to find the first visible paragraph if no highlight
+                    const paraEls = contentRef.current.querySelectorAll('.reader-para');
+                    for (let i = 0; i < paraEls.length; i++) {
+                        const rect = paraEls[i].getBoundingClientRect();
+                        if (rect.top >= 0 && rect.top <= window.innerHeight / 2) {
+                            activeParaIdx = parseInt(paraEls[i].getAttribute('data-para-index'), 10);
+                            break;
+                        }
+                    }
+                }
+
+                const paraText = paras[activeParaIdx];
+                if (!paraText || !paraText.trim()) return;
+
+                // Indicate loading state (optional, but good for UX)
+                setPopupData({
+                    type: 'sentence',
+                    text: paraText,
+                    translation: 'Translating...',
+                    isLoading: true
+                });
+
+                // Fetch translation
+                translateParagraph(paraText).then(translation => {
+                    setPopupData({
+                        type: 'sentence',
+                        text: paraText,
+                        translation: translation,
+                        isLoading: false
+                    });
+                });
             }
         };
         window.addEventListener('keydown', handleKeyDown);
