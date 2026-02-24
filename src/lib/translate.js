@@ -1,9 +1,28 @@
 export const translateParagraph = async (text) => {
-    // Stub function simulating fetching a pre-translated string or hitting an API.
-    // In a real scenario, this could query a local DB of aligned translations or a lightweight API.
+    try {
+        const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=zh-CN&tl=en&dt=t&q=${encodeURIComponent(text)}`;
+        const response = await fetch(url);
 
-    // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 300));
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
 
-    return `[Translation functionality not yet connected] The current active block is: "${text.substring(0, 30)}..."`;
+        const data = await response.json();
+
+        // Google Translate API returns an array where the first element 
+        // is an array of sentence translations. We need to join them.
+        let translatedText = '';
+        if (data && data[0] && Array.isArray(data[0])) {
+            data[0].forEach(item => {
+                if (item[0]) {
+                    translatedText += item[0];
+                }
+            });
+        }
+
+        return translatedText || 'Translation unavailable.';
+    } catch (error) {
+        console.error("Translation API error:", error);
+        return "Failed to fetch translation. Check your network connection.";
+    }
 };
