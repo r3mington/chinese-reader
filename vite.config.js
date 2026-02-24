@@ -8,7 +8,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'prompt', // We will handle the update prompt manually in the UI
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg', 'all_cedict.json', 'frequency.json', 'sentences.json'],
+      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg', 'data/*.json'],
       manifest: {
         name: 'Chinese Reader',
         short_name: 'Chinese Reader',
@@ -36,6 +36,9 @@ export default defineConfig({
         ]
       },
       workbox: {
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,json}'],
+        maximumFileSizeToCacheInBytes: 15 * 1024 * 1024, // 15MB to cover large dictionary JSONs
+        navigateFallback: '/index.html',
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,

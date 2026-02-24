@@ -305,10 +305,10 @@ export const getStoryStats = async (storyId) => {
 
     let totalCpm = 0;
     let count = 0;
-    // Build daily log from session history
     const dailyLog = {};
     const dailyCharsLog = {};
     const dailyMinsLog = {};
+    const dailyLookupsLog = {};
     let recalculatedHistory = [];
     if (storyData.history) {
         // Exclude old short sessions (< 3 mins) dynamically from stats
@@ -346,6 +346,9 @@ export const getStoryStats = async (storyId) => {
                 if (s.chars > 0) {
                     dailyCharsLog[day] = (dailyCharsLog[day] || 0) + s.chars;
                 }
+                if (s.lookups > 0) {
+                    dailyLookupsLog[day] = (dailyLookupsLog[day] || 0) + s.lookups;
+                }
             }
         });
     }
@@ -356,6 +359,13 @@ export const getStoryStats = async (storyId) => {
         dailyCpmLog[key] = mins > 0 ? Math.round(dailyCharsLog[key] / mins) : 0;
     });
 
+    const dailyLookupRateLog = {};
+    Object.keys(dailyCharsLog).forEach(key => {
+        const chars = dailyCharsLog[key] || 0;
+        const lookups = dailyLookupsLog[key] || 0;
+        dailyLookupRateLog[key] = chars > 0 ? Number(((lookups / chars) * 100).toFixed(1)) : 0;
+    });
+
     return {
         ...storyData,
         history: recalculatedHistory,
@@ -363,6 +373,7 @@ export const getStoryStats = async (storyId) => {
         dailyLog,
         dailyCharsLog,
         dailyCpmLog,
+        dailyLookupRateLog,
     };
 };
 

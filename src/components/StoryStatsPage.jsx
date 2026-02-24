@@ -224,7 +224,7 @@ const StoryStatsPage = ({ story, onClose }) => {
         : 0;
 
     // Build 14-day bar data from any daily log
-    const buildDailyData = (dailyLog, valueKey = 'mins') => {
+    const buildDailyData = (dailyLog, valueKey = 'mins', round = true) => {
         const days = [];
         for (let i = 13; i >= 0; i--) {
             const d = new Date();
@@ -233,7 +233,8 @@ const StoryStatsPage = ({ story, onClose }) => {
             const mo = String(d.getMonth() + 1).padStart(2, '0');
             const day = String(d.getDate()).padStart(2, '0');
             const key = `${y}-${mo}-${day}`;
-            const val = Math.round(dailyLog[key] || 0);
+            const rawVal = dailyLog[key] || 0;
+            const val = round ? Math.round(rawVal) : Number(rawVal);
             days.push({
                 key,
                 label: d.toLocaleDateString('en-US', { weekday: 'short' }),
@@ -248,6 +249,8 @@ const StoryStatsPage = ({ story, onClose }) => {
     const maxChars = Math.max(...charsDays.map(d => d.chars), 1);
     const cpmDays = buildDailyData(stats?.dailyCpmLog || {}, 'cpm');
     const maxCpmDay = Math.max(...cpmDays.map(d => d.cpm), 1);
+    const lookupRateDays = buildDailyData(stats?.dailyLookupRateLog || {}, 'lookupRate', false);
+    const maxLookupRate = Math.max(...lookupRateDays.map(d => d.lookupRate), 1);
     const hasAnyActivity = dailyData.some(d => d.mins > 0);
 
     return (
@@ -625,6 +628,68 @@ const StoryStatsPage = ({ story, onClose }) => {
                         </div>
                     )}
 
+                    {/* Section 3.3: Lookup Rate Per Day Chart */}
+                    {lookupRateDays.some(d => d.lookupRate > 0) && (
+                        <div className="ssp-section">
+                            <h2 className="ssp-section-title">Lookup Rate Per Day
+                                <span style={{ fontSize: 10, fontWeight: 400, opacity: 0.45, marginLeft: 8 }}>LAST 14 DAYS · % OF CHARS LOOKED UP</span>
+                            </h2>
+                            {(() => {
+                                const BAR_W = 600;
+                                const LABEL_TOP = 14;
+                                const BAR_AREA = 100;
+                                const LABEL_BOT = 20;
+                                const BAR_H = LABEL_TOP + BAR_AREA + LABEL_BOT;
+                                const colW = BAR_W / lookupRateDays.length;
+                                const gap = 4;
+                                return (
+                                    <svg viewBox={`0 0 ${BAR_W} ${BAR_H}`} className="ssp-chart-svg" preserveAspectRatio="xMidYMid meet" style={{ height: BAR_H }}>
+                                        {lookupRateDays.map((day, i) => {
+                                            const normalizedHeight = day.lookupRate > 0 ? (day.lookupRate / maxLookupRate) : 0;
+                                            const barH = day.lookupRate > 0 ? Math.max(4, Math.round(normalizedHeight * BAR_AREA)) : 3;
+                                            const x = i * colW + gap / 2;
+                                            const w = colW - gap;
+                                            const barY = LABEL_TOP + BAR_AREA - barH;
+                                            const isToday = i === lookupRateDays.length - 1;
+                                            const barColor = isToday ? '#a78bfa' : '#f43f5e';
+                                            return (
+                                                <g key={i}>
+                                                    <rect
+                                                        x={x} y={barY} width={w} height={barH}
+                                                        rx="3"
+                                                        fill={barColor}
+                                                        opacity={day.lookupRate > 0 ? 0.85 : 0.1}
+                                                    />
+                                                    {day.lookupRate > 0 && (
+                                                        <text
+                                                            x={x + w / 2}
+                                                            y={barY - 3}
+                                                            textAnchor="middle"
+                                                            fill={isToday ? '#a78bfa' : 'rgba(255,255,255,0.7)'}
+                                                            fontSize="8"
+                                                            fontWeight="600"
+                                                        >
+                                                            {day.lookupRate}%
+                                                        </text>
+                                                    )}
+                                                    <text
+                                                        x={x + w / 2}
+                                                        y={LABEL_TOP + BAR_AREA + LABEL_BOT - 2}
+                                                        textAnchor="middle"
+                                                        fill={isToday ? 'rgba(167,139,250,0.6)' : 'rgba(255,255,255,0.25)'}
+                                                        fontSize="8"
+                                                    >
+                                                        {isToday ? 'T' : day.label.slice(0, 1)}
+                                                    </text>
+                                                </g>
+                                            );
+                                        })}
+                                    </svg>
+                                );
+                            })()}
+                        </div>
+                    )}
+
                     {/* Section 4: CPM Chart */}
                     {sessionCount >= 2 && (
                         <div className="ssp-section">
@@ -651,6 +716,7 @@ const StoryStatsPage = ({ story, onClose }) => {
                                             <th>Duration</th>
                                             <th>Chars</th>
                                             <th>Lookups</th>
+                                            <th>Lookup %</th>
                                             <th>CPM</th>
                                             <th></th>
                                         </tr>
@@ -696,6 +762,7 @@ const StoryStatsPage = ({ story, onClose }) => {
                                                             />
                                                         </td>
                                                         <td>--</td>
+                                                        <td>--</td>
                                                         <td style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
                                                             <button className="ssp-edit-save" onClick={() => handleSaveEdit(originalIndex)}>Save</button>
                                                             <button className="ssp-edit-cancel" onClick={() => setEditingSession(null)}>Cancel</button>
@@ -714,6 +781,9 @@ const StoryStatsPage = ({ story, onClose }) => {
                                                     <td style={{ cursor: 'pointer' }} onClick={() => handleEditClick(session, originalIndex)}>{formatDuration(session.duration)}</td>
                                                     <td style={{ cursor: 'pointer' }} onClick={() => handleEditClick(session, originalIndex)}>{(session.chars || 0).toLocaleString()}</td>
                                                     <td style={{ cursor: 'pointer' }} onClick={() => handleEditClick(session, originalIndex)}>{(session.lookups || 0).toLocaleString()}</td>
+                                                    <td style={{ cursor: 'pointer', color: 'rgba(255,255,255,0.45)' }} onClick={() => handleEditClick(session, originalIndex)}>
+                                                        {session.chars > 0 ? ((session.lookups / session.chars) * 100).toFixed(1) + '%' : '--'}
+                                                    </td>
                                                     <td>
                                                         <div className="ssp-cpm-cell">
                                                             <span>{sessionCpm || '--'}</span>
