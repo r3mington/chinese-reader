@@ -391,6 +391,35 @@ button:active {
 
 /* Stats Toolbar Styles */
 .stats-toolbar {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 16px;
+    font-size: 12px;
+    color: var(--text-primary);
+}
+
+.stats-toolbar:not(.mobile) {
+    position: static;
+    transform: none;
+    background: transparent;
+    box-shadow: none;
+    border: none;
+    padding: 0;
+}
+
+.stats-toolbar:not(.mobile) .stats-top-row,
+.stats-toolbar:not(.mobile) .stats-row {
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    padding-right: 16px;
+}
+
+.stats-toolbar:not(.mobile) .stats-row:last-child {
+    border-right: none;
+    padding-right: 0;
+}
+
+.stats-toolbar.mobile {
     position: fixed;
     top: 10px;
     left: 50%;
@@ -400,13 +429,9 @@ button:active {
     padding: 8px 16px;
     border-radius: 20px;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
-    display: flex;
     flex-direction: column;
-    gap: 6px;
     z-index: 100;
     border: 1px solid var(--border-color);
-    font-size: 14px;
-    color: var(--text-primary);
 }
 
 .stats-row {
@@ -2206,10 +2231,9 @@ button:active {
     padding: 0;
     list-style: none;
     font-family: var(--font-main);
-    font-size: 15px;
+    font-size: 14px;
     line-height: 1.6;
-    color: var(--text-primary);
-    opacity: 0.9;
+    color: var(--text-secondary);
 }
 
 .lexicon-def-list li {

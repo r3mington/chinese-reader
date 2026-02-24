@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import LibraryModal from './components/LibraryModal';
 import Reader from './components/Reader';
-import StatsToolbar from './components/StatsToolbar';
 import VocabularyView from './components/VocabularyView';
 import StoryStatsPage from './components/StoryStatsPage';
 import GlobalStatsPage from './components/GlobalStatsPage';
@@ -76,7 +75,6 @@ function App() {
 
   return (
     <Router>
-      <StatsToolbar currentStoryId={currentStory ? currentStory.id : null} />
       <Routes>
         <Route path="/" element={
           <>

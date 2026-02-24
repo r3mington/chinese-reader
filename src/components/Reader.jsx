@@ -10,6 +10,8 @@ import ColorizedText from './ColorizedText';
 import FloatingActionMenu from './FloatingActionMenu';
 import RecentLookups from './RecentLookups';
 import LexiconSidebar from './LexiconSidebar';
+import StatsToolbar from './StatsToolbar';
+import '../styles/oled.css';
 
 const Reader = ({ story }) => {
     const [fontSize, setFontSize] = useState(() => {
@@ -356,10 +358,15 @@ const Reader = ({ story }) => {
             <div className="reader-main">
                 {!isMobile && (
                     <div className="reader-toolbar">
-                        <RecentLookups words={recentWordsList} />
-                        <div className="toolbar-left">
-                            <h3>{story.title}</h3>
+                        <div className="toolbar-left" style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                            <RecentLookups words={recentWordsList} />
+                            <h3 style={{ fontSize: '14px', opacity: 0.5, margin: 0 }}>{story?.title}</h3>
                         </div>
+
+                        <div className="toolbar-center">
+                            <StatsToolbar currentStoryId={story ? story.id : null} />
+                        </div>
+
                         <div className="toolbar-right">
                             <button onClick={() => handleFontSizeChange(-2)}>A-</button>
                             <span style={{ margin: '0 8px' }}>{fontSize}px</span>
@@ -404,6 +411,7 @@ const Reader = ({ story }) => {
 
             {isMobile ? (
                 <>
+                    <StatsToolbar currentStoryId={story ? story.id : null} />
                     <MobileBottomSheet
                         data={popupData}
                         onClose={() => setPopupData(null)}

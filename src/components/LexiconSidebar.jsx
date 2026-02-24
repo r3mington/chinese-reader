@@ -146,6 +146,18 @@ const LexiconSidebar = ({ data }) => {
                         )}
                     </div>
 
+                    <div className="lexicon-definitions" style={{ marginBottom: 24 }}>
+                        {definitions && definitions.length > 0 ? (
+                            <ul className="lexicon-def-list">
+                                {definitions.map((def, i) => (
+                                    <li key={i}>{def}</li>
+                                ))}
+                            </ul>
+                        ) : (
+                            <p className="no-def">No definition found.</p>
+                        )}
+                    </div>
+
                     {/* Action Bar */}
                     <div className="lexicon-actions">
                         <button className="lex-action-btn" onClick={() => {
@@ -179,18 +191,6 @@ const LexiconSidebar = ({ data }) => {
                                 <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
                             </svg>
                         </button>
-                    </div>
-
-                    <div className="lexicon-definitions mt-4">
-                        {definitions && definitions.length > 0 ? (
-                            <ul className="lexicon-def-list">
-                                {definitions.map((def, i) => (
-                                    <li key={i}>{def}</li>
-                                ))}
-                            </ul>
-                        ) : (
-                            <p className="no-def">No definition found.</p>
-                        )}
                     </div>
 
                     {examples.length > 0 && (
