@@ -4,6 +4,7 @@ import { saveBookmark, getBookmark } from '../lib/storage';
 import { startReadingSession, endReadingSession, initStoryTracking, trackScrollProgress, trackSessionLookup, pauseStats, resumeStats, getIsPaused } from '../lib/stats';
 import { trackWordClick, getVocabularyList } from '../lib/vocabulary';
 import { useIsMobile } from '../lib/useIsMobile';
+import { lookupStartingAt } from '../lib/dictionary';
 import WordPopup from './WordPopup';
 import MobileBottomSheet from './MobileBottomSheet';
 import ColorizedText from './ColorizedText';
@@ -48,18 +49,84 @@ const Reader = ({ story }) => {
     useEffect(() => {
         const handleKeyDown = (e) => {
             // Only trigger if user is not typing in an input
-            if (e.code === 'Space' && e.target === document.body) {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+            if (e.code === 'Space') {
                 e.preventDefault();
                 if (getIsPaused()) {
                     resumeStats();
                 } else {
                     pauseStats();
                 }
+            } else if (e.key === 'n' && !isMobile && story) {
+                // Find next "unknown" word
+                e.preventDefault();
+
+                const paras = story.content.split('\n');
+                let startPara = 0;
+                let startChar = -1; // -1 to start searching from 0 in the first paragraph if none active
+                let currentWordLength = 0;
+
+                if (activeHighlight) {
+                    startPara = activeHighlight.paraIdx;
+                    startChar = activeHighlight.charIdx;
+                    if (popupData && popupData.word) {
+                        currentWordLength = popupData.word.length;
+                    }
+                }
+
+                let found = false;
+
+                // Resume searching from the exact end of the currently highlighted word
+                for (let pIdx = startPara; pIdx < paras.length; pIdx++) {
+                    const paraText = paras[pIdx];
+                    let cIdx = (pIdx === startPara) ? Math.max(0, startChar + currentWordLength) : 0;
+
+                    while (cIdx < paraText.length) {
+                        const result = lookupStartingAt(paraText, cIdx);
+                        if (result) {
+                            if (!lookedUpWords.has(result.word)) {
+                                // Found the next unknown word!
+                                trackSessionLookup();
+                                setPopupData(result);
+
+                                setActiveHighlight({
+                                    paraIdx: pIdx,
+                                    charIdx: cIdx
+                                });
+
+                                // Scroll smoothly to the paragraph
+                                const paraEl = contentRef.current?.querySelector(`[data-para-index="${pIdx}"]`);
+                                if (paraEl) {
+                                    paraEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                }
+
+                                // Update history
+                                setLookedUpWords(prev => new Set(prev).add(result.word));
+                                setRecentWordsList(prev => {
+                                    const filtered = prev.filter(w => w !== result.word);
+                                    return [...filtered, result.word].slice(-5);
+                                });
+                                trackWordClick(result.word, story.id);
+
+                                found = true;
+                                break;
+                            } else {
+                                // Skip known word length
+                                cIdx += result.word.length;
+                            }
+                        } else {
+                            // Single character, not a dictionary word
+                            cIdx++;
+                        }
+                    }
+                    if (found) break;
+                }
             }
         };
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, []);
+    }, [activeHighlight, popupData, lookedUpWords, story, isMobile]);
 
     useEffect(() => {
         localStorage.setItem('toneColorsEnabled', toneColorsEnabled);
