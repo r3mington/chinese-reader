@@ -76,6 +76,8 @@ button {
     cursor: pointer;
     font-weight: 500;
     transition: color 2s ease, background-color 2s ease, opacity 0.3s ease;
+    position: relative;
+    display: inline-block;
 }
 
 .word-active-highlight {
@@ -84,6 +86,27 @@ button {
     text-shadow: 0 0 8px rgba(255, 255, 224, 0.6);
     background-color: rgba(255, 255, 224, 0.1);
     border-radius: 2px;
+}
+
+.word-active-highlight::after {
+    content: attr(data-pinyin);
+    position: absolute;
+    bottom: -14px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.35);
+    font-family: var(--font-mono);
+    pointer-events: none;
+    white-space: nowrap;
+    opacity: 0;
+    animation: fadeInPinyin 0.2s ease 0.1s forwards;
+}
+
+@keyframes fadeInPinyin {
+    to {
+        opacity: 1;
+    }
 }
 
 button:hover {
@@ -2121,6 +2144,40 @@ button:active {
     resize: horizontal;
     direction: rtl;
     /* This places the resize handle on the left */
+    position: relative;
+    overflow: hidden;
+}
+
+.lexicon-bg-character {
+    position: absolute;
+    top: 10%;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 240px;
+    font-family: var(--font-zh);
+    color: rgba(255, 255, 255, 0.015);
+    z-index: 0;
+    pointer-events: none;
+    user-select: none;
+    animation: pulseBgChar 8s ease-in-out infinite alternate;
+}
+
+@keyframes pulseBgChar {
+    0% {
+        transform: translateX(-50%) scale(1) translateY(0);
+        color: rgba(255, 255, 255, 0.015);
+    }
+
+    100% {
+        transform: translateX(-50%) scale(1.05) translateY(-10px);
+        color: rgba(255, 255, 255, 0.025);
+    }
+}
+
+.lexicon-header,
+.lexicon-scroll-area {
+    position: relative;
+    z-index: 1;
 }
 
 .lexicon-sidebar>* {

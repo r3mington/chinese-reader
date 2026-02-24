@@ -1,6 +1,7 @@
 import React from 'react';
 import { getCharacterTone, getTonesFromPinyin } from '../lib/tones';
 import { lookupStartingAt } from '../lib/dictionary';
+import { convertPinyin } from '../lib/pinyin';
 
 const ColorizedText = ({ text, enabled = true, lookedUpWords = new Set(), overrideToneColors = null, activeIndex = null }) => {
     if ((!enabled && overrideToneColors !== false) || !text) {
@@ -19,6 +20,7 @@ const ColorizedText = ({ text, enabled = true, lookedUpWords = new Set(), overri
                 // We found a word! Use its tones.
                 const wordLength = result.word.length;
                 const pinyin = result.entries[0].pinyin;
+                const pinyinSyllables = pinyin.split(' ');
                 const tones = getTonesFromPinyin(pinyin);
                 const isLookedUp = lookedUpWords.has(result.word);
                 const lookedUpClass = isLookedUp ? ' word-looked-up' : '';
@@ -39,12 +41,16 @@ const ColorizedText = ({ text, enabled = true, lookedUpWords = new Set(), overri
                         toneClass = ` tone-neutral`;
                     }
 
+                    const charPinyinRaw = pinyinSyllables[j];
+                    const charPinyin = charPinyinRaw ? convertPinyin(charPinyinRaw.toLowerCase()) : '';
+
                     elements.push(
                         <span
                             key={`${i + j}`}
                             className={`char-with-tone${toneClass}${lookedUpClass}${highlightClass}`}
                             data-word={result.word}
                             data-index={i + j}
+                            data-pinyin={isHighlighted ? charPinyin : undefined}
                         >
                             {char}
                         </span>

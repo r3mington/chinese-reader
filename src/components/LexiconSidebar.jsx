@@ -143,6 +143,11 @@ const LexiconSidebar = ({ data }) => {
 
     return (
         <div className="lexicon-sidebar">
+            {word && (
+                <div className="lexicon-bg-character">
+                    {word.length > 2 ? word.substring(0, 2) : word}
+                </div>
+            )}
             <div className="lexicon-header">
                 <span className="lexicon-title">LEXICON_ENGINE_v2.1</span>
                 <span className="lexicon-icon">✧</span>
