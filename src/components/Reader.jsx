@@ -19,14 +19,21 @@ const Reader = ({ story }) => {
     const [fontSize, setFontSize] = useState(() => {
         return parseInt(localStorage.getItem('fontSize')) || 20;
     });
-    const [popupData, setPopupData] = useState(null);
+    const [hoverPopupData, setHoverPopupData] = useState(null);
+    const [lockedPopupData, setLockedPopupData] = useState(null);
+    const popupData = hoverPopupData || lockedPopupData;
+
     const [toneColorsEnabled, setToneColorsEnabled] = useState(() => {
         return localStorage.getItem('toneColorsEnabled') === 'true';
     });
     const [lookedUpWords, setLookedUpWords] = useState(new Set());
     const [recentWordsList, setRecentWordsList] = useState([]); // Track recent words for watermark animation
     const [readingProgress, setReadingProgress] = useState(0);
-    const [activeHighlight, setActiveHighlight] = useState(null);
+
+    const [hoverHighlight, setHoverHighlight] = useState(null);
+    const [lockedHighlight, setLockedHighlight] = useState(null);
+    const activeHighlight = hoverHighlight || lockedHighlight;
+
     const contentRef = useRef(null);
     const hoverTimer = useRef(null);
     const isMobile = useIsMobile();
@@ -42,7 +49,10 @@ const Reader = ({ story }) => {
     // Clear active word highlight 1 second after popup closes to allow CSS fade
     useEffect(() => {
         if (!popupData && activeHighlight !== null) {
-            const timer = setTimeout(() => setActiveHighlight(null), 1000);
+            const timer = setTimeout(() => {
+                setHoverHighlight(null);
+                setLockedHighlight(null);
+            }, 1000);
             return () => clearTimeout(timer);
         }
     }, [popupData, activeHighlight]);
@@ -114,9 +124,11 @@ const Reader = ({ story }) => {
                     if (targetToken) {
                         // Found a word!
                         trackSessionLookup();
-                        setPopupData(targetToken.result);
+                        setHoverPopupData(null);
+                        setHoverHighlight(null);
+                        setLockedPopupData(targetToken.result);
 
-                        setActiveHighlight({
+                        setLockedHighlight({
                             paraIdx: pIdx,
                             charIdx: targetToken.startIndex
                         });
@@ -164,7 +176,8 @@ const Reader = ({ story }) => {
                 if (!paraText || !paraText.trim()) return;
 
                 // Indicate loading state (optional, but good for UX)
-                setPopupData({
+                setHoverPopupData(null);
+                setLockedPopupData({
                     type: 'sentence',
                     text: paraText,
                     translation: 'Translating...',
@@ -173,7 +186,7 @@ const Reader = ({ story }) => {
 
                 // Fetch translation
                 translateParagraph(paraText).then(translation => {
-                    setPopupData({
+                    setLockedPopupData({
                         type: 'sentence',
                         text: paraText,
                         translation: translation,
@@ -313,20 +326,24 @@ const Reader = ({ story }) => {
     };
 
     const handleTextClick = (e) => {
-        if (!isMobile) return; // Desktop uses hover instead of click
-
-        setPopupData(null);
+        setHoverPopupData(null);
+        setHoverHighlight(null);
 
         // Check if the clicked element (or parent) has a data-word attribute
         const target = e.target.closest('[data-word], [data-index]');
+
+        let clickParaIdx = null;
+        let clickCharIdx = null;
 
         if (target) {
             const indexStr = target.getAttribute('data-index');
             const paraEl = target.closest('[data-para-index]');
             if (indexStr !== null && paraEl) {
-                setActiveHighlight({
-                    charIdx: parseInt(indexStr, 10),
-                    paraIdx: parseInt(paraEl.getAttribute('data-para-index'), 10)
+                clickCharIdx = parseInt(indexStr, 10);
+                clickParaIdx = parseInt(paraEl.getAttribute('data-para-index'), 10);
+                setLockedHighlight({
+                    charIdx: clickCharIdx,
+                    paraIdx: clickParaIdx
                 });
             }
 
@@ -342,7 +359,7 @@ const Reader = ({ story }) => {
 
             if (result) {
                 trackSessionLookup(); // Track stats
-                setPopupData(result);
+                setLockedPopupData(result);
 
                 // Update Background watermark history
                 setLookedUpWords(prev => new Set(prev).add(result.word));
@@ -395,7 +412,18 @@ const Reader = ({ story }) => {
 
         if (result) {
             trackSessionLookup(); // Track stats
-            setPopupData(result);
+            setLockedPopupData(result);
+
+            // Re-calculate the indices for the locked highlight since this was a fallback click
+            const paraEl = paragraph;
+            const clickParaIdx = parseInt(paraEl.getAttribute('data-para-index'), 10);
+
+            // To find the charIdx, we need the exact position of the word.
+            // But since this is a fallback, we at least know the global offset.
+            setLockedHighlight({
+                charIdx: result.index !== undefined ? result.index : Math.max(0, globalOffset - 1),
+                paraIdx: clickParaIdx
+            });
 
             // Update Background watermark history
             setLookedUpWords(prev => new Set(prev).add(result.word));
@@ -434,10 +462,10 @@ const Reader = ({ story }) => {
 
         if (result) {
             // Prevent flicker if hovering the same word
-            if (popupData && popupData.word === result.word) return;
+            if (hoverPopupData && hoverPopupData.word === result.word) return;
 
             trackSessionLookup();
-            setPopupData(result);
+            setHoverPopupData(result);
 
             // Update background watermark history
             setLookedUpWords(prev => new Set(prev).add(result.word));
@@ -447,7 +475,7 @@ const Reader = ({ story }) => {
             });
 
             if (indexStr !== null && paraEl) {
-                setActiveHighlight({
+                setHoverHighlight({
                     charIdx: parseInt(indexStr, 10),
                     paraIdx: parseInt(paraEl.getAttribute('data-para-index'), 10)
                 });
@@ -467,10 +495,8 @@ const Reader = ({ story }) => {
 
         if (hoverTimer.current) clearTimeout(hoverTimer.current);
         hoverTimer.current = setTimeout(() => {
-            // We NO LONGER clear popupData on mouse out for desktop,
-            // because the Lexicon Sidebar is persistent!
-            // However, we DO clear the active highlight from the text.
-            setActiveHighlight(null);
+            setHoverHighlight(null);
+            setHoverPopupData(null);
         }, 300); // Give user time to move mouse before clearing highlight
     };
 
@@ -555,7 +581,10 @@ const Reader = ({ story }) => {
                     <StatsToolbar currentStoryId={story ? story.id : null} />
                     <MobileBottomSheet
                         data={popupData}
-                        onClose={() => setPopupData(null)}
+                        onClose={() => {
+                            setHoverPopupData(null);
+                            setLockedPopupData(null);
+                        }}
                     />
                     <FloatingActionMenu
                         fontSize={fontSize}
