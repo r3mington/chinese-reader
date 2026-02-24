@@ -14,12 +14,15 @@ import '../styles/oled.css';
 const LexiconSidebar = ({ data }) => {
     const [stats, setStats] = useState(null);
     const [sessionData, setSessionData] = useState({ chars: 0, cpm: '--' });
+    const [linguisticsLoaded, setLinguisticsLoaded] = useState(false);
     const starred = stats?.starred || false;
 
     // Ensure sentences DB is loaded
     useEffect(() => {
         loadSentencesDb();
-        loadLinguisticDatasets();
+        loadLinguisticDatasets().then(() => {
+            setLinguisticsLoaded(true);
+        });
     }, []);
 
     useEffect(() => {
