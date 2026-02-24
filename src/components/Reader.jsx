@@ -4,7 +4,7 @@ import { saveBookmark, getBookmark } from '../lib/storage';
 import { startReadingSession, endReadingSession, initStoryTracking, trackScrollProgress, trackSessionLookup, pauseStats, resumeStats, getIsPaused } from '../lib/stats';
 import { trackWordClick, getVocabularyList } from '../lib/vocabulary';
 import { useIsMobile } from '../lib/useIsMobile';
-import { lookupStartingAt } from '../lib/dictionary';
+import { tokenizeText } from '../lib/tokenizer';
 import { translateParagraph } from '../lib/translate';
 import WordPopup from './WordPopup';
 import MobileBottomSheet from './MobileBottomSheet';
@@ -59,64 +59,85 @@ const Reader = ({ story }) => {
                 } else {
                     pauseStats();
                 }
-            } else if (e.key === 'n' && !isMobile && story) {
-                // Find next "unknown" word
+            } else if ((e.key === 'd' || e.key === 'a') && !isMobile && story) {
+                // Navigation: Next (d) or Previous (a) Word
                 e.preventDefault();
 
+                const isForward = e.key === 'd';
                 const paras = story.content.split('\n');
+
                 let startPara = 0;
-                let startChar = -1; // -1 to start searching from 0 in the first paragraph if none active
-                let currentWordLength = 0;
+                let startChar = isForward ? -1 : Infinity;
 
                 if (activeHighlight) {
                     startPara = activeHighlight.paraIdx;
                     startChar = activeHighlight.charIdx;
-                    if (popupData && popupData.word) {
-                        currentWordLength = popupData.word.length;
-                    }
                 }
 
                 let found = false;
 
-                // Resume searching from the exact end of the currently highlighted word
-                for (let pIdx = startPara; pIdx < paras.length; pIdx++) {
+                // Depending on direction, iterate paragraphs
+                const paraStep = isForward ? 1 : -1;
+                for (let pIdx = startPara; pIdx >= 0 && pIdx < paras.length; pIdx += paraStep) {
                     const paraText = paras[pIdx];
-                    let cIdx = (pIdx === startPara) ? Math.max(0, startChar + currentWordLength) : 0;
+                    if (!paraText.trim()) continue;
 
-                    while (cIdx < paraText.length) {
-                        const result = lookupStartingAt(paraText, cIdx);
-                        if (result) {
-                            // Found the next word!
-                            trackSessionLookup();
-                            setPopupData(result);
+                    // Parse paragraph into words
+                    const tokens = tokenizeText(paraText);
 
-                            setActiveHighlight({
-                                paraIdx: pIdx,
-                                charIdx: cIdx
-                            });
+                    // Filter down to valid dictionary words
+                    const validTokens = tokens.filter(t => t.type === 'dict');
 
-                            // Scroll smoothly to the paragraph
-                            const paraEl = contentRef.current?.querySelector(`[data-para-index="${pIdx}"]`);
-                            if (paraEl) {
-                                paraEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                            }
+                    if (validTokens.length === 0) continue;
 
-                            // Update history
-                            setLookedUpWords(prev => new Set(prev).add(result.word));
-                            setRecentWordsList(prev => {
-                                const filtered = prev.filter(w => w !== result.word);
-                                return [...filtered, result.word].slice(-5);
-                            });
-                            trackWordClick(result.word, story.id);
+                    let targetToken = null;
 
-                            found = true;
-                            break;
+                    if (pIdx === startPara) {
+                        if (isForward) {
+                            // Find first token AFTER current char index
+                            targetToken = validTokens.find(t => t.startIndex > startChar);
                         } else {
-                            // Single character, not a dictionary word
-                            cIdx++;
+                            // Find first token BEFORE current char index
+                            // iterate backwards through validTokens to find the closest one
+                            for (let i = validTokens.length - 1; i >= 0; i--) {
+                                if (validTokens[i].startIndex < startChar) {
+                                    targetToken = validTokens[i];
+                                    break;
+                                }
+                            }
                         }
+                    } else {
+                        // We jumped to a new paragraph. Grab the first or last token based on direction
+                        targetToken = isForward ? validTokens[0] : validTokens[validTokens.length - 1];
                     }
-                    if (found) break;
+
+                    if (targetToken) {
+                        // Found a word!
+                        trackSessionLookup();
+                        setPopupData(targetToken.result);
+
+                        setActiveHighlight({
+                            paraIdx: pIdx,
+                            charIdx: targetToken.startIndex
+                        });
+
+                        // Scroll smoothly to the paragraph
+                        const paraEl = contentRef.current?.querySelector(`[data-para-index="${pIdx}"]`);
+                        if (paraEl) {
+                            paraEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+
+                        // Update history
+                        setLookedUpWords(prev => new Set(prev).add(targetToken.word));
+                        setRecentWordsList(prev => {
+                            const filtered = prev.filter(w => w !== targetToken.word);
+                            return [...filtered, targetToken.word].slice(-5);
+                        });
+                        trackWordClick(targetToken.word, story.id);
+
+                        found = true;
+                        break;
+                    }
                 }
             } else if (e.key === 'm' && !isMobile && story) {
                 // Sentence Context Translation Mode

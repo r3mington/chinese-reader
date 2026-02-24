@@ -1,87 +1,71 @@
-import React from 'react';
-import { getCharacterTone, getTonesFromPinyin } from '../lib/tones';
-import { lookupStartingAt } from '../lib/dictionary';
-import { convertPinyin } from '../lib/pinyin';
+import React, { useMemo } from 'react';
+import { getCharacterTone } from '../lib/tones';
+import { tokenizeText } from '../lib/tokenizer';
 
 const ColorizedText = ({ text, enabled = true, lookedUpWords = new Set(), overrideToneColors = null, activeIndex = null }) => {
     if ((!enabled && overrideToneColors !== false) || !text) {
         return <>{text}</>;
     }
 
-    const colorizeText = (text) => {
-        const elements = [];
-        let i = 0;
+    const elements = useMemo(() => {
+        const tokens = tokenizeText(text);
+        const spans = [];
 
-        while (i < text.length) {
-            // Try to find a word at current position
-            const result = lookupStartingAt(text, i);
-
-            if (result) {
-                // We found a word! Use its tones.
-                const wordLength = result.word.length;
-                const pinyin = result.entries[0].pinyin;
-                const pinyinSyllables = pinyin.split(' ');
-                const tones = getTonesFromPinyin(pinyin);
-                const isLookedUp = lookedUpWords.has(result.word);
+        tokens.forEach((token) => {
+            if (token.type === 'dict') {
+                const isLookedUp = lookedUpWords.has(token.word);
                 const lookedUpClass = isLookedUp ? ' word-looked-up' : '';
-                const isHighlighted = activeIndex !== null && activeIndex >= i && activeIndex < i + wordLength;
+                const isHighlighted = activeIndex !== null && activeIndex >= token.startIndex && activeIndex <= token.endIndex;
                 const highlightClass = isHighlighted ? ' word-active-highlight' : '';
 
-                // Render each character of the word with its specific tone
-                for (let j = 0; j < wordLength; j++) {
-                    const char = text[i + j];
-                    const tone = tones[j]; // Tone corresponding to this char position
+                token.chars.forEach((c, index) => {
                     let toneClass = '';
-
                     if (overrideToneColors === false) {
                         toneClass = '';
-                    } else if (tone && tone >= 1 && tone <= 4) {
-                        toneClass = ` tone-${tone}`;
-                    } else if (tone === 5) {
+                    } else if (c.tone && c.tone >= 1 && c.tone <= 4) {
+                        toneClass = ` tone-${c.tone}`;
+                    } else if (c.tone === 5) {
                         toneClass = ` tone-neutral`;
                     }
 
-                    const charPinyinRaw = pinyinSyllables[j];
-                    const charPinyin = charPinyinRaw ? convertPinyin(charPinyinRaw.toLowerCase()) : '';
-
-                    elements.push(
+                    spans.push(
                         <span
-                            key={`${i + j}`}
+                            key={`${token.startIndex + index}`}
                             className={`char-with-tone${toneClass}${lookedUpClass}${highlightClass}`}
-                            data-word={result.word}
-                            data-index={i + j}
-                            data-pinyin={isHighlighted ? charPinyin : undefined}
+                            data-word={token.word}
+                            data-index={token.startIndex + index}
+                            data-pinyin={isHighlighted ? c.pinyin : undefined}
                         >
-                            {char}
+                            {c.char}
                         </span>
                     );
-                }
-
-                i += wordLength;
+                });
             } else {
-                // No word found, render single char (try single char lookup fallback)
-                const char = text[i];
-                const tone = getCharacterTone(char);
-                let toneClass = '';
-                const isHighlighted = activeIndex !== null && activeIndex === i;
+                // Single char / punctuation
+                const isHighlighted = activeIndex !== null && activeIndex === token.startIndex;
                 const highlightClass = isHighlighted ? ' word-active-highlight' : '';
 
-                if (overrideToneColors !== false && tone) {
-                    toneClass = ` tone-${tone}`;
+                let toneClass = '';
+                if (overrideToneColors !== false && token.chars[0].tone) {
+                    toneClass = ` tone-${token.chars[0].tone}`;
                 }
 
-                elements.push(
-                    <span key={i} className={`char-with-tone${toneClass}${highlightClass}`} data-index={i}>
-                        {char}
+                spans.push(
+                    <span
+                        key={`${token.startIndex}`}
+                        className={`char-with-tone${toneClass}${highlightClass}`}
+                        data-index={token.startIndex}
+                    >
+                        {token.chars[0].char}
                     </span>
                 );
-                i++;
             }
-        }
-        return elements;
-    };
+        });
 
-    return <>{colorizeText(text)}</>;
+        return spans;
+    }, [text, lookedUpWords, overrideToneColors, activeIndex]);
+
+    return <>{elements}</>;
 };
 
 export default ColorizedText;
