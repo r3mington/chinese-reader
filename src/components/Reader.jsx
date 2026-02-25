@@ -36,6 +36,7 @@ const Reader = ({ story }) => {
 
     const contentRef = useRef(null);
     const hoverTimer = useRef(null);
+    const isRestoringScroll = useRef(true);
     const isMobile = useIsMobile();
 
     useEffect(() => {
@@ -270,6 +271,7 @@ const Reader = ({ story }) => {
     useEffect(() => {
         if (!story || !contentRef.current) return;
 
+        isRestoringScroll.current = true;
         contentRef.current.scrollTop = 0;
 
         // Initialize CPM tracking for this story
@@ -278,15 +280,27 @@ const Reader = ({ story }) => {
         const restorePos = async () => {
             const bookmark = await getBookmark(story.id);
             if (bookmark && contentRef.current) {
+                // Temporarily disable scroll listening
+                isRestoringScroll.current = true;
                 contentRef.current.scrollTop = bookmark.scrollPosition;
+
+                // Allow a tiny delay for the DOM to settle before re-enabling save
+                setTimeout(() => {
+                    isRestoringScroll.current = false;
+                }, 100);
+            } else {
+                isRestoringScroll.current = false;
             }
         };
 
-        setTimeout(restorePos, 100);
+        // Give the DOM a moment to paint the text before restoring
+        setTimeout(restorePos, 50);
     }, [story]);
 
     // Save bookmark and update progress on scroll
     const handleScroll = (e) => {
+        if (isRestoringScroll.current) return;
+
         if (story) {
             const target = e.target;
             const scrollTop = target.scrollTop;
