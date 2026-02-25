@@ -87,37 +87,36 @@ const Reader = ({ story }) => {
 
                     const rect = activeSpan.getBoundingClientRect();
 
-                    // Approximate line height mapping (usually 1.5x - 2x font size)
-                    // We step by an amount that safely puts us in the middle of the line above/below
-                    const yStep = e.key === 's' ? (fontSize * 2) : -(fontSize * 2);
-                    const targetY = rect.top + (rect.height / 2) + yStep;
-
-                    // Where we want to look horizontally (centered on current word)
+                    const dir = e.key === 's' ? 1 : -1;
+                    // Start safely on the next visual line to escape current line bounds
+                    const startY = rect.top + (rect.height / 2) + (dir * (fontSize * 1.5));
                     const targetX = rect.left + (rect.width / 2);
 
-                    // Reusable hit-test function
                     const hitTest = (x, y) => {
                         const hitEls = document.elementsFromPoint(x, y);
-                        // Find the first hit element that is a character span
                         return hitEls.find(el => el.hasAttribute('data-index') && el.closest('.reader-para'));
                     };
 
-                    let targetSpan = hitTest(targetX, targetY);
+                    let targetSpan = null;
+                    const maxSearch = window.innerHeight; // Max distance to search up/down
+                    const stepY = 15;
+                    const sweepDist = 200; // Max horizontal sweep distance
+                    const stepX = 20;
 
-                    // If we didn't hit a character directly below/above (e.g. at the end of a jagged line)
-                    // perform a horizontal sweep to "snap" to the nearest word on that physical line.
-                    if (!targetSpan) {
-                        const sweepDistance = 150; // pixels to search left/right
-                        const sweepStep = 10;
-                        for (let offset = sweepStep; offset <= sweepDistance; offset += sweepStep) {
-                            // Try left
-                            let sweepHit = hitTest(targetX - offset, targetY);
+                    for (let dy = 0; dy < maxSearch && !targetSpan; dy += stepY) {
+                        const testY = startY + (dir * dy);
+
+                        targetSpan = hitTest(targetX, testY);
+                        if (targetSpan) break;
+
+                        // Horizontal sweep at this Y level
+                        for (let offset = stepX; offset <= sweepDist; offset += stepX) {
+                            let sweepHit = hitTest(targetX - offset, testY);
                             if (sweepHit) {
                                 targetSpan = sweepHit;
                                 break;
                             }
-                            // Try right
-                            sweepHit = hitTest(targetX + offset, targetY);
+                            sweepHit = hitTest(targetX + offset, testY);
                             if (sweepHit) {
                                 targetSpan = sweepHit;
                                 break;
