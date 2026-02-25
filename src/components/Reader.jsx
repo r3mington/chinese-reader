@@ -70,10 +70,103 @@ const Reader = ({ story }) => {
                 } else {
                     pauseStats();
                 }
-            } else if ((e.key === 'd' || e.key === 'a') && !isMobile && story) {
-                // Navigation: Next (d) or Previous (a) Word
+            } else if ((e.key === 'd' || e.key === 'a' || e.key === 'w' || e.key === 's') && !isMobile && story) {
+                // Navigation: Next/Prev (d/a) or Up/Down (w/s)
                 e.preventDefault();
 
+                // Handle Up/Down (w/s) Visual Navigation
+                if (e.key === 'w' || e.key === 's') {
+                    if (!activeHighlight || !contentRef.current) return;
+
+                    // Find the physical DOM element for the current active highlight
+                    const activeSpan = contentRef.current.querySelector(
+                        `p[data-para-index="${activeHighlight.paraIdx}"] span[data-index="${activeHighlight.charIdx}"]`
+                    );
+
+                    if (!activeSpan) return;
+
+                    const rect = activeSpan.getBoundingClientRect();
+
+                    // Approximate line height mapping (usually 1.5x - 2x font size)
+                    // We step by an amount that safely puts us in the middle of the line above/below
+                    const yStep = e.key === 's' ? (fontSize * 2) : -(fontSize * 2);
+                    const targetY = rect.top + (rect.height / 2) + yStep;
+
+                    // Where we want to look horizontally (centered on current word)
+                    const targetX = rect.left + (rect.width / 2);
+
+                    // Reusable hit-test function
+                    const hitTest = (x, y) => {
+                        const hitEls = document.elementsFromPoint(x, y);
+                        // Find the first hit element that is a character span
+                        return hitEls.find(el => el.hasAttribute('data-index') && el.closest('.reader-para'));
+                    };
+
+                    let targetSpan = hitTest(targetX, targetY);
+
+                    // If we didn't hit a character directly below/above (e.g. at the end of a jagged line)
+                    // perform a horizontal sweep to "snap" to the nearest word on that physical line.
+                    if (!targetSpan) {
+                        const sweepDistance = 150; // pixels to search left/right
+                        const sweepStep = 10;
+                        for (let offset = sweepStep; offset <= sweepDistance; offset += sweepStep) {
+                            // Try left
+                            let sweepHit = hitTest(targetX - offset, targetY);
+                            if (sweepHit) {
+                                targetSpan = sweepHit;
+                                break;
+                            }
+                            // Try right
+                            sweepHit = hitTest(targetX + offset, targetY);
+                            if (sweepHit) {
+                                targetSpan = sweepHit;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (targetSpan) {
+                        // We found a target! Extract its properties.
+                        const charIdxRaw = targetSpan.getAttribute('data-index');
+                        const paraEl = targetSpan.closest('[data-para-index]');
+                        if (charIdxRaw === null || !paraEl) return;
+
+                        const charIdx = parseInt(charIdxRaw, 10);
+                        const paraIdx = parseInt(paraEl.getAttribute('data-para-index'), 10);
+
+                        // Look it up. Try data-word first, then single index fallback
+                        const word = targetSpan.getAttribute('data-word');
+                        let result = word ? lookupAt(word, 0) : null;
+
+                        if (!result) {
+                            result = lookupAt(paraEl.textContent, charIdx);
+                        }
+
+                        if (result) {
+                            trackSessionLookup();
+                            setHoverPopupData(null);
+                            setHoverHighlight(null);
+                            setLockedPopupData(result);
+
+                            // Prefer the word start index instead of middle-character click
+                            const finalCharIdx = result.index !== undefined ? result.index : charIdx;
+                            setLockedHighlight({ paraIdx, charIdx: finalCharIdx });
+
+                            // Scroll smoothly if it's nearing the edge of the viewport
+                            targetSpan.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+                            setLookedUpWords(prev => new Set(prev).add(result.word));
+                            setRecentWordsList(prev => {
+                                const filtered = prev.filter(w => w !== result.word);
+                                return [...filtered, result.word].slice(-5);
+                            });
+                            trackWordClick(result.word, story.id);
+                        }
+                    }
+                    return; // End of w/s logic
+                }
+
+                // Handle Next/Prev (d/a) Sequential Navigation
                 const isForward = e.key === 'd';
                 const paras = story.content.split('\n');
 
