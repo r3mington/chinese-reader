@@ -88,13 +88,25 @@ const Reader = ({ story }) => {
                     const rect = activeSpan.getBoundingClientRect();
 
                     const dir = e.key === 's' ? 1 : -1;
-                    // Start safely on the next visual line to escape current line bounds
-                    const startY = rect.top + (rect.height / 2) + (dir * (fontSize * 1.5));
+                    // Start safely just outside the physical bounding box
+                    const startY = e.key === 's'
+                        ? rect.bottom + 5
+                        : rect.top - 5;
                     const targetX = rect.left + (rect.width / 2);
 
                     const hitTest = (x, y) => {
                         const hitEls = document.elementsFromPoint(x, y);
-                        return hitEls.find(el => el.hasAttribute('data-index') && el.closest('.reader-para'));
+                        return hitEls.find(el => {
+                            if (!el.hasAttribute('data-index')) return false;
+                            if (!el.closest('.reader-para')) return false;
+
+                            // Ignore the currently highlighted word to properly escape its
+                            // bounding box, especially since its Pinyin ::after pseudo-element
+                            // can make it very tall and trap the raycast.
+                            if (el.classList.contains('word-active-highlight')) return false;
+
+                            return true;
+                        });
                     };
 
                     let targetSpan = null;
