@@ -105,6 +105,14 @@ const Reader = ({ story }) => {
                             // can make it very tall and trap the raycast.
                             if (el.classList.contains('word-active-highlight')) return false;
 
+                            // Prevent hitting an adjacent word on the SAME physical line.
+                            // If the element's top is roughly the same as our active word's top,
+                            // ignore it so we keep searching up/down.
+                            const elRect = el.getBoundingClientRect();
+                            if (Math.abs(elRect.top - rect.top) < (fontSize / 2)) {
+                                return false;
+                            }
+
                             return true;
                         });
                     };
