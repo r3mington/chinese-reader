@@ -98,6 +98,7 @@ const Reader = ({ story }) => {
                         const hitEls = document.elementsFromPoint(x, y);
                         return hitEls.find(el => {
                             if (!el.hasAttribute('data-index')) return false;
+                            if (!el.hasAttribute('data-word')) return false; // MUST be a dictionary word
                             if (!el.closest('.reader-para')) return false;
 
                             // Ignore the currently highlighted word to properly escape its
