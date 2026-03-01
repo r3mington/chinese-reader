@@ -376,14 +376,12 @@ const Reader = ({ story }) => {
 
         document.addEventListener('visibilitychange', handleVisibilityChange);
         window.addEventListener('pagehide', handlePageHide);
-        window.addEventListener('statsPauseChanged', handlePauseChange);
 
         return () => {
             // Story changed or component unmounted — save current session
             endReadingSession();
             document.removeEventListener('visibilitychange', handleVisibilityChange);
             window.removeEventListener('pagehide', handlePageHide);
-            window.removeEventListener('statsPauseChanged', handlePauseChange);
             clearInterval(progressTimer.current); // Clear the timer if it was set
         };
     }, [story]);
