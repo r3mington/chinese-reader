@@ -1986,18 +1986,25 @@ button:active {
     gap: 6px;
 }
 
-/* When paused: toolbar dims slightly and mode label turns amber */
+/* When paused: toolbar gets solid orange highlight */
 .stats-toolbar.paused {
-    opacity: 0.75;
+    opacity: 1;
+}
+
+.stats-toolbar.paused .stats-top-row {
+    background: #f59e0b;
+    border-radius: 8px;
+    padding: 2px 10px 2px 2px;
 }
 
 .stats-toolbar.paused .stats-mode-toggle {
-    color: #f59e0b;
+    color: #000;
+    font-weight: 700;
 }
 
 .stats-toolbar.paused .stats-pause-btn {
-    color: #f59e0b;
-    background: rgba(245, 158, 11, 0.12);
+    color: #000;
+    background: transparent;
 }
 
 /* ============================================
@@ -2471,7 +2478,9 @@ button:active {
     font-size: 12px;
     color: var(--text-secondary);
     line-height: 1.5;
-}/* --- Inline Edit Styles for StoryStatsPage --- */
+}
+
+/* --- Inline Edit Styles for StoryStatsPage --- */
 .ssp-row-editing {
     background: rgba(255, 255, 255, 0.03);
 }

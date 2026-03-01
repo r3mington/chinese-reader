@@ -34,6 +34,8 @@ const Reader = ({ story }) => {
     const [lockedHighlight, setLockedHighlight] = useState(null);
     const activeHighlight = hoverHighlight || lockedHighlight;
 
+    const [isPaused, setIsPaused] = useState(getIsPaused());
+
     const contentRef = useRef(null);
     const hoverTimer = useRef(null);
     const isRestoringScroll = useRef(true);
@@ -59,6 +61,9 @@ const Reader = ({ story }) => {
     }, [popupData, activeHighlight]);
 
     useEffect(() => {
+        const handlePauseChange = (e) => setIsPaused(e.detail.paused);
+        window.addEventListener('statsPauseChanged', handlePauseChange);
+
         const handleKeyDown = (e) => {
             // Only trigger if user is not typing in an input
             if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
@@ -371,12 +376,15 @@ const Reader = ({ story }) => {
 
         document.addEventListener('visibilitychange', handleVisibilityChange);
         window.addEventListener('pagehide', handlePageHide);
+        window.addEventListener('statsPauseChanged', handlePauseChange);
 
         return () => {
             // Story changed or component unmounted — save current session
             endReadingSession();
             document.removeEventListener('visibilitychange', handleVisibilityChange);
             window.removeEventListener('pagehide', handlePageHide);
+            window.removeEventListener('statsPauseChanged', handlePauseChange);
+            clearInterval(progressTimer.current); // Clear the timer if it was set
         };
     }, [story]);
 
@@ -654,7 +662,19 @@ const Reader = ({ story }) => {
                     <div className="reader-toolbar">
                         <div className="toolbar-left" style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
                             <RecentLookups words={recentWordsList} />
-                            <h3 style={{ fontSize: '14px', opacity: 0.5, margin: 0 }}>{story?.title}</h3>
+                            <h3 style={{
+                                fontSize: '14px',
+                                opacity: isPaused ? 1 : 0.5,
+                                margin: 0,
+                                padding: isPaused ? '4px 8px' : '0',
+                                borderRadius: '6px',
+                                backgroundColor: isPaused ? '#f59e0b' : 'transparent',
+                                color: isPaused ? '#000' : 'inherit',
+                                transition: 'all 0.2s ease',
+                                fontWeight: isPaused ? 700 : 500
+                            }}>
+                                {story?.title}
+                            </h3>
                         </div>
 
                         <div className="toolbar-center">
