@@ -176,15 +176,18 @@ const StatsToolbar = ({ currentStoryId }) => {
                             {formatTime((storyStats.totalTime || 0) + sessionElapsed)}
                         </span>
                     </div>
-                    <div className="stat-divider"></div>
-                    <div className="stat-item" title="Total characters read in this book including current session">
+                    <div className="stat-item" title="Number of characters read up until the current position">
                         <span className="stat-label">CHARS</span>
-                        <span className="stat-value">{(storyStats.totalChars || 0) + (progress.charsRead || 0)}</span>
+                        <span className="stat-value">{progress.charsRead || 0}</span>
                     </div>
                     <div className="stat-divider"></div>
-                    <div className="stat-item" title="Average CPM across all past sessions for this book">
+                    <div className="stat-item" title="Average CPM based on current position and total time">
                         <span className="stat-label">AVG CPM</span>
-                        <span className="stat-value">{storyStats.avgCpm || '--'}</span>
+                        <span className="stat-value">
+                            {((storyStats.totalTime || 0) + sessionElapsed) > 0
+                                ? Math.round((progress.charsRead || 0) / ((storyStats.totalTime || 0) + sessionElapsed))
+                                : '--'}
+                        </span>
                     </div>
                 </div>
             )}

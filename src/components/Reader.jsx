@@ -403,8 +403,27 @@ const Reader = ({ story }) => {
                 isRestoringScroll.current = true;
                 contentRef.current.scrollTop = bookmark.scrollPosition;
 
-                // Allow a tiny delay for the DOM to settle before re-enabling save
+                // Allow DOM to settle before re-enabling save and calculating initial progress
                 setTimeout(() => {
+                    if (contentRef.current) {
+                        const target = contentRef.current;
+                        const scrollHeight = target.scrollHeight;
+                        const clientHeight = target.clientHeight;
+                        const scrollTop = target.scrollTop;
+
+                        const progressRatio = scrollHeight > 0 ? (scrollTop + clientHeight) / scrollHeight : 0;
+                        const percentage = Math.min(100, Math.max(0, Math.round(progressRatio * 100)));
+
+                        const chineseChars = story.content
+                            ? (story.content.match(/[\u4e00-\u9fff]/g) || []).length
+                            : 0;
+                        const charsRead = Math.round(chineseChars * progressRatio);
+
+                        setReadingProgress(percentage);
+                        window.dispatchEvent(new CustomEvent('readingProgressUpdated', {
+                            detail: { percentage, charsRead }
+                        }));
+                    }
                     isRestoringScroll.current = false;
                 }, 100);
             } else {
