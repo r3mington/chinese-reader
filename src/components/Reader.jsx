@@ -180,6 +180,11 @@ const Reader = ({ story }) => {
                             // Scroll smoothly if it's nearing the edge of the viewport
                             targetSpan.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
+                            // Update progress naturally
+                            setTimeout(() => {
+                                measureProgress();
+                            }, 300);
+
                             setLookedUpWords(prev => new Set(prev).add(result.word));
                             setRecentWordsList(prev => {
                                 const filtered = prev.filter(w => w !== result.word);
@@ -256,6 +261,11 @@ const Reader = ({ story }) => {
                         const paraEl = contentRef.current?.querySelector(`[data-para-index="${pIdx}"]`);
                         if (paraEl) {
                             paraEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                            // Let the smooth scroll finish before measuring progress
+                            setTimeout(() => {
+                                measureProgress();
+                            }, 300);
                         }
 
                         // Update history
@@ -415,25 +425,7 @@ const Reader = ({ story }) => {
 
                 // Allow DOM to settle before re-enabling save and calculating initial progress
                 setTimeout(() => {
-                    if (contentRef.current) {
-                        const target = contentRef.current;
-                        const scrollHeight = target.scrollHeight;
-                        const clientHeight = target.clientHeight;
-                        const scrollTop = target.scrollTop;
-
-                        const progressRatio = scrollHeight > 0 ? (scrollTop + clientHeight) / scrollHeight : 0;
-                        const percentage = Math.min(100, Math.max(0, Math.round(progressRatio * 100)));
-
-                        const chineseChars = story.content
-                            ? (story.content.match(/[\u4e00-\u9fff]/g) || []).length
-                            : 0;
-                        const charsRead = Math.round(chineseChars * progressRatio);
-
-                        setReadingProgress(percentage);
-                        window.dispatchEvent(new CustomEvent('readingProgressUpdated', {
-                            detail: { percentage, charsRead }
-                        }));
-                    }
+                    measureProgress();
                     isRestoringScroll.current = false;
                 }, 100);
             } else {
@@ -445,46 +437,44 @@ const Reader = ({ story }) => {
         setTimeout(restorePos, 50);
     }, [story]);
 
+    // Centralize progress calculation so both scrolling and keyboard nav can trigger it
+    const measureProgress = () => {
+        if (!contentRef.current || !story) return;
+
+        const target = contentRef.current;
+        const scrollTop = target.scrollTop;
+        const scrollHeight = target.scrollHeight;
+        const clientHeight = target.clientHeight;
+
+        // Save bookmark
+        saveBookmark(story.id, scrollTop);
+
+        // Calculate progress
+        const progressRatio = scrollHeight > 0 ? (scrollTop + clientHeight) / scrollHeight : 0;
+        const percentage = Math.min(100, Math.max(0, Math.round(progressRatio * 100)));
+
+        // Update progress bar state
+        setReadingProgress(percentage);
+
+        // Calculate approximate chars read
+        const chineseChars = story.content
+            ? (story.content.match(/[\u4e00-\u9fff]/g) || []).length
+            : 0;
+        const charsRead = Math.round(chineseChars * progressRatio);
+
+        // Track CPM
+        trackScrollProgress(charsRead);
+
+        // Dispatch event for StatsToolbar
+        window.dispatchEvent(new CustomEvent('readingProgressUpdated', {
+            detail: { percentage, charsRead }
+        }));
+    };
+
     // Save bookmark and update progress on scroll
     const handleScroll = (e) => {
         if (isRestoringScroll.current) return;
-
-        if (story) {
-            const target = e.target;
-            const scrollTop = target.scrollTop;
-            const scrollHeight = target.scrollHeight;
-            const clientHeight = target.clientHeight;
-
-            // Save bookmark
-            saveBookmark(story.id, scrollTop);
-
-            // Calculate progress
-            // We use a safe division to avoid NaN
-            const progressRatio = scrollHeight > 0 ? (scrollTop + clientHeight) / scrollHeight : 0;
-            const percentage = Math.min(100, Math.max(0, Math.round(progressRatio * 100)));
-
-            // Update progress bar state
-            setReadingProgress(percentage);
-
-            // Calculate approximate chars read
-            // Accurate count: Match only Chinese characters (CJK Unified Ideographs)
-            // This excludes punctuation, spaces, HTML tags, and latin text/pinyin
-            const chineseChars = story.content
-                ? (story.content.match(/[\u4e00-\u9fff]/g) || []).length
-                : 0;
-            const charsRead = Math.round(chineseChars * progressRatio);
-
-            // Track CPM
-            trackScrollProgress(charsRead);
-
-            // Dispatch event for StatsToolbar
-            window.dispatchEvent(new CustomEvent('readingProgressUpdated', {
-                detail: {
-                    percentage,
-                    charsRead
-                }
-            }));
-        }
+        measureProgress();
     };
 
     const handleTextClick = (e) => {
