@@ -361,11 +361,21 @@ const Reader = ({ story }) => {
             startReadingSession();
         }
 
+        let autoPaused = false;
+
         const handleVisibilityChange = () => {
             if (document.hidden) {
-                endReadingSession();
+                // Instead of ending the session entirely, just pause the timer if not already paused.
+                if (!getIsPaused()) {
+                    pauseStats();
+                    autoPaused = true;
+                }
             } else {
-                startReadingSession();
+                // Resume the timer only if we were the ones to pause it
+                if (autoPaused) {
+                    resumeStats();
+                    autoPaused = false;
+                }
             }
         };
 
