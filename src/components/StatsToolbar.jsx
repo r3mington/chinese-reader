@@ -177,7 +177,7 @@ const StatsToolbar = ({ currentStoryId }) => {
                         </span>
                     </div>
                     <div className="stat-item" title="Number of characters read up until the current position">
-                        <span className="stat-label">CHARS</span>
+                        <span className="stat-label">POS</span>
                         <span className="stat-value">{progress.charsRead || 0}</span>
                     </div>
                     <div className="stat-divider"></div>
@@ -200,14 +200,9 @@ const StatsToolbar = ({ currentStoryId }) => {
                         <span className="stat-value">{progress.percentage}%</span>
                     </div>
                     <div className="stat-divider"></div>
-                    <div className="stat-item" title="Estimated characters read">
-                        <span className="stat-label">CHARS</span>
-                        <span className="stat-value">{progress.charsRead}</span>
-                    </div>
-                    <div className="stat-divider"></div>
-                    <div className="stat-item" title="Characters read in last 5m (Rolling)">
-                        <span className="stat-label">CPM</span>
-                        <span className="stat-value">{cpm.cpm}</span>
+                    <div className="stat-item" title="Total number of characters in the book">
+                        <span className="stat-label">LENGTH</span>
+                        <span className="stat-value">{progress.totalChars || 0}</span>
                     </div>
                     <div className="stat-divider"></div>
                     <div className="stat-item" title="Time spent in this reading session">

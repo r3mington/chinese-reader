@@ -467,7 +467,7 @@ const Reader = ({ story }) => {
 
         // Dispatch event for StatsToolbar
         window.dispatchEvent(new CustomEvent('readingProgressUpdated', {
-            detail: { percentage, charsRead }
+            detail: { percentage, charsRead, totalChars: chineseChars }
         }));
     };
 
