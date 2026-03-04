@@ -13,6 +13,7 @@ import FloatingActionMenu from './FloatingActionMenu';
 import RecentLookups from './RecentLookups';
 import LexiconSidebar from './LexiconSidebar';
 import StatsToolbar from './StatsToolbar';
+import { getParagraphComplexity, getComplexityColor } from '../lib/complexity';
 import '../styles/oled.css';
 
 const Reader = ({ story }) => {
@@ -726,17 +727,39 @@ const Reader = ({ story }) => {
                     {isMobile && story.title && (
                         <h2 className="mobile-story-title">{story.title}</h2>
                     )}
-                    {story.content.split('\n').map((para, idx) => (
-                        <p key={idx} className="reader-para" data-para-index={idx}>
-                            <ColorizedText
-                                text={para}
-                                enabled={true}
-                                lookedUpWords={lookedUpWords}
-                                overrideToneColors={toneColorsEnabled ? null : false}
-                                activeIndex={activeHighlight?.paraIdx === idx ? activeHighlight.charIdx : null}
-                            />
-                        </p>
-                    ))}
+                    {story.content.split('\n').map((para, idx) => {
+                        const complexityScore = getParagraphComplexity(para);
+                        const indicatorColor = getComplexityColor(complexityScore);
+
+                        return (
+                            <div key={idx} style={{ position: 'relative' }}>
+                                {complexityScore !== null && (
+                                    <div
+                                        style={{
+                                            position: 'absolute',
+                                            left: isMobile ? '-12px' : '-24px',
+                                            top: '6px',
+                                            bottom: '6px',
+                                            width: '4px',
+                                            backgroundColor: indicatorColor,
+                                            borderRadius: '2px',
+                                            opacity: 0.6
+                                        }}
+                                        title={`Complexity Score: ${Math.round(complexityScore)}`}
+                                    />
+                                )}
+                                <p className="reader-para" data-para-index={idx}>
+                                    <ColorizedText
+                                        text={para}
+                                        enabled={true}
+                                        lookedUpWords={lookedUpWords}
+                                        overrideToneColors={toneColorsEnabled ? null : false}
+                                        activeIndex={activeHighlight?.paraIdx === idx ? activeHighlight.charIdx : null}
+                                    />
+                                </p>
+                            </div>
+                        );
+                    })}
                 </div>
             </div>
 
