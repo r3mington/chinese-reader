@@ -51,19 +51,18 @@ export const getParagraphComplexity = (text) => {
 /**
  * Converts a 0-100 complexity score into an HSL color string.
  * @param {number} score - 0 (easiest) to 100 (hardest)
- * @returns {string} HSL color ranging from bright green (easy) to deep red (hard)
+ * @returns {string} Grayscale color ranging from dark grey to light grey
  */
 export const getComplexityColor = (score) => {
     if (score === null || isNaN(score)) return 'transparent';
 
-    // Hue: 120 is green, 0 is red.
-    // Use an exponential curve to make the color change more dramatic
-    // as complexity rises, since most text hovers in the 20-50 range.
+    // Map score to a lightness value (grayscale)
+    // 0 (easy) -> 20% lightness (dark, blends in more)
+    // 100 (hard) -> 50% lightness (lighter grey, more visible but not colorful)
     const normalized = score / 100;
-    const curved = Math.pow(normalized, 1.5); // Push the curve towards red faster
+    const curved = Math.pow(normalized, 1.5);
 
-    const hue = Math.max(0, 120 - (curved * 120));
+    const lightness = 20 + (curved * 30);
 
-    // Increase saturation and lightness slightly for better visibility
-    return `hsl(${hue}, 90%, 45%)`;
+    return `hsl(0, 0%, ${lightness}%)`;
 };
