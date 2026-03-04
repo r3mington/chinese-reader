@@ -57,9 +57,13 @@ export const getComplexityColor = (score) => {
     if (score === null || isNaN(score)) return 'transparent';
 
     // Hue: 120 is green, 0 is red.
-    // Score 0 -> Hue 120
-    // Score 100 -> Hue 0
-    const hue = Math.max(0, 120 - (score * 1.2));
+    // Use an exponential curve to make the color change more dramatic
+    // as complexity rises, since most text hovers in the 20-50 range.
+    const normalized = score / 100;
+    const curved = Math.pow(normalized, 1.5); // Push the curve towards red faster
 
-    return `hsl(${hue}, 80%, 40%)`;
+    const hue = Math.max(0, 120 - (curved * 120));
+
+    // Increase saturation and lightness slightly for better visibility
+    return `hsl(${hue}, 90%, 45%)`;
 };

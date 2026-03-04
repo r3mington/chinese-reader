@@ -737,16 +737,33 @@ const Reader = ({ story }) => {
                                     <div
                                         style={{
                                             position: 'absolute',
-                                            left: isMobile ? '-12px' : '-24px',
+                                            left: isMobile ? '-24px' : '-44px',
                                             top: '6px',
                                             bottom: '6px',
-                                            width: '4px',
-                                            backgroundColor: indicatorColor,
-                                            borderRadius: '2px',
+                                            display: 'flex',
+                                            alignItems: 'flex-start',
+                                            gap: '6px',
                                             opacity: 0.6
                                         }}
                                         title={`Complexity Score: ${Math.round(complexityScore)}`}
-                                    />
+                                    >
+                                        <span style={{
+                                            fontSize: '10px',
+                                            color: indicatorColor,
+                                            fontWeight: 600,
+                                            marginTop: '2px', // Align with top of text
+                                            minWidth: '20px',
+                                            textAlign: 'right'
+                                        }}>
+                                            {Math.round(complexityScore)}%
+                                        </span>
+                                        <div style={{
+                                            width: '4px',
+                                            height: '100%',
+                                            backgroundColor: indicatorColor,
+                                            borderRadius: '2px'
+                                        }} />
+                                    </div>
                                 )}
                                 <p className="reader-para" data-para-index={idx}>
                                     <ColorizedText
