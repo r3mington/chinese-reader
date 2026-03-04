@@ -17,6 +17,8 @@ let sessionStartChars = 0; // chars at the moment the current session started
 let isCurrentStoryRead = false; // If true, don't save per-book session stats
 let sessionLookups = 0; // Track dictionary lookups in current session
 let accumulatedSessionTime = 0; // ms accumulated in this session before current active segment
+let globalCurrentCharsRead = 0;
+let hasMeasuredSinceSessionStart = false;
 
 // Use LOCAL date string (YYYY-MM-DD) so timezone doesn't shift sessions to wrong day
 const localDateKey = (date = new Date()) => {
@@ -52,7 +54,8 @@ export const startReadingSession = () => {
     currentSessionStart = Date.now();
     accumulatedSessionTime = 0;
     // Snapshot chars at session start so we can compute the delta on end
-    sessionStartChars = storyTotalChars;
+    sessionStartChars = globalCurrentCharsRead;
+    hasMeasuredSinceSessionStart = false;
     sessionLookups = 0;
 };
 
@@ -115,7 +118,7 @@ export const endReadingSession = async () => {
 
         if (currentStoryId && !isCurrentStoryRead) {
             // Chars read in THIS session = delta from when session started
-            const sessionChars = Math.max(0, storyTotalChars - sessionStartChars);
+            const sessionChars = Math.max(0, globalCurrentCharsRead - sessionStartChars);
 
             // Calculate session CPM explicitly as chars / duration
             const cpmVal = durationMinutes > 0 ? Math.round(sessionChars / durationMinutes) : 0;
@@ -126,7 +129,8 @@ export const endReadingSession = async () => {
 
     currentSessionStart = null;
     accumulatedSessionTime = 0;
-    sessionStartChars = storyTotalChars; // update snapshot for next session
+    sessionStartChars = globalCurrentCharsRead; // update snapshot for next session
+    hasMeasuredSinceSessionStart = false;
 };
 
 export const updateReadingTime = async (minutes) => {
@@ -179,11 +183,19 @@ export const initStoryTracking = (storyId, isRead = false) => {
     storyStartPosition = null; // Track where reading started
     scrollEvents = [];
     lastScrollTime = null;
+    globalCurrentCharsRead = 0;
+    hasMeasuredSinceSessionStart = false;
 };
 
 export const trackScrollProgress = (charsRead) => {
     if (isPaused) return; // Don't track when paused
     const now = Date.now();
+
+    globalCurrentCharsRead = charsRead;
+    if (!hasMeasuredSinceSessionStart) {
+        sessionStartChars = charsRead;
+        hasMeasuredSinceSessionStart = true;
+    }
 
     // Initialize on first scroll
     if (storyStartPosition === null) {
