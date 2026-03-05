@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { getCharacterTone } from '../lib/tones';
 import { tokenizeText } from '../lib/tokenizer';
 
-const ColorizedText = ({ text, enabled = true, lookedUpWords = new Set(), overrideToneColors = null, activeIndex = null }) => {
+const ColorizedText = ({ text, enabled = true, lookedUpWords = new Set(), overrideToneColors = null, activeIndex = null, starAnimationIndex = null }) => {
     if ((!enabled && overrideToneColors !== false) || !text) {
         return <>{text}</>;
     }
@@ -17,6 +17,8 @@ const ColorizedText = ({ text, enabled = true, lookedUpWords = new Set(), overri
                 const lookedUpClass = isLookedUp ? ' word-looked-up' : '';
                 const isHighlighted = activeIndex !== null && activeIndex >= token.startIndex && activeIndex <= token.endIndex;
                 const highlightClass = isHighlighted ? ' word-active-highlight' : '';
+                const isStarAnimating = starAnimationIndex !== null && starAnimationIndex >= token.startIndex && starAnimationIndex <= token.endIndex;
+                const starAnimClass = isStarAnimating ? ' word-star-anim' : '';
 
                 token.chars.forEach((c, index) => {
                     let toneClass = '';
@@ -31,7 +33,7 @@ const ColorizedText = ({ text, enabled = true, lookedUpWords = new Set(), overri
                     spans.push(
                         <span
                             key={`${token.startIndex + index}`}
-                            className={`char-with-tone${toneClass}${lookedUpClass}${highlightClass}`}
+                            className={`char-with-tone${toneClass}${lookedUpClass}${highlightClass}${starAnimClass}`}
                             data-word={token.word}
                             data-index={token.startIndex + index}
                             data-pinyin={isHighlighted ? c.pinyin : undefined}

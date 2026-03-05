@@ -35,6 +35,8 @@ const Reader = ({ story }) => {
     const [lockedHighlight, setLockedHighlight] = useState(null);
     const activeHighlight = hoverHighlight || lockedHighlight;
 
+    const [starAnimationWord, setStarAnimationWord] = useState(null);
+
     const [isPaused, setIsPaused] = useState(getIsPaused());
 
     const contentRef = useRef(null);
@@ -323,6 +325,19 @@ const Reader = ({ story }) => {
                         isLoading: false
                     });
                 });
+            } else if (e.key === 'l' && !isMobile && story) {
+                // Star word shortcut
+                e.preventDefault();
+                if (activeHighlight && popupData && popupData.word && popupData.type !== 'sentence') {
+                    import('../lib/vocabulary').then(({ toggleStarred }) => {
+                        toggleStarred(popupData.word).then(isStarred => {
+                            if (isStarred) {
+                                setStarAnimationWord(activeHighlight);
+                                setTimeout(() => setStarAnimationWord(null), 1000); // 1s animation
+                            }
+                        });
+                    });
+                }
             }
         };
         window.addEventListener('keydown', handleKeyDown);
@@ -772,6 +787,7 @@ const Reader = ({ story }) => {
                                         lookedUpWords={lookedUpWords}
                                         overrideToneColors={toneColorsEnabled ? null : false}
                                         activeIndex={activeHighlight?.paraIdx === idx ? activeHighlight.charIdx : null}
+                                        starAnimationIndex={starAnimationWord?.paraIdx === idx ? starAnimationWord.charIdx : null}
                                     />
                                 </p>
                             </div>

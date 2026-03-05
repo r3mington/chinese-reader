@@ -20,6 +20,23 @@ export const translateParagraph = async (text) => {
             });
         }
 
+        translatedText = translatedText.trim();
+
+        // If Google Translate fails silently by echoing the input text exactly,
+        // use a secondary translation API as a fallback.
+        if (translatedText === text.trim()) {
+            console.warn("Google Translate echoed the source text. Falling back to MyMemory API...");
+
+            const fallbackUrl = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=zh-CN|en`;
+            const fallbackResponse = await fetch(fallbackUrl);
+            if (fallbackResponse.ok) {
+                const fallbackData = await fallbackResponse.json();
+                if (fallbackData?.responseData?.translatedText) {
+                    return fallbackData.responseData.translatedText;
+                }
+            }
+        }
+
         return translatedText || 'Translation unavailable.';
     } catch (error) {
         console.error("Translation API error:", error);
