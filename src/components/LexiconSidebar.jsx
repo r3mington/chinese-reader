@@ -270,26 +270,58 @@ const LexiconSidebar = ({ data }) => {
                         {starredWordsList.length === 0 && (
                             <div style={{ opacity: 0.5, fontSize: '13px', fontStyle: 'italic' }}>No words saved yet. Press 'l' to star a word.</div>
                         )}
-                        {starredWordsList.map((sw, i) => (
-                            <div key={i} className="vocab-card" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', padding: '12px', marginBottom: '8px', borderRadius: '8px' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <div style={{ fontFamily: 'var(--font-chinese)', fontSize: '20px', color: 'var(--accent-blue)', fontWeight: 'bold' }}>
-                                        {sw.word}
+                        {starredWordsList.map((sw, i) => {
+                            const result = lookupAt(sw.word, 0);
+                            const entry = result?.entries?.[0];
+                            const pinyinStr = entry?.pinyin ? convertPinyin(entry.pinyin.toLowerCase()) : '';
+                            let defStr = entry?.definitions?.[0] || '';
+                            if (defStr.startsWith('CL:')) {
+                                defStr = entry?.definitions?.[1] || defStr;
+                            }
+
+                            return (
+                                <div key={i} className="vocab-card" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', padding: '12px', marginBottom: '8px', borderRadius: '8px' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                        <div style={{ flex: 1, paddingRight: '12px' }}>
+                                            <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
+                                                <div style={{ fontFamily: 'var(--font-chinese)', fontSize: '20px', color: 'var(--accent-blue)', fontWeight: 'bold' }}>
+                                                    {sw.word}
+                                                </div>
+                                                {pinyinStr && <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{pinyinStr}</div>}
+                                            </div>
+                                            {defStr && <div style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.7)', marginTop: '4px', lineHeight: 1.4, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{defStr}</div>}
+                                        </div>
+                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
+                                            <button
+                                                onClick={async (e) => {
+                                                    e.stopPropagation();
+                                                    await toggleStarred(sw.word);
+                                                    setStarredWordsList(prev => prev.filter(w => w.word !== sw.word));
+                                                    if (stats && data?.word === sw.word) {
+                                                        setStats(prev => ({ ...prev, starred: false }));
+                                                    }
+                                                }}
+                                                style={{ background: 'transparent', border: 'none', color: 'rgba(255,255,255,0.4)', cursor: 'pointer', padding: '0 4px', fontSize: '14px', lineHeight: 1 }}
+                                                title="Remove from Bank"
+                                            >
+                                                ✕
+                                            </button>
+                                            <div style={{ fontSize: '11px', color: 'rgba(255, 255, 255, 0.3)', marginTop: '4px' }}>
+                                                {sw.clickCount}x
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
-                                        Seen {sw.clickCount}x
+                                    <div style={{ marginTop: '12px', display: 'flex', gap: '8px' }}>
+                                        <button className="lex-action-btn" onClick={() => {
+                                            window.open(`https://translate.google.com/?sl=zh-CN&tl=en&text=${encodeURIComponent(sw.word)}&op=translate`, '_blank');
+                                        }} style={{ padding: '4px 8px', fontSize: '11px' }}>Translate</button>
+                                        <button className="lex-action-btn" onClick={() => {
+                                            window.location.href = `plecoapi://x-callback-url/s?q=${encodeURIComponent(sw.word)}`;
+                                        }} style={{ padding: '4px 8px', fontSize: '11px' }}>Pleco</button>
                                     </div>
                                 </div>
-                                <div style={{ marginTop: '8px', display: 'flex', gap: '8px' }}>
-                                    <button className="lex-action-btn" onClick={() => {
-                                        window.open(`https://translate.google.com/?sl=zh-CN&tl=en&text=${encodeURIComponent(sw.word)}&op=translate`, '_blank');
-                                    }} style={{ padding: '4px 8px', fontSize: '11px' }}>Translate</button>
-                                    <button className="lex-action-btn" onClick={() => {
-                                        window.location.href = `plecoapi://x-callback-url/s?q=${encodeURIComponent(sw.word)}`;
-                                    }} style={{ padding: '4px 8px', fontSize: '11px' }}>Pleco</button>
-                                </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 ) : (
                     <div className="lexicon-entry">
