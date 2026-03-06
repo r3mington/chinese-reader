@@ -333,6 +333,8 @@ const LexiconSidebar = ({ data }) => {
                             )}
                         </div>
 
+                        {/* Removed old lexicon-phonetics and lexicon-definitions */}
+                        {/*
                         <div className="lexicon-phonetics">
                             <span className="lexicon-badge pinyin-badge">PY</span>
                             <span className="lexicon-pinyin">{renderPinyin(pinyin)}</span>
@@ -358,37 +360,6 @@ const LexiconSidebar = ({ data }) => {
                                 <p className="no-def">No definition found.</p>
                             )}
                         </div>
-
-                        {breakdown && breakdown.length > 0 && (
-                            <div className="lexicon-breakdown mt-4" style={{ marginBottom: 24 }}>
-                                <div className="breakdown-label">COMPONENT BREAKDOWN</div>
-                                {breakdown.map((item, idx) => (
-                                    <div key={idx} className="breakdown-item">
-                                        <div className="breakdown-char">{item.char}</div>
-                                        <div className="breakdown-details">
-                                            <div className="breakdown-pinyin">{renderPinyin(item.pinyin)}</div>
-                                            <div className="breakdown-def">{item.definition}</div>
-                                            {item.radical && (
-                                                <div className="breakdown-etym" style={{ marginTop: 6 }}>
-                                                    <span style={{ color: 'rgba(255,255,255,0.4)' }}>Radical:</span> {item.radical}
-                                                </div>
-                                            )}
-                                            {item.mnemonic && (
-                                                <div className="breakdown-etym" style={{ marginTop: 6 }}>
-                                                    <span style={{ color: 'rgba(255,255,255,0.4)', fontStyle: 'italic' }}>Mnemonic:</span> {item.mnemonic}
-                                                </div>
-                                            )}
-                                            {item.etymology && (
-                                                <div className="breakdown-etym" style={{ marginTop: 6 }}>
-                                                    <span style={{ color: 'rgba(255,255,255,0.4)', fontStyle: 'italic' }}>Origin:</span> {item.etymology}
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-
                         {wordFamilies.length > 0 && (
                             <div className="lexicon-families" style={{ marginBottom: 24, fontSize: '13px' }}>
                                 <div style={{ fontSize: '10px', color: 'rgba(255, 255, 255, 0.3)', letterSpacing: '1px', marginBottom: '8px' }}>WORD FAMILY</div>
