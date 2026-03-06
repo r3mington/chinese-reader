@@ -333,131 +333,185 @@ const LexiconSidebar = ({ data }) => {
                             )}
                         </div>
 
-                        {/* Removed old lexicon-phonetics and lexicon-definitions */}
-                        {/*
-                        <div className="lexicon-phonetics">
-                            <span className="lexicon-badge pinyin-badge">PY</span>
-                            <span className="lexicon-pinyin">{renderPinyin(pinyin)}</span>
-                            {hskLevel && (
-                                <span className="lexicon-badge hsk-badge ml-auto">HSK {hskLevel}</span>
-                            )}
-                            {freqRank && (
-                                <span className="lexicon-badge freq-badge">🏆 #{freqRank}</span>
-                            )}
-                            {measureWords.length > 0 && (
-                                <span className="lexicon-badge mw-badge" style={{ background: 'rgba(255, 255, 255, 0.08)', color: 'var(--text-secondary)' }}>CL: {measureWords.join(', ')}</span>
-                            )}
-                        </div>
+                        <div className="lexicon-scroll-area">
+                            {data.entries?.map((entry, idx) => {
+                                const pinyin = entry.pinyin || '';
 
-                        <div className="lexicon-definitions" style={{ marginBottom: 24 }}>
-                            {cleanDefinitions && cleanDefinitions.length > 0 ? (
-                                <ul className="lexicon-def-list">
-                                    {cleanDefinitions.map((def, i) => (
-                                        <li key={i}>{def}</li>
-                                    ))}
-                                </ul>
-                            ) : (
-                                <p className="no-def">No definition found.</p>
-                            )}
-                        </div>
-                        {wordFamilies.length > 0 && (
-                            <div className="lexicon-families" style={{ marginBottom: 24, fontSize: '13px' }}>
-                                <div style={{ fontSize: '10px', color: 'rgba(255, 255, 255, 0.3)', letterSpacing: '1px', marginBottom: '8px' }}>WORD FAMILY</div>
-                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                                    {wordFamilies.map((fam, i) => (
-                                        <div key={i} style={{ background: 'rgba(255,255,255,0.05)', padding: '6px 10px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                                            <span style={{ color: 'var(--text-primary)', marginRight: '6px' }}>{fam.word}</span>
-                                            <span style={{ color: 'var(--text-secondary)', fontSize: '11px' }}>{convertPinyin(fam.pinyin.toLowerCase())}</span>
+                                // Extract Measure Words (CL) and clean definitions
+                                const measureWords = [];
+                                const cleanDefinitions = [];
+                                (entry.definitions || []).forEach(def => {
+                                    if (def.startsWith('CL:')) {
+                                        measureWords.push(def.replace('CL:', ''));
+                                    } else {
+                                        cleanDefinitions.push(def);
+                                    }
+                                });
+
+                                return (
+                                    <div key={idx} style={{ marginBottom: idx < data.entries.length - 1 ? '24px' : '32px', paddingBottom: idx < data.entries.length - 1 ? '24px' : '0', borderBottom: idx < data.entries.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none' }}>
+                                        <div className="lexicon-tags">
+                                            {pinyin && (
+                                                <div className="lex-tag pinyin">
+                                                    <span style={{ opacity: 0.5, fontSize: 9, marginRight: 4 }}>PY</span>
+                                                    {renderPinyin(pinyin)}
+                                                </div>
+                                            )}
+                                            {idx === 0 && hskLevel && (
+                                                <div className="lex-tag hsk">HSK {hskLevel}</div>
+                                            )}
+                                            {idx === 0 && freqRank && (
+                                                <div className="lex-tag freq">🏆 #{freqRank}</div>
+                                            )}
                                         </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
 
-                        {synonymsList && synonymsList.length > 0 && (
-                            <div className="lexicon-families" style={{ marginBottom: 24, fontSize: '13px' }}>
-                                <div style={{ fontSize: '10px', color: 'rgba(255, 255, 255, 0.3)', letterSpacing: '1px', marginBottom: '8px' }}>SYNONYMS (TEST DATA)</div>
-                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                                    {synonymsList.map((syn, i) => (
-                                        <div key={i} style={{ background: 'rgba(255,255,255,0.05)', padding: '6px 10px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.05)', color: 'var(--text-primary)' }}>
-                                            {syn}
+                                        <div className="lexicon-definitions">
+                                            {cleanDefinitions.map((def, i) => (
+                                                <div key={i} className="definition-item">
+                                                    <span className="def-bullet">▪</span>
+                                                    <span className="def-text">{def}</span>
+                                                </div>
+                                            ))}
+                                            {measureWords.length > 0 && (
+                                                <div className="measure-words">
+                                                    <span className="mw-label">Measure words:</span> {measureWords.join(', ')}
+                                                </div>
+                                            )}
                                         </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
+                                    </div>
+                                );
+                            })}
 
-                        {/* Action Bar */}
-                        <div className="lexicon-actions">
-                            <button className="lex-action-btn" onClick={() => {
-                                const utterance = new SpeechSynthesisUtterance(word);
-                                utterance.lang = 'zh-CN';
-                                window.speechSynthesis.speak(utterance);
-                            }} title="Listen">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-                                    <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
-                                </svg>
-                            </button>
-                            <button className="lex-action-btn" onClick={() => {
-                                window.location.href = `plecoapi://x-callback-url/s?q=${encodeURIComponent(word)}`;
-                            }} title="Open in Pleco">
-                                <span style={{ fontWeight: 'bold', fontSize: '12px' }}>Pleco</span>
-                            </button>
-                            <button className="lex-action-btn" onClick={() => {
-                                window.open(`https://translate.google.com/?sl=zh-CN&tl=en&text=${encodeURIComponent(word)}&op=translate`, '_blank');
-                            }} title="Google Translate">
-                                <span style={{ fontWeight: 'bold', fontSize: '12px' }}>GTranslate</span>
-                            </button>
-                            <button className="lex-action-btn" onClick={handleCopy} title="Copy">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                                </svg>
-                            </button>
-                            <button className={`lex-action-btn ${starred ? 'starred' : ''}`} onClick={handleToggleStar} title="Star">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill={starred ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-                                </svg>
-                            </button>
-                        </div>
-
-                        {examples.length > 0 && (
-                            <div className="lexicon-scholar-note">
-                                <div className="scholar-label">SCHOLAR'S NOTES</div>
-                                {examples.slice(0, 3).map((ex, i) => {
-                                    const parts = ex.zh.split(word);
-                                    return (
-                                        <div key={i} className="scholar-content mb-3">
-                                            <div className="scholar-zh">
-                                                {parts.map((part, pIdx) => (
-                                                    <React.Fragment key={pIdx}>
-                                                        {part}
-                                                        {pIdx < parts.length - 1 && <span style={{ color: 'rgba(255, 255, 255, 0.9)', fontWeight: 'bold' }}>{word}</span>}
-                                                    </React.Fragment>
-                                                ))}
+                            {breakdown && breakdown.length > 1 && (
+                                <div className="lexicon-breakdown" style={{ marginBottom: 24, padding: '16px', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                                    <div style={{ fontSize: '10px', color: 'rgba(255, 255, 255, 0.3)', letterSpacing: '1px', marginBottom: '12px' }}>CHARACTER BREAKDOWN</div>
+                                    {breakdown.map((item, i) => (
+                                        <div key={i} className="breakdown-item" style={{ display: 'flex', gap: '12px', marginBottom: i < breakdown.length - 1 ? '16px' : 0 }}>
+                                            <div style={{ fontSize: '24px', fontFamily: 'var(--font-chinese)', color: 'var(--text-primary)', lineHeight: 1 }}>
+                                                {item.char}
                                             </div>
-                                            <div className="scholar-en">"{ex.en}"</div>
+                                            <div style={{ flex: 1 }}>
+                                                <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginBottom: '2px' }}>
+                                                    <span style={{ color: 'var(--accent-blue)', fontSize: '13px', fontFamily: 'var(--font-mono)' }}>{renderPinyin(item.pinyin)}</span>
+                                                    {item.radical && <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>Radical: {item.radical}</span>}
+                                                </div>
+                                                <div style={{ color: 'var(--text-secondary)', fontSize: '13px', lineHeight: 1.4 }}>
+                                                    {item.definition}
+                                                </div>
+                                                {item.mnemonic && (
+                                                    <div className="breakdown-mnemonic" style={{ marginTop: 6, fontSize: '12.5px', color: 'rgba(255, 255, 255, 0.6)', fontStyle: 'italic', borderLeft: '2px solid rgba(255, 255, 255, 0.1)', paddingLeft: '8px' }}>
+                                                        {item.mnemonic}
+                                                    </div>
+                                                )}
+                                                {item.etymology && (
+                                                    <div className="breakdown-etym" style={{ marginTop: 6 }}>
+                                                        <span style={{ color: 'rgba(255,255,255,0.4)', fontStyle: 'italic' }}>Origin:</span> {item.etymology}
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
-                                    );
-                                })}
+                                    ))}
+                                </div>
+                            )}
+                            {wordFamilies.length > 0 && (
+                                <div className="lexicon-families" style={{ marginBottom: 24, fontSize: '13px' }}>
+                                    <div style={{ fontSize: '10px', color: 'rgba(255, 255, 255, 0.3)', letterSpacing: '1px', marginBottom: '8px' }}>WORD FAMILY</div>
+                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                                        {wordFamilies.map((fam, i) => (
+                                            <div key={i} style={{ background: 'rgba(255,255,255,0.05)', padding: '6px 10px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                                                <span style={{ color: 'var(--text-primary)', marginRight: '6px' }}>{fam.word}</span>
+                                                <span style={{ color: 'var(--text-secondary)', fontSize: '11px' }}>{convertPinyin(fam.pinyin.toLowerCase())}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {synonymsList && synonymsList.length > 0 && (
+                                <div className="lexicon-families" style={{ marginBottom: 24, fontSize: '13px' }}>
+                                    <div style={{ fontSize: '10px', color: 'rgba(255, 255, 255, 0.3)', letterSpacing: '1px', marginBottom: '8px' }}>SYNONYMS (TEST DATA)</div>
+                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                                        {synonymsList.map((syn, i) => (
+                                            <div key={i} style={{ background: 'rgba(255,255,255,0.05)', padding: '6px 10px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.05)', color: 'var(--text-primary)' }}>
+                                                {syn}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Action Bar */}
+                            <div className="lexicon-actions">
+                                <button className="lex-action-btn" onClick={() => {
+                                    const utterance = new SpeechSynthesisUtterance(word);
+                                    utterance.lang = 'zh-CN';
+                                    window.speechSynthesis.speak(utterance);
+                                }} title="Listen">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                                        <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                                    </svg>
+                                </button>
+                                <button className="lex-action-btn" onClick={() => {
+                                    window.location.href = `plecoapi://x-callback-url/s?q=${encodeURIComponent(word)}`;
+                                }} title="Open in Pleco">
+                                    <span style={{ fontWeight: 'bold', fontSize: '12px' }}>Pleco</span>
+                                </button>
+                                <button className="lex-action-btn" onClick={() => {
+                                    window.open(`https://translate.google.com/?sl=zh-CN&tl=en&text=${encodeURIComponent(word)}&op=translate`, '_blank');
+                                }} title="Google Translate">
+                                    <span style={{ fontWeight: 'bold', fontSize: '12px' }}>GTranslate</span>
+                                </button>
+                                <button className="lex-action-btn" onClick={handleCopy} title="Copy">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                    </svg>
+                                </button>
+                                <button className={`lex-action-btn ${starred ? 'starred' : ''}`} onClick={handleToggleStar} title="Star">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill={starred ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                                    </svg>
+                                </button>
                             </div>
-                        )}
+
+                            {examples.length > 0 && (
+                                <div className="lexicon-scholar-note">
+                                    <div className="scholar-label">SCHOLAR'S NOTES</div>
+                                    {examples.slice(0, 3).map((ex, i) => {
+                                        const parts = ex.zh.split(word);
+                                        return (
+                                            <div key={i} className="scholar-content mb-3">
+                                                <div className="scholar-zh">
+                                                    {parts.map((part, pIdx) => (
+                                                        <React.Fragment key={pIdx}>
+                                                            {part}
+                                                            {pIdx < parts.length - 1 && <span style={{ color: 'rgba(255, 255, 255, 0.9)', fontWeight: 'bold' }}>{word}</span>}
+                                                        </React.Fragment>
+                                                    ))}
+                                                </div>
+                                                <div className="scholar-en">"{ex.en}"</div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
 
 
-                        {/* Tone Sandhi warnings could go here too */}
-                        {toneSandhiRule && (
-                            <div className="lexicon-sandhi" style={{ marginBottom: 16 }}>
-                                <span className="sandhi-label">TONE MUTATION DETECTED</span>
-                                <div className="sandhi-rule-text">⚠️ {toneSandhiRule}</div>
-                            </div>
-                        )}
+                            {/* Tone Sandhi warnings could go here too */}
+                            {toneSandhiRule && (
+                                <div className="lexicon-sandhi" style={{ marginBottom: 16 }}>
+                                    <span className="sandhi-label">TONE MUTATION DETECTED</span>
+                                    <div className="sandhi-rule-text">⚠️ {toneSandhiRule}</div>
+                                </div>
+                            )}
 
-                        {stats?.firstSeen && (
-                            <div style={{ fontSize: '11px', color: 'rgba(255, 255, 255, 0.2)', textAlign: 'center', marginTop: 32, paddingBottom: 16 }}>
-                                First encountered on {new Date(stats.firstSeen).toLocaleDateString()}
-                            </div>
-                        )}
+                            {stats?.firstSeen && (
+                                <div style={{ fontSize: '11px', color: 'rgba(255, 255, 255, 0.2)', textAlign: 'center', marginTop: 32, paddingBottom: 16 }}>
+                                    First encountered on {new Date(stats.firstSeen).toLocaleDateString()}
+                                </div>
+                            )}
+                        </div>
                     </div>
                 )}
             </div>
