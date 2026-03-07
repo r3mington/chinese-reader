@@ -418,7 +418,6 @@ const Reader = ({ story }) => {
             endReadingSession();
             document.removeEventListener('visibilitychange', handleVisibilityChange);
             window.removeEventListener('pagehide', handlePageHide);
-            clearInterval(progressTimer.current); // Clear the timer if it was set
         };
     }, [story]);
 
