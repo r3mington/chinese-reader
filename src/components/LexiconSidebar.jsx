@@ -350,32 +350,33 @@ const LexiconSidebar = ({ data }) => {
 
                                 return (
                                     <div key={idx} style={{ marginBottom: idx < data.entries.length - 1 ? '24px' : '32px', paddingBottom: idx < data.entries.length - 1 ? '24px' : '0', borderBottom: idx < data.entries.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none' }}>
-                                        <div className="lexicon-tags">
+                                        <div className="lexicon-phonetics">
                                             {pinyin && (
-                                                <div className="lex-tag pinyin">
-                                                    <span style={{ opacity: 0.5, fontSize: 9, marginRight: 4 }}>PY</span>
-                                                    {renderPinyin(pinyin)}
-                                                </div>
+                                                <>
+                                                    <span className="lexicon-badge pinyin-badge">PY</span>
+                                                    <span className="lexicon-pinyin">{renderPinyin(pinyin)}</span>
+                                                </>
                                             )}
                                             {idx === 0 && hskLevel && (
-                                                <div className="lex-tag hsk">HSK {hskLevel}</div>
+                                                <span className="lexicon-badge hsk-badge ml-auto">HSK {hskLevel}</span>
                                             )}
                                             {idx === 0 && freqRank && (
-                                                <div className="lex-tag freq">🏆 #{freqRank}</div>
+                                                <span className="lexicon-badge freq-badge">🏆 #{freqRank}</span>
+                                            )}
+                                            {measureWords.length > 0 && (
+                                                <span className="lexicon-badge mw-badge" style={{ background: 'rgba(255, 255, 255, 0.08)', color: 'var(--text-secondary)' }}>CL: {measureWords.join(', ')}</span>
                                             )}
                                         </div>
 
                                         <div className="lexicon-definitions">
-                                            {cleanDefinitions.map((def, i) => (
-                                                <div key={i} className="definition-item">
-                                                    <span className="def-bullet">▪</span>
-                                                    <span className="def-text">{def}</span>
-                                                </div>
-                                            ))}
-                                            {measureWords.length > 0 && (
-                                                <div className="measure-words">
-                                                    <span className="mw-label">Measure words:</span> {measureWords.join(', ')}
-                                                </div>
+                                            {cleanDefinitions && cleanDefinitions.length > 0 ? (
+                                                <ul className="lexicon-def-list">
+                                                    {cleanDefinitions.map((def, i) => (
+                                                        <li key={i}>{def}</li>
+                                                    ))}
+                                                </ul>
+                                            ) : (
+                                                <p className="no-def">No definition found.</p>
                                             )}
                                         </div>
                                     </div>
