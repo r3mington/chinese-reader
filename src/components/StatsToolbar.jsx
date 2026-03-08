@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getReadingStats, getStoryStats, pauseStats, resumeStats, getIsPaused, getCurrentSessionDuration } from '../lib/stats';
+import { getReadingStats, getStoryStats, pauseStats, resumeStats, getIsPaused, getCurrentSessionDuration, endReadingSession } from '../lib/stats';
 import { useIsMobile } from '../lib/useIsMobile';
 import '../styles/oled.css';
 
@@ -142,6 +142,24 @@ const StatsToolbar = ({ currentStoryId }) => {
                             <rect x="5.5" y="1" width="3" height="8" />
                         </svg>
                     )}
+                </button>
+
+                <button
+                    className="stats-pause-btn stop-btn"
+                    style={{ marginLeft: 6 }}
+                    onClick={async (e) => {
+                        e.stopPropagation();
+                        // Pause and forcefully commit session to IndexedDB
+                        pauseStats();
+                        await endReadingSession();
+                        setSessionElapsed(0);
+                    }}
+                    title="Stop Session & Save"
+                    aria-label="Stop & Save Session"
+                >
+                    <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor">
+                        <rect x="2" y="2" width="6" height="6" />
+                    </svg>
                 </button>
 
                 <div className="stats-mode-toggle" onClick={(e) => { e.stopPropagation(); toggleViewMode(); }} title="Switch between Global and Book stats">
