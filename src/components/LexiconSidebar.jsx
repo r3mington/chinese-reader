@@ -40,25 +40,25 @@ const LexiconSidebar = ({ data }) => {
                 const bankedWords = list.filter(w => w.starred);
                 if (bankedWords.length > 0) {
                     const randomWord = bankedWords[Math.floor(Math.random() * bankedWords.length)];
-                    lookupAt(randomWord.word, 0).then(dictResult => {
-                        let finalDef = '';
-                        let finalPinyin = '';
-                        if (dictResult && dictResult.entries && dictResult.entries.length > 0) {
-                            finalPinyin = dictResult.entries[0].pinyin;
-                            // Grab the first short definition, ignoring CL measure words
-                            const actualDefs = (dictResult.entries[0].definitions || []).filter(d => !d.startsWith('CL:'));
-                            if (actualDefs.length > 0) {
-                                finalDef = actualDefs[0];
-                            }
+                    const dictResult = lookupAt(randomWord.word, 0);
+
+                    let finalDef = '';
+                    let finalPinyin = '';
+                    if (dictResult && dictResult.entries && dictResult.entries.length > 0) {
+                        finalPinyin = dictResult.entries[0].pinyin;
+                        // Grab the first short definition, ignoring CL measure words
+                        const actualDefs = (dictResult.entries[0].definitions || []).filter(d => !d.startsWith('CL:'));
+                        if (actualDefs.length > 0) {
+                            finalDef = actualDefs[0];
                         }
-                        setRandomFlashcard({
-                            word: randomWord.word,
-                            pinyin: finalPinyin,
-                            definition: finalDef
-                        });
+                    }
+                    setRandomFlashcard({
+                        word: randomWord.word,
+                        pinyin: finalPinyin,
+                        definition: finalDef
                     });
                 }
-            });
+            }).catch(err => console.error("Failed to load random flashcard:", err));
         }
     }, [data]);
 
