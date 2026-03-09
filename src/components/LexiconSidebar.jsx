@@ -295,6 +295,43 @@ const LexiconSidebar = ({ data }) => {
                 <span className="lexicon-icon">✧</span>
             </div>
 
+            {/* Action Bar */}
+            {word && viewMode === 'detail' && (
+                <div className="lexicon-actions">
+                    <button className="lex-action-btn" onClick={() => {
+                        const utterance = new SpeechSynthesisUtterance(word);
+                        utterance.lang = 'zh-CN';
+                        window.speechSynthesis.speak(utterance);
+                    }} title="Listen">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                            <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                        </svg>
+                    </button>
+                    <button className="lex-action-btn" onClick={() => {
+                        window.location.href = `plecoapi://x-callback-url/s?q=${encodeURIComponent(word)}`;
+                    }} title="Open in Pleco">
+                        <span style={{ fontWeight: 'bold', fontSize: '11px' }}>Pleco</span>
+                    </button>
+                    <button className="lex-action-btn" onClick={() => {
+                        window.open(`https://translate.google.com/?sl=zh-CN&tl=en&text=${encodeURIComponent(word)}&op=translate`, '_blank');
+                    }} title="Google Translate">
+                        <span style={{ fontWeight: 'bold', fontSize: '11px' }}>GTranslate</span>
+                    </button>
+                    <button className="lex-action-btn" onClick={handleCopy} title="Copy">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                        </svg>
+                    </button>
+                    <button className={`lex-action-btn ${starred ? 'starred' : ''}`} onClick={handleToggleStar} title="Star">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill={starred ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                        </svg>
+                    </button>
+                </div>
+            )}
+
             {/* Random Word Bank Flashcard (Active Mode) */}
             {viewMode === 'detail' && randomFlashcard && (
                 <div className="mini-flashcard" title="Random word from your saved Bank">
@@ -484,40 +521,7 @@ const LexiconSidebar = ({ data }) => {
                                 </div>
                             )}
 
-                            {/* Action Bar */}
-                            <div className="lexicon-actions">
-                                <button className="lex-action-btn" onClick={() => {
-                                    const utterance = new SpeechSynthesisUtterance(word);
-                                    utterance.lang = 'zh-CN';
-                                    window.speechSynthesis.speak(utterance);
-                                }} title="Listen">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-                                        <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
-                                    </svg>
-                                </button>
-                                <button className="lex-action-btn" onClick={() => {
-                                    window.location.href = `plecoapi://x-callback-url/s?q=${encodeURIComponent(word)}`;
-                                }} title="Open in Pleco">
-                                    <span style={{ fontWeight: 'bold', fontSize: '12px' }}>Pleco</span>
-                                </button>
-                                <button className="lex-action-btn" onClick={() => {
-                                    window.open(`https://translate.google.com/?sl=zh-CN&tl=en&text=${encodeURIComponent(word)}&op=translate`, '_blank');
-                                }} title="Google Translate">
-                                    <span style={{ fontWeight: 'bold', fontSize: '12px' }}>GTranslate</span>
-                                </button>
-                                <button className="lex-action-btn" onClick={handleCopy} title="Copy">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                                    </svg>
-                                </button>
-                                <button className={`lex-action-btn ${starred ? 'starred' : ''}`} onClick={handleToggleStar} title="Star">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill={starred ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-                                    </svg>
-                                </button>
-                            </div>
+                            {/* Action Bar moved to top */}
 
                             {examples.length > 0 && (
                                 <div className="lexicon-scholar-note">
