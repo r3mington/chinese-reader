@@ -2252,6 +2252,45 @@ button:active {
     letter-spacing: 1px;
 }
 
+.mini-flashcard {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 24px;
+    background: rgba(255, 255, 255, 0.02);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    height: 44px;
+    /* max 50px */
+    overflow: hidden;
+}
+
+.mf-character {
+    font-family: var(--font-chinese);
+    font-size: 18px;
+    font-weight: bold;
+    color: var(--accent-blue);
+    white-space: nowrap;
+}
+
+.mf-pinyin {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    padding: 2px 6px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+}
+
+.mf-def {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.5);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+}
+
 .lexicon-title {
     opacity: 0.7;
 }

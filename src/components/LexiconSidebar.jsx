@@ -3,7 +3,7 @@ import { getHskLevel } from '../lib/hsk';
 import { checkToneSandhi } from '../lib/tones';
 import { getFrequencyRank } from '../lib/frequency';
 import { loadSentencesDb, getExampleSentences } from '../lib/sentences';
-import { toggleStarred, getWordStats } from '../lib/vocabulary';
+import { toggleStarred, getWordStats, getVocabularyList } from '../lib/vocabulary';
 import { getEtymology } from '../lib/etymology';
 import { lookupAt, getWordFamilies } from '../lib/dictionary';
 import { loadLinguisticDatasets, getRadical, getMnemonic, getSynonyms } from '../lib/linguistics';
@@ -17,6 +17,7 @@ const LexiconSidebar = ({ data }) => {
     const [starredWordsList, setStarredWordsList] = useState([]);
     const [sessionData, setSessionData] = useState({ chars: 0, cpm: '--' });
     const [linguisticsLoaded, setLinguisticsLoaded] = useState(false);
+    const [randomFlashcard, setRandomFlashcard] = useState(null);
     const starred = stats?.starred || false;
 
     // Ensure sentences DB is loaded
@@ -33,15 +34,38 @@ const LexiconSidebar = ({ data }) => {
                 setStats(s || { starred: false, clickCount: 0 });
             });
             setViewMode('detail'); // Auto-switch to detail when a new word is clicked
+
+            // Fetch a random daily word from bank to display as flashcard
+            getVocabularyList().then(list => {
+                const bankedWords = list.filter(w => w.starred);
+                if (bankedWords.length > 0) {
+                    const randomWord = bankedWords[Math.floor(Math.random() * bankedWords.length)];
+                    lookupAt(randomWord.word, 0).then(dictResult => {
+                        let finalDef = '';
+                        let finalPinyin = '';
+                        if (dictResult && dictResult.entries && dictResult.entries.length > 0) {
+                            finalPinyin = dictResult.entries[0].pinyin;
+                            // Grab the first short definition, ignoring CL measure words
+                            const actualDefs = (dictResult.entries[0].definitions || []).filter(d => !d.startsWith('CL:'));
+                            if (actualDefs.length > 0) {
+                                finalDef = actualDefs[0];
+                            }
+                        }
+                        setRandomFlashcard({
+                            word: randomWord.word,
+                            pinyin: finalPinyin,
+                            definition: finalDef
+                        });
+                    });
+                }
+            });
         }
     }, [data]);
 
     useEffect(() => {
         if (viewMode === 'starred') {
-            import('../lib/vocabulary').then(({ getVocabularyList }) => {
-                getVocabularyList().then(list => {
-                    setStarredWordsList(list.filter(w => w.starred));
-                });
+            getVocabularyList().then(list => {
+                setStarredWordsList(list.filter(w => w.starred));
             });
         }
     }, [viewMode, stats?.starred]); // Re-fetch if they star/unstar something
@@ -80,6 +104,16 @@ const LexiconSidebar = ({ data }) => {
                     </span>
                     <span className="lexicon-icon">✧</span>
                 </div>
+
+                {/* Random Word Bank Flashcard */}
+                {viewMode === 'detail' && randomFlashcard && (
+                    <div className="mini-flashcard" title="Random word from your saved Bank">
+                        <div className="mf-character">{randomFlashcard.word}</div>
+                        <div className="mf-pinyin">{renderPinyin(randomFlashcard.pinyin)}</div>
+                        <div className="mf-def">{randomFlashcard.definition}</div>
+                    </div>
+                )}
+
                 {viewMode === 'starred' ? (
                     <div className="lexicon-scroll-area">
                         <div style={{ padding: '0 20px 20px 20px' }}>
