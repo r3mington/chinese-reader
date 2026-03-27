@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { getCharacterTone } from '../lib/tones';
 import { tokenizeText } from '../lib/tokenizer';
+import { getFrequencyRank } from '../lib/frequency';
 
 const ColorizedText = ({ text, enabled = true, lookedUpWords = new Set(), overrideToneColors = null, activeIndex = null, starAnimationIndex = null }) => {
     if ((!enabled && overrideToneColors !== false) || !text) {
@@ -20,6 +21,9 @@ const ColorizedText = ({ text, enabled = true, lookedUpWords = new Set(), overri
                 const isStarAnimating = starAnimationIndex !== null && starAnimationIndex >= token.startIndex && starAnimationIndex <= token.endIndex;
                 const starAnimClass = isStarAnimating ? ' word-star-anim' : '';
 
+                const freqRank = getFrequencyRank(token.word);
+                const freqClass = (freqRank !== null && freqRank <= 6000) ? ' high-freq-word' : '';
+
                 token.chars.forEach((c, index) => {
                     let toneClass = '';
                     if (overrideToneColors === false) {
@@ -33,7 +37,7 @@ const ColorizedText = ({ text, enabled = true, lookedUpWords = new Set(), overri
                     spans.push(
                         <span
                             key={`${token.startIndex + index}`}
-                            className={`char-with-tone${toneClass}${lookedUpClass}${highlightClass}${starAnimClass}`}
+                            className={`char-with-tone${toneClass}${lookedUpClass}${highlightClass}${starAnimClass}${freqClass}`}
                             data-word={token.word}
                             data-index={token.startIndex + index}
                             data-pinyin={isHighlighted ? c.pinyin : undefined}

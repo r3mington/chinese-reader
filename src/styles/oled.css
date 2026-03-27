@@ -2,7 +2,7 @@
     /* True Black OLED Color Scheme */
     --bg-primary: rgba(10, 10, 10, 0.95);
     --bg-secondary: rgba(20, 20, 20, 0.95);
-    --text-primary: #E0E0E0;
+    --text-primary: #FFFFFF;
     --text-secondary: #999;
     --accent-blue: #2962FF;
     --border-color: #333333;
@@ -2084,7 +2084,14 @@ button:active {
 
 /* Faded Text for Looked Up Words */
 .word-looked-up {
-    opacity: 0.6;
+    /* No longer fades via opacity to preserve pure white text */
+}
+
+.high-freq-word {
+    text-decoration: underline;
+    text-decoration-color: rgba(255, 255, 255, 0.4);
+    text-underline-offset: 4px;
+    text-decoration-thickness: 1px;
 }
 
 /* ========================================
