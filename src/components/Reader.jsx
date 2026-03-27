@@ -71,15 +71,15 @@ const Reader = ({ story }) => {
             // Only trigger if user is not typing in an input
             if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
 
-            if (e.code === 'Space') {
+            if (e.code === 'Space' || e.key === ';') {
                 e.preventDefault();
                 if (getIsPaused()) {
                     resumeStats();
                 } else {
                     pauseStats();
                 }
-            } else if ((e.key === 'd' || e.key === 'a' || e.key === 'w' || e.key === 's') && !isMobile && story) {
-                // Navigation: Next/Prev (d/a) or Up/Down (w/s)
+            } else if ((e.key === 'd' || e.key === 'a' || e.key === 'w' || e.key === 's' || e.key === '[' || e.key === ']') && !isMobile && story) {
+                // Navigation: Next/Prev (d/a or ]/[) or Up/Down (w/s)
                 e.preventDefault();
 
                 // Handle Up/Down (w/s) Visual Navigation
@@ -199,8 +199,8 @@ const Reader = ({ story }) => {
                     return; // End of w/s logic
                 }
 
-                // Handle Next/Prev (d/a) Sequential Navigation
-                const isForward = e.key === 'd';
+                // Handle Next/Prev (d/a or ]/[) Sequential Navigation
+                const isForward = e.key === 'd' || e.key === ']';
                 const paras = story.content.split('\n');
 
                 let startPara = 0;
