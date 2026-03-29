@@ -13,6 +13,7 @@ import '../styles/oled.css';
 
 const LexiconSidebar = ({ data }) => {
     const [stats, setStats] = useState(null);
+    const [isProperName, setIsProperName] = useState(false);
     const [viewMode, setViewMode] = useState('detail'); // 'detail' or 'starred'
     const [starredWordsList, setStarredWordsList] = useState([]);
     const [sessionData, setSessionData] = useState({ chars: 0, cpm: '--' });
@@ -32,6 +33,9 @@ const LexiconSidebar = ({ data }) => {
         if (data && data.word) {
             getWordStats(data.word).then(s => {
                 setStats(s || { starred: false, clickCount: 0 });
+            });
+            import('../lib/names').then(({ isProperNameLocked }) => {
+                isProperNameLocked(data.word).then(setIsProperName);
             });
             setViewMode('detail'); // Auto-switch to detail when a new word is clicked
 
@@ -246,6 +250,12 @@ const LexiconSidebar = ({ data }) => {
         setStats(prev => ({ ...prev, starred: newStatus }));
     };
 
+    const handleToggleName = async () => {
+        const { toggleProperName } = await import('../lib/names');
+        const newStatus = await toggleProperName(word);
+        setIsProperName(newStatus);
+    };
+
     // Character Breakdown Logic
     const getBreakdown = () => {
         try {
@@ -322,6 +332,12 @@ const LexiconSidebar = ({ data }) => {
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                             <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                        </svg>
+                    </button>
+                    <button className={`lex-action-btn ${isProperName ? 'starred' : ''}`} style={{ color: isProperName ? '#bb86fc' : undefined }} onClick={handleToggleName} title="Mark as Name">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill={isProperName ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
                         </svg>
                     </button>
                     <button className={`lex-action-btn ${starred ? 'starred' : ''}`} onClick={handleToggleStar} title="Star">
