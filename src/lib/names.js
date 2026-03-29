@@ -24,17 +24,17 @@ export const getProperNames = async () => {
 export const toggleProperName = async (word) => {
     try {
         const names = await getProperNames();
-        const set = new Set(names);
+        const nameSet = new Set(names);
         let isName = false;
         
-        if (set.has(word)) {
-            set.delete(word);
+        if (nameSet.has(word)) {
+            nameSet.delete(word);
         } else {
-            set.add(word);
+            nameSet.add(word);
             isName = true;
         }
 
-        await set(PROPER_NAMES_KEY, Array.from(set));
+        await set(PROPER_NAMES_KEY, Array.from(nameSet));
         
         // Dispatch an event so Reader.jsx and other components can update instantly
         window.dispatchEvent(new CustomEvent('properNamesChanged', { detail: { word, isName } }));
