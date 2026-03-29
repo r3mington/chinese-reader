@@ -2636,3 +2636,9 @@ button:active {
     background: rgba(255, 255, 255, 0.1);
     color: var(--text-primary);
 }
+
+/* Proper Name Tagging */
+.proper-name-highlight {
+    color: #bb86fc !important;
+    font-weight: 600;
+}

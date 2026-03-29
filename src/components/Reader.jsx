@@ -29,6 +29,7 @@ const Reader = ({ story }) => {
     });
     const [lookedUpWords, setLookedUpWords] = useState(new Set());
     const [recentWordsList, setRecentWordsList] = useState([]); // Track recent words for watermark animation
+    const [properNames, setProperNames] = useState(new Set());
     const [readingProgress, setReadingProgress] = useState(0);
 
     const [hoverHighlight, setHoverHighlight] = useState(null);
@@ -49,7 +50,26 @@ const Reader = ({ story }) => {
             const list = await getVocabularyList();
             setLookedUpWords(new Set(list.map(w => w.word)));
         };
+        const loadNames = async () => {
+            const names = await import('../lib/names').then(m => m.getProperNames());
+            setProperNames(new Set(names));
+        };
         loadWords();
+        loadNames();
+
+        const handleNamesChanged = (e) => {
+            setProperNames(prev => {
+                const next = new Set(prev);
+                if (e.detail.isName) {
+                    next.add(e.detail.word);
+                } else {
+                    next.delete(e.detail.word);
+                }
+                return next;
+            });
+        };
+        window.addEventListener('properNamesChanged', handleNamesChanged);
+        return () => window.removeEventListener('properNamesChanged', handleNamesChanged);
     }, []);
 
     // Clear active word highlight 1 second after popup closes to allow CSS fade
@@ -784,6 +804,7 @@ const Reader = ({ story }) => {
                                         text={para}
                                         enabled={true}
                                         lookedUpWords={lookedUpWords}
+                                        properNames={properNames}
                                         overrideToneColors={toneColorsEnabled ? null : false}
                                         activeIndex={activeHighlight?.paraIdx === idx ? activeHighlight.charIdx : null}
                                         starAnimationIndex={starAnimationWord?.paraIdx === idx ? starAnimationWord.charIdx : null}

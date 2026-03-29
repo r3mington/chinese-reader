@@ -3,7 +3,7 @@ import { getCharacterTone } from '../lib/tones';
 import { tokenizeText } from '../lib/tokenizer';
 import { getFrequencyRank } from '../lib/frequency';
 
-const ColorizedText = ({ text, enabled = true, lookedUpWords = new Set(), overrideToneColors = null, activeIndex = null, starAnimationIndex = null }) => {
+const ColorizedText = ({ text, enabled = true, lookedUpWords = new Set(), properNames = new Set(), overrideToneColors = null, activeIndex = null, starAnimationIndex = null }) => {
     if ((!enabled && overrideToneColors !== false) || !text) {
         return <>{text}</>;
     }
@@ -23,6 +23,7 @@ const ColorizedText = ({ text, enabled = true, lookedUpWords = new Set(), overri
 
                 const freqRank = getFrequencyRank(token.word);
                 const freqClass = (freqRank !== null && freqRank <= 6000) ? ' high-freq-word' : '';
+                const properNameClass = properNames.has(token.word) ? ' proper-name-highlight' : '';
 
                 token.chars.forEach((c, index) => {
                     let toneClass = '';
@@ -37,7 +38,7 @@ const ColorizedText = ({ text, enabled = true, lookedUpWords = new Set(), overri
                     spans.push(
                         <span
                             key={`${token.startIndex + index}`}
-                            className={`char-with-tone${toneClass}${lookedUpClass}${highlightClass}${starAnimClass}${freqClass}`}
+                            className={`char-with-tone${toneClass}${lookedUpClass}${highlightClass}${starAnimClass}${freqClass}${properNameClass}`}
                             data-word={token.word}
                             data-index={token.startIndex + index}
                             data-pinyin={isHighlighted ? c.pinyin : undefined}

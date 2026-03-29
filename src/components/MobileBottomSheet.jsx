@@ -12,6 +12,7 @@ import '../styles/oled.css';
 const MobileBottomSheet = ({ data, onClose }) => {
     const sheetRef = useRef(null);
     const [stats, setStats] = React.useState(null);
+    const [isProperName, setIsProperName] = React.useState(false);
     const starred = stats?.starred || false;
 
     // Check stats when data changes
@@ -22,6 +23,9 @@ const MobileBottomSheet = ({ data, onClose }) => {
             const word = data.entries[0].simplified;
             getWordStats(word).then(s => {
                 setStats(s || { starred: false, clickCount: 0 }); // Default empty stats
+            });
+            import('../lib/names').then(({ isProperNameLocked }) => {
+                isProperNameLocked(word).then(setIsProperName);
             });
         }
     }, [data]);
@@ -63,6 +67,12 @@ const MobileBottomSheet = ({ data, onClose }) => {
     const handleToggleStar = async () => {
         const newStatus = await toggleStarred(word);
         setStats(prev => ({ ...prev, starred: newStatus }));
+    };
+
+    const handleToggleName = async () => {
+        const { toggleProperName } = await import('../lib/names');
+        const newStatus = await toggleProperName(word);
+        setIsProperName(newStatus);
     };
 
     // Character Breakdown Logic
@@ -149,6 +159,12 @@ const MobileBottomSheet = ({ data, onClose }) => {
                                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                         <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                                         <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                    </svg>
+                                </button>
+                                <button className={`sheet-action-btn ${isProperName ? 'starred' : ''}`} style={{ color: isProperName ? '#bb86fc' : undefined }} onClick={handleToggleName} title="Mark as Name">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill={isProperName ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                        <circle cx="12" cy="7" r="4"></circle>
                                     </svg>
                                 </button>
                                 <button className={`sheet-action-btn ${starred ? 'starred' : ''}`} onClick={handleToggleStar} title="Star">
