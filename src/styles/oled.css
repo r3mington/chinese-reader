@@ -2671,3 +2671,8 @@ button:active {
 .proper-name-highlight {
     color: rgba(187, 134, 252, 0.5) !important;
 }
+
+/* Conversation/Dialogue Markers */
+.quote-mark-highlight {
+    color: rgba(100, 200, 255, 0.5) !important;
+}

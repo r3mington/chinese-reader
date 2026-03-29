@@ -78,13 +78,19 @@ const ColorizedText = ({ text, enabled = true, lookedUpWords = new Set(), proper
                     toneClass = ` tone-${token.chars[0].tone}`;
                 }
 
+                let quoteClass = '';
+                const c = token.chars[0].char;
+                if (c === '“' || c === '”' || c === '"') {
+                    quoteClass = ' quote-mark-highlight';
+                }
+
                 spans.push(
                     <span
                         key={`${token.startIndex}`}
-                        className={`char-with-tone${toneClass}${highlightClass}`}
+                        className={`char-with-tone${toneClass}${highlightClass}${quoteClass}`}
                         data-index={token.startIndex}
                     >
-                        {token.chars[0].char}
+                        {c}
                     </span>
                 );
             }
