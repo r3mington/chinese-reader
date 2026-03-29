@@ -8,6 +8,24 @@ const ColorizedText = ({ text, enabled = true, lookedUpWords = new Set(), proper
         return <>{text}</>;
     }
 
+    // Pre-calculate which absolute character indices belong to a proper name
+    const nameIndices = useMemo(() => {
+        const indices = new Set();
+        if (!text || properNames.size === 0) return indices;
+        
+        properNames.forEach(name => {
+            if (!name) return;
+            let pos = text.indexOf(name);
+            while (pos !== -1) {
+                for (let i = 0; i < name.length; i++) {
+                    indices.add(pos + i);
+                }
+                pos = text.indexOf(name, pos + 1);
+            }
+        });
+        return indices;
+    }, [text, properNames]);
+
     const elements = useMemo(() => {
         const tokens = tokenizeText(text);
         const spans = [];
@@ -23,9 +41,12 @@ const ColorizedText = ({ text, enabled = true, lookedUpWords = new Set(), proper
 
                 const freqRank = getFrequencyRank(token.word);
                 const freqClass = (freqRank !== null && freqRank <= 6000) ? ' high-freq-word' : '';
-                const properNameClass = properNames.has(token.word) ? ' proper-name-highlight' : '';
 
                 token.chars.forEach((c, index) => {
+                    const charAbsIdx = token.startIndex + index;
+                    const isProperNameChar = nameIndices.has(charAbsIdx) || properNames.has(token.word);
+                    const properNameClass = isProperNameChar ? ' proper-name-highlight' : '';
+
                     let toneClass = '';
                     if (overrideToneColors === false) {
                         toneClass = '';

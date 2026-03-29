@@ -46,6 +46,26 @@ export const toggleProperName = async (word) => {
     }
 };
 
+export const addProperName = async (word) => {
+    const names = await getProperNames();
+    const nameSet = new Set(names);
+    if (!nameSet.has(word)) {
+        nameSet.add(word);
+        await set(PROPER_NAMES_KEY, Array.from(nameSet));
+        window.dispatchEvent(new CustomEvent('properNamesChanged', { detail: { word, isName: true } }));
+    }
+};
+
+export const removeProperName = async (word) => {
+    const names = await getProperNames();
+    const nameSet = new Set(names);
+    if (nameSet.has(word)) {
+        nameSet.delete(word);
+        await set(PROPER_NAMES_KEY, Array.from(nameSet));
+        window.dispatchEvent(new CustomEvent('properNamesChanged', { detail: { word, isName: false } }));
+    }
+};
+
 /**
  * Checks if a word is currently marked as a proper name.
  * @param {string} word 
