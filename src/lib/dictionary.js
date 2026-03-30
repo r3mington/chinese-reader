@@ -197,7 +197,7 @@ const calculateEntryScore = (entry) => {
     
     for (const kw of obscureKeywords) {
         if (joinedDefs.includes(kw)) {
-            score += 100;
+            score += 10000;
         }
     }
     
