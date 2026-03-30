@@ -114,7 +114,7 @@ export const lookupStartingAt = (text, index) => {
         if (dictionaryMap.has(substring)) {
             return {
                 word: substring,
-                entries: dictionaryMap.get(substring),
+                entries: sortDictionaryEntries(dictionaryMap.get(substring)),
                 start: index,
                 end: index + len
             };
@@ -147,7 +147,7 @@ export const lookupAt = (text, index) => {
             if (dictionaryMap.has(substring)) {
                 return {
                     word: substring,
-                    entries: dictionaryMap.get(substring),
+                    entries: sortDictionaryEntries(dictionaryMap.get(substring)),
                     start: start,
                     end: start + len
                 };
@@ -174,4 +174,35 @@ export const getWordFamilies = (char, limit = 5) => {
         }
     }
     return families;
+};
+
+// --- Heuristic Sorting Engine ---
+const sortDictionaryEntries = (entries) => {
+    if (!entries || entries.length <= 1) return entries;
+    
+    return [...entries].sort((a, b) => {
+        return calculateEntryScore(a) - calculateEntryScore(b);
+    });
+};
+
+const calculateEntryScore = (entry) => {
+    let score = 0;
+    const joinedDefs = (entry.definitions || []).join(' ').toLowerCase();
+    
+    // Idea 1: Penalty for obscure markers
+    const obscureKeywords = [
+        'surname', 'dynasty', 'archaic', 'ancient', 
+        'variant of', 'abbr. for', 'old state'
+    ];
+    
+    for (const kw of obscureKeywords) {
+        if (joinedDefs.includes(kw)) {
+            score += 100;
+        }
+    }
+    
+    // Idea 2: Brevity (shorter definition length equals better score)
+    score += joinedDefs.length;
+
+    return score;
 };;
