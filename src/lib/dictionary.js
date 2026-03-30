@@ -205,8 +205,18 @@ const calculateEntryScore = (entry) => {
         }
     }
     
-    // Brevity (shorter definition length equals better score)
-    score += joinedDefs.length;
+    // Brevity & Cross-References
+    // - Only measure the length of the FIRST definition so highly common multi-meaning words don't accumulate massive penalties
+    // - Sink CEDICT cross-references (e.g. "see [lao4]")
+    if (entry.definitions && entry.definitions.length > 0) {
+        const firstDef = entry.definitions[0].toLowerCase();
+        
+        if (firstDef.startsWith('see ') && firstDef.includes('[')) {
+            score += 500;
+        }
+        
+        score += firstDef.length;
+    }
 
     return score;
 };;
