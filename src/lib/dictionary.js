@@ -189,19 +189,23 @@ const calculateEntryScore = (entry) => {
     let score = 0;
     const joinedDefs = (entry.definitions || []).join(' ').toLowerCase();
     
-    // Idea 1: Penalty for obscure markers
-    const obscureKeywords = [
-        'surname', 'dynasty', 'archaic', 'ancient', 
-        'variant of', 'abbr. for', 'old state'
-    ];
-    
-    for (const kw of obscureKeywords) {
+    // Heavy penalties for definitions that are almost certainly useless as primary meanings
+    const heavyKeywords = ['surname', 'dynasty', 'archaic', 'old state'];
+    for (const kw of heavyKeywords) {
         if (joinedDefs.includes(kw)) {
             score += 10000;
         }
     }
+
+    // Mild penalties for secondary historical/linguistic notes (like variants)
+    const mildKeywords = ['ancient', 'variant of', 'abbr. for'];
+    for (const kw of mildKeywords) {
+        if (joinedDefs.includes(kw)) {
+            score += 500;
+        }
+    }
     
-    // Idea 2: Brevity (shorter definition length equals better score)
+    // Brevity (shorter definition length equals better score)
     score += joinedDefs.length;
 
     return score;
