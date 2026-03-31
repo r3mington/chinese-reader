@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { getProperNames, addProperName, removeProperName } from '../lib/names';
 import '../styles/oled.css';
 
-const SettingsPage = () => {
-    const navigate = useNavigate();
+const SettingsPage = ({ onClose }) => {
     const [names, setNames] = useState([]);
     const [newName, setNewName] = useState('');
 
@@ -33,11 +31,11 @@ const SettingsPage = () => {
     };
 
     return (
-        <div style={{ minHeight: '100vh', backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)', padding: '40px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 1000, overflowY: 'auto', backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)', padding: '40px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <div style={{ width: '100%', maxWidth: '600px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', marginBottom: '32px' }}>
                     <button 
-                        onClick={() => navigate('/')}
+                        onClick={onClose}
                         style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', padding: 0 }}
                     >
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
