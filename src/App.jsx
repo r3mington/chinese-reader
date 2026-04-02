@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import LibraryModal from './components/LibraryModal';
 import Reader from './components/Reader';
 import VocabularyView from './components/VocabularyView';
@@ -76,7 +76,7 @@ function App() {
   }
 
   return (
-    <Router>
+    <>
       <Routes>
         <Route path="/" element={
           <>
@@ -133,7 +133,7 @@ function App() {
         <GlobalStatsPage onClose={() => setGlobalStatsOpen(false)} />
       )}
       <ReloadPrompt />
-    </Router>
+    </>
   );
 }
 
