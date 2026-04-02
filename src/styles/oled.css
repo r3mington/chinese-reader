@@ -2683,11 +2683,17 @@ button:active {
     display: flex;
     gap: 8px;
     margin-bottom: 24px;
-    background: rgba(255, 255, 255, 0.04);
-    padding: 6px;
+    background: #000;
+    padding: 12px 6px;
     border-radius: 8px;
     overflow-x: auto;
     scrollbar-width: none;
+    position: sticky;
+    top: -20px; /* Counteract .ssp-body padding */
+    z-index: 20;
+    margin-left: -6px;
+    margin-right: -6px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 .ssp-time-range-tabs::-webkit-scrollbar {
     display: none;
