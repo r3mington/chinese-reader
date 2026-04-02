@@ -78,6 +78,7 @@ const GlobalStatsPage = ({ onClose }) => {
                 key, 
                 label: d.toLocaleDateString('en-US', { weekday: 'short' }), 
                 dateLabel: d.toLocaleDateString('en-US', { month: 'short' }),
+                fullDate: d.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }),
                 isFirstOfMonth: d.getDate() === 1,
                 [valueKey]: val 
             });
@@ -239,6 +240,7 @@ const GlobalStatsPage = ({ onClose }) => {
                                             const barColor = isToday ? '#4ade80' : '#2962FF';
                                             return (
                                                 <g key={i}>
+                                                    <title>{`${day.fullDate}\n${day.mins} minutes`}</title>
                                                     <rect
                                                         x={x} y={barY} width={w} height={barH}
                                                         rx="3"
@@ -318,6 +320,7 @@ const GlobalStatsPage = ({ onClose }) => {
                                                 const barColor = isToday ? '#4ade80' : '#7c3aed';
                                                 return (
                                                     <g key={i}>
+                                                        <title>{`${day.fullDate}\n${day.chars.toLocaleString()} characters`}</title>
                                                         <rect
                                                             x={x} y={barY} width={w} height={barH}
                                                             rx="3"
@@ -392,6 +395,7 @@ const GlobalStatsPage = ({ onClose }) => {
                                             const barColor = isToday ? '#4ade80' : '#f59e0b';
                                             return (
                                                 <g key={i}>
+                                                    <title>{`${day.fullDate}\n${day.cpm} chars/minute`}</title>
                                                     <rect
                                                         x={x} y={barY} width={w} height={barH}
                                                         rx="3"
