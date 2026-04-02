@@ -3,6 +3,7 @@ import { getStoryStats, resetStoryStats, deleteSession, updateSession } from '..
 
 const StoryStatsPage = ({ story, onClose }) => {
     const [stats, setStats] = useState(null);
+    const [timeRange, setTimeRange] = useState('14D');
     const [loading, setLoading] = useState(true);
     const [editingSession, setEditingSession] = useState(null);
     const [editForm, setEditForm] = useState({ duration: 0, chars: 0, lookups: 0 });
@@ -223,10 +224,26 @@ const StoryStatsPage = ({ story, onClose }) => {
         ? new Set([...story.content].filter(c => c.codePointAt(0) >= 0x4E00 && c.codePointAt(0) <= 0x9FFF)).size
         : 0;
 
-    // Build 14-day bar data from any daily log
+    // Build rolling bar data from any daily log depending on timeRange
+    const getDaysCount = () => {
+        if (timeRange === '7D') return 7;
+        if (timeRange === '14D') return 14;
+        if (timeRange === '30D') return 30;
+        if (timeRange === '6M') return 180;
+        if (timeRange === 'ALL') {
+            const dates = Object.keys(stats?.dailyLog || {});
+            if (dates.length === 0) return 14;
+            const oldest = new Date(dates.sort()[0]);
+            const diff = Math.abs(new Date() - oldest);
+            return Math.max(14, Math.ceil(diff / (1000 * 60 * 60 * 24)) + 1);
+        }
+        return 14;
+    };
+
     const buildDailyData = (dailyLog, valueKey = 'mins', round = true) => {
         const days = [];
-        for (let i = 13; i >= 0; i--) {
+        const numDays = getDaysCount();
+        for (let i = numDays - 1; i >= 0; i--) {
             const d = new Date();
             d.setDate(d.getDate() - i);
             const y = d.getFullYear();
@@ -238,6 +255,8 @@ const StoryStatsPage = ({ story, onClose }) => {
             days.push({
                 key,
                 label: d.toLocaleDateString('en-US', { weekday: 'short' }),
+                dateLabel: d.toLocaleDateString('en-US', { month: 'short' }),
+                isFirstOfMonth: d.getDate() === 1,
                 [valueKey]: val
             });
         }
@@ -429,27 +448,45 @@ const StoryStatsPage = ({ story, onClose }) => {
                         </div>
                     )}
 
+                    {/* Time Range Tabs */}
+                    <div className="ssp-time-range-tabs">
+                        {['7D', '14D', '30D', '6M', 'ALL'].map(t => (
+                            <button 
+                                key={t}
+                                className={`ssp-time-tab ${timeRange === t ? 'active' : ''}`}
+                                onClick={() => setTimeRange(t)}
+                            >
+                                {t}
+                            </button>
+                        ))}
+                    </div>
+
                     {/* Section 3: Daily Minutes Chart — redesigned */}
                     {hasAnyActivity && (
                         <div className="ssp-section">
                             <h2 className="ssp-section-title">Minutes Per Day
-                                <span style={{ fontSize: 10, fontWeight: 400, opacity: 0.45, marginLeft: 8 }}>LAST 14 DAYS</span>
+                                <span style={{ fontSize: 10, fontWeight: 400, opacity: 0.45, marginLeft: 8 }}>{timeRange === 'ALL' ? 'ALL TIME' : `LAST ${timeRange}`}</span>
                             </h2>
                             {(() => {
-                                const BAR_W = 600;
+                                const numDays = getDaysCount();
+                                const BAR_W = Math.max(600, numDays * 16);
                                 const LABEL_TOP = 14;   // space above bars for minute values
                                 const BAR_AREA = 100;   // height of bars
                                 const LABEL_BOT = 20;   // space below bars for date labels
                                 const BAR_H = LABEL_TOP + BAR_AREA + LABEL_BOT;
                                 const colW = BAR_W / dailyData.length;
-                                const gap = 4;
+                                const gap = numDays > 30 ? 2 : 4;
+                                const showLabel = numDays <= 30;
+
                                 const activeDaysInRange = dailyData.filter(d => d.mins > 0).length;
                                 return (
                                     <>
                                         <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', marginBottom: 6 }}>
                                             {activeDaysInRange} active day{activeDaysInRange !== 1 ? 's' : ''} · {Math.round(dailyData.reduce((a, d) => a + d.mins, 0))}mn total
                                         </div>
-                                        <svg viewBox={`0 0 ${BAR_W} ${BAR_H}`} className="ssp-chart-svg" preserveAspectRatio="xMidYMid meet" style={{ height: BAR_H }}>
+                                        <div className="ssp-chart-scroll-wrapper" ref={(el) => { if(el) el.scrollLeft = el.scrollWidth; }}>
+                                            <svg viewBox={`0 0 ${BAR_W} ${BAR_H}`} className="ssp-chart-svg" preserveAspectRatio="none" style={{ height: BAR_H, width: `${BAR_W}px` }}>
+
                                             {dailyData.map((day, i) => {
                                                 const barH = day.mins > 0 ? Math.max(4, Math.round((day.mins / maxDailyMins) * BAR_AREA)) : 3;
                                                 const x = i * colW + gap / 2;
@@ -466,33 +503,49 @@ const StoryStatsPage = ({ story, onClose }) => {
                                                             fill={barColor}
                                                             opacity={day.mins > 0 ? 0.85 : 0.1}
                                                         />
-                                                        {/* Minute value above bar */}
-                                                        {day.mins > 0 && (
+                                                        {/* Value above bar */}
+                                                        {day.mins > 0 && numDays <= 90 && (
                                                             <text
                                                                 x={x + w / 2}
                                                                 y={barY - 3}
                                                                 textAnchor="middle"
                                                                 fill={isToday ? '#4ade80' : 'rgba(255,255,255,0.7)'}
-                                                                fontSize="8"
+                                                                fontSize={numDays > 30 ? "6" : "8"}
                                                                 fontWeight="600"
                                                             >
                                                                 {day.mins}
                                                             </text>
                                                         )}
                                                         {/* Date label below */}
-                                                        <text
-                                                            x={x + w / 2}
-                                                            y={LABEL_TOP + BAR_AREA + LABEL_BOT - 2}
-                                                            textAnchor="middle"
-                                                            fill={isToday ? 'rgba(74,222,128,0.6)' : 'rgba(255,255,255,0.25)'}
-                                                            fontSize="8"
-                                                        >
-                                                            {isToday ? 'Today' : day.label.slice(0, 1)}
-                                                        </text>
+                                                        {showLabel ? (
+                                                            <text
+                                                                x={x + w / 2}
+                                                                y={LABEL_TOP + BAR_AREA + LABEL_BOT - 2}
+                                                                textAnchor="middle"
+                                                                fill={isToday ? 'rgba(74,222,128,0.6)' : 'rgba(255,255,255,0.25)'}
+                                                                fontSize="8"
+                                                            >
+                                                                {isToday ? 'Today' : day.label.slice(0, 1)}
+                                                            </text>
+                                                        ) : (
+                                                            day.isFirstOfMonth && (
+                                                                <text
+                                                                    x={x + w / 2}
+                                                                    y={LABEL_TOP + BAR_AREA + LABEL_BOT - 2}
+                                                                    textAnchor="middle"
+                                                                    fill="rgba(255,255,255,0.45)"
+                                                                    fontSize="9"
+                                                                    fontWeight="bold"
+                                                                >
+                                                                    {day.dateLabel}
+                                                                </text>
+                                                            )
+                                                        )}
                                                     </g>
                                                 );
                                             })}
-                                        </svg>
+                                            </svg>
+                                        </div>
                                     </>
                                 );
                             })()}
@@ -503,16 +556,18 @@ const StoryStatsPage = ({ story, onClose }) => {
                     {charsDays.some(d => d.chars > 0) && (
                         <div className="ssp-section">
                             <h2 className="ssp-section-title">Characters Per Day
-                                <span style={{ fontSize: 10, fontWeight: 400, opacity: 0.45, marginLeft: 8 }}>LAST 14 DAYS</span>
+                                <span style={{ fontSize: 10, fontWeight: 400, opacity: 0.45, marginLeft: 8 }}>{timeRange === 'ALL' ? 'ALL TIME' : `LAST ${timeRange}`}</span>
                             </h2>
                             {(() => {
-                                const BAR_W = 600;
+                                const numDays = getDaysCount();
+                                const BAR_W = Math.max(600, numDays * 16);
                                 const LABEL_TOP = 14;
                                 const BAR_AREA = 100;
                                 const LABEL_BOT = 20;
                                 const BAR_H = LABEL_TOP + BAR_AREA + LABEL_BOT;
                                 const colW = BAR_W / charsDays.length;
-                                const gap = 4;
+                                const gap = numDays > 30 ? 2 : 4;
+                                const showLabel = numDays <= 30;
                                 const totalCharsInRange = charsDays.reduce((a, d) => a + d.chars, 0);
                                 const fmtChars = (n) => n >= 1000 ? `${(n / 1000).toFixed(1)}k` : `${n}`;
                                 return (
@@ -520,7 +575,9 @@ const StoryStatsPage = ({ story, onClose }) => {
                                         <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', marginBottom: 6 }}>
                                             {totalCharsInRange.toLocaleString()} chars total in range
                                         </div>
-                                        <svg viewBox={`0 0 ${BAR_W} ${BAR_H}`} className="ssp-chart-svg" preserveAspectRatio="xMidYMid meet" style={{ height: BAR_H }}>
+                                        <div className="ssp-chart-scroll-wrapper" ref={(el) => { if(el) el.scrollLeft = el.scrollWidth; }}>
+                                            <svg viewBox={`0 0 ${BAR_W} ${BAR_H}`} className="ssp-chart-svg" preserveAspectRatio="none" style={{ height: BAR_H, width: `${BAR_W}px` }}>
+
                                             {charsDays.map((day, i) => {
                                                 const barH = day.chars > 0 ? Math.max(4, Math.round((day.chars / maxChars) * BAR_AREA)) : 3;
                                                 const x = i * colW + gap / 2;
@@ -536,31 +593,40 @@ const StoryStatsPage = ({ story, onClose }) => {
                                                             fill={barColor}
                                                             opacity={day.chars > 0 ? 0.85 : 0.1}
                                                         />
-                                                        {day.chars > 0 && (
+                                                        {day.chars > 0 && numDays <= 90 && (
                                                             <text
                                                                 x={x + w / 2}
                                                                 y={barY - 3}
                                                                 textAnchor="middle"
                                                                 fill={isToday ? '#4ade80' : 'rgba(255,255,255,0.7)'}
-                                                                fontSize="8"
+                                                                fontSize={numDays > 30 ? "6" : "8"}
                                                                 fontWeight="600"
                                                             >
                                                                 {fmtChars(day.chars)}
                                                             </text>
                                                         )}
-                                                        <text
-                                                            x={x + w / 2}
-                                                            y={LABEL_TOP + BAR_AREA + LABEL_BOT - 2}
-                                                            textAnchor="middle"
-                                                            fill={isToday ? 'rgba(74,222,128,0.6)' : 'rgba(255,255,255,0.25)'}
-                                                            fontSize="8"
-                                                        >
-                                                            {isToday ? 'T' : day.label.slice(0, 1)}
-                                                        </text>
+                                                        {showLabel ? (
+                                                            <text
+                                                                x={x + w / 2}
+                                                                y={LABEL_TOP + BAR_AREA + LABEL_BOT - 2}
+                                                                textAnchor="middle"
+                                                                fill={isToday ? 'rgba(74,222,128,0.6)' : 'rgba(255,255,255,0.25)'}
+                                                                fontSize="8"
+                                                            >
+                                                                {isToday ? 'T' : day.label.slice(0, 1)}
+                                                            </text>
+                                                        ) : (
+                                                            day.isFirstOfMonth && (
+                                                                <text x={x+w/2} y={LABEL_TOP + BAR_AREA + LABEL_BOT - 2} textAnchor="middle" fill="rgba(255,255,255,0.45)" fontSize="9" fontWeight="bold">
+                                                                    {day.dateLabel}
+                                                                </text>
+                                                            )
+                                                        )}
                                                     </g>
                                                 );
                                             })}
-                                        </svg>
+                                            </svg>
+                                        </div>
                                     </>
                                 );
                             })()}
@@ -571,18 +637,21 @@ const StoryStatsPage = ({ story, onClose }) => {
                     {cpmDays.some(d => d.cpm > 0) && (
                         <div className="ssp-section">
                             <h2 className="ssp-section-title">Avg CPM Per Day
-                                <span style={{ fontSize: 10, fontWeight: 400, opacity: 0.45, marginLeft: 8 }}>LAST 14 DAYS · CHARS / MINS</span>
+                                <span style={{ fontSize: 10, fontWeight: 400, opacity: 0.45, marginLeft: 8 }}>{timeRange === 'ALL' ? 'ALL TIME' : `LAST ${timeRange}`} · CHARS / MINS</span>
                             </h2>
                             {(() => {
-                                const BAR_W = 600;
+                                const numDays = getDaysCount();
+                                const BAR_W = Math.max(600, numDays * 16);
                                 const LABEL_TOP = 14;
                                 const BAR_AREA = 100;
                                 const LABEL_BOT = 20;
                                 const BAR_H = LABEL_TOP + BAR_AREA + LABEL_BOT;
                                 const colW = BAR_W / cpmDays.length;
-                                const gap = 4;
+                                const gap = numDays > 30 ? 2 : 4;
+                                const showLabel = numDays <= 30;
                                 return (
-                                    <svg viewBox={`0 0 ${BAR_W} ${BAR_H}`} className="ssp-chart-svg" preserveAspectRatio="xMidYMid meet" style={{ height: BAR_H }}>
+                                    <div className="ssp-chart-scroll-wrapper" ref={(el) => { if (el) el.scrollLeft = el.scrollWidth; }}>
+                                        <svg viewBox={`0 0 ${BAR_W} ${BAR_H}`} className="ssp-chart-svg" preserveAspectRatio="none" style={{ height: BAR_H, width: `${BAR_W}px` }}>
                                         {cpmDays.map((day, i) => {
                                             const barH = day.cpm > 0 ? Math.max(4, Math.round((day.cpm / maxCpmDay) * BAR_AREA)) : 3;
                                             const x = i * colW + gap / 2;
@@ -623,6 +692,7 @@ const StoryStatsPage = ({ story, onClose }) => {
                                             );
                                         })}
                                     </svg>
+                                </div>
                                 );
                             })()}
                         </div>
@@ -632,18 +702,21 @@ const StoryStatsPage = ({ story, onClose }) => {
                     {lookupRateDays.some(d => d.lookupRate > 0) && (
                         <div className="ssp-section">
                             <h2 className="ssp-section-title">Lookup Rate Per Day
-                                <span style={{ fontSize: 10, fontWeight: 400, opacity: 0.45, marginLeft: 8 }}>LAST 14 DAYS · % OF CHARS LOOKED UP</span>
+                                <span style={{ fontSize: 10, fontWeight: 400, opacity: 0.45, marginLeft: 8 }}>{timeRange === 'ALL' ? 'ALL TIME' : `LAST ${timeRange}`} · % OF CHARS LOOKED UP</span>
                             </h2>
                             {(() => {
-                                const BAR_W = 600;
+                                const numDays = getDaysCount();
+                                const BAR_W = Math.max(600, numDays * 16);
                                 const LABEL_TOP = 14;
                                 const BAR_AREA = 100;
                                 const LABEL_BOT = 20;
                                 const BAR_H = LABEL_TOP + BAR_AREA + LABEL_BOT;
                                 const colW = BAR_W / lookupRateDays.length;
-                                const gap = 4;
+                                const gap = numDays > 30 ? 2 : 4;
+                                const showLabel = numDays <= 30;
                                 return (
-                                    <svg viewBox={`0 0 ${BAR_W} ${BAR_H}`} className="ssp-chart-svg" preserveAspectRatio="xMidYMid meet" style={{ height: BAR_H }}>
+                                    <div className="ssp-chart-scroll-wrapper" ref={(el) => { if(el) el.scrollLeft = el.scrollWidth; }}>
+                                        <svg viewBox={`0 0 ${BAR_W} ${BAR_H}`} className="ssp-chart-svg" preserveAspectRatio="none" style={{ height: BAR_H, width: `${BAR_W}px` }}>
                                         {lookupRateDays.map((day, i) => {
                                             const normalizedHeight = day.lookupRate > 0 ? (day.lookupRate / maxLookupRate) : 0;
                                             const barH = day.lookupRate > 0 ? Math.max(4, Math.round(normalizedHeight * BAR_AREA)) : 3;
@@ -685,6 +758,7 @@ const StoryStatsPage = ({ story, onClose }) => {
                                             );
                                         })}
                                     </svg>
+                                </div>
                                 );
                             })()}
                         </div>

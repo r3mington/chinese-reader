@@ -2676,3 +2676,51 @@ button:active {
 .quote-mark-highlight {
     color: rgba(100, 200, 255, 0.5) !important;
 }
+/* ============================================
+   STATS TIME RANGE TABS
+   ============================================ */
+.ssp-time-range-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+    background: rgba(255, 255, 255, 0.04);
+    padding: 6px;
+    border-radius: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+.ssp-time-range-tabs::-webkit-scrollbar {
+    display: none;
+}
+.ssp-time-tab {
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+.ssp-time-tab.active {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+.ssp-time-tab:hover:not(.active) {
+    color: rgba(255, 255, 255, 0.8);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.ssp-chart-scroll-wrapper {
+    overflow-x: auto;
+    width: 100%;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    scroll-behavior: smooth;
+}
+.ssp-chart-scroll-wrapper::-webkit-scrollbar {
+    display: none;
+}

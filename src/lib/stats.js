@@ -112,8 +112,8 @@ export const endReadingSession = async () => {
 
     const durationMinutes = totalDurationMs / 1000 / 60;
 
-    // Only save sessions of at least 3 minutes
-    if (durationMinutes >= 3) {
+    // Only save sessions of at least 30 seconds
+    if (durationMinutes >= 0.5) {
         await updateReadingTime(durationMinutes);
 
         if (currentStoryId && !isCurrentStoryRead) {
