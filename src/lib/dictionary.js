@@ -208,9 +208,16 @@ const calculateEntryScore = (entry) => {
     // Brevity & Cross-References
     // - Only measure the length of the FIRST definition so highly common multi-meaning words don't accumulate massive penalties
     // - Sink CEDICT cross-references (e.g. "see [lao4]")
+    // - Penalize Proper Nouns (which are Capitalized in CEDICT) to push common lower-case verbs/nouns up.
     if (entry.definitions && entry.definitions.length > 0) {
-        const firstDef = entry.definitions[0].toLowerCase();
+        const originalFirstDef = entry.definitions[0];
+        const firstDef = originalFirstDef.toLowerCase();
         
+        const firstChar = originalFirstDef.charAt(0);
+        if (firstChar >= 'A' && firstChar <= 'Z') {
+            score += 2000;
+        }
+
         if (firstDef.startsWith('see ') && firstDef.includes('[')) {
             score += 500;
         }
