@@ -223,6 +223,10 @@ const calculateEntryScore = (entry) => {
         }
         
         score += firstDef.length;
+        
+        // Bonus for having more definitions (highly common usages have many nuances in CEDICT)
+        // Subtract 15 points for every definition to give an edge to comprehensive entries over obscure single-meaning ones.
+        score -= (entry.definitions.length * 15);
     }
 
     return score;
