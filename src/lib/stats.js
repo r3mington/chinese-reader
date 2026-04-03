@@ -515,7 +515,7 @@ export const getGlobalStats = async () => {
         totalChars += bookChars;
         totalLookups += bookLookups;
 
-        allSessions = allSessions.concat(sessions);
+        allSessions = allSessions.concat(sessions.map(s => ({ ...s, storyId })));
 
         const validCpms = sessions.filter(s => s.cpm > 0).map(s => s.cpm);
         const bookBest = validCpms.length > 0 ? Math.max(...validCpms) : 0;
@@ -597,5 +597,6 @@ export const getGlobalStats = async () => {
         dailyCpmLog,
         books: books.sort((a, b) => new Date(b.lastSession) - new Date(a.lastSession)),
         todayByBook,
+        allSessions,
     };
 };

@@ -86,6 +86,60 @@ const GlobalStatsPage = ({ onClose }) => {
         return days;
     };
 
+    const buildCumulativeData = () => {
+        if (!stats.allSessions || stats.allSessions.length === 0) return { days: [], bookIds: [] };
+        
+        const sorted = [...stats.allSessions].sort((a,b) => new Date(a.date) - new Date(b.date));
+        
+        const oldestSessionDateStr = sorted[0].date.split('T')[0];
+        const oldestSessionDate = new Date(oldestSessionDateStr + "T00:00:00");
+        const endDay = new Date();
+        
+        const numDays = getDaysCount();
+        const firstVisibleDate = new Date();
+        firstVisibleDate.setDate(firstVisibleDate.getDate() - numDays + 1);
+
+        const dailyCharsByBook = {}; 
+        sorted.forEach(s => {
+            const dateKey = s.date.split('T')[0];
+            if (!dailyCharsByBook[dateKey]) dailyCharsByBook[dateKey] = {};
+            dailyCharsByBook[dateKey][s.storyId] = (dailyCharsByBook[dateKey][s.storyId] || 0) + s.chars;
+        });
+
+        const startComputeDate = new Date(Math.min(oldestSessionDate, firstVisibleDate));
+        
+        const visibleDays = [];
+        let runningTotals = {};
+        
+        for (let d = new Date(startComputeDate); d <= endDay; d.setDate(d.getDate() + 1)) {
+            const dateStr = d.toISOString().split('T')[0];
+            
+            if (dailyCharsByBook[dateStr]) {
+                Object.keys(dailyCharsByBook[dateStr]).forEach(bookId => {
+                    runningTotals[bookId] = (runningTotals[bookId] || 0) + dailyCharsByBook[dateStr][bookId];
+                });
+            }
+            
+            if (d >= firstVisibleDate || dateStr === firstVisibleDate.toISOString().split('T')[0]) {
+                let totalRow = 0;
+                Object.values(runningTotals).forEach(v => totalRow += v);
+                
+                visibleDays.push({
+                    key: dateStr,
+                    label: d.toLocaleDateString('en-US', { weekday: 'short' }), 
+                    dateLabel: d.toLocaleDateString('en-US', { month: 'short' }),
+                    fullDate: d.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }),
+                    isFirstOfMonth: d.getDate() === 1,
+                    books: { ...runningTotals },
+                    total: totalRow
+                });
+            }
+        }
+        
+        const bookIds = Array.from(new Set(sorted.map(s => s.storyId)));
+        return { days: visibleDays, bookIds };
+    };
+
     if (loading) {
         return (
             <div className="ssp-overlay">
@@ -440,6 +494,126 @@ const GlobalStatsPage = ({ onClose }) => {
                             })()}
                         </div>
                     )}
+
+                    {/* --- NEW CUMULATIVE CHARTS --- */}
+                    {(() => {
+                        const cumulData = buildCumulativeData();
+                        if (cumulData.days.length <= 1) return null;
+                        
+                        const colors = ['#2962FF', '#7c3aed', '#f59e0b', '#4ade80', '#ec4899', '#06b6d4', '#f43f5e', '#8b5cf6', '#14b8a6', '#f97316'];
+                        const numDays = getDaysCount();
+                        const BAR_W = Math.max(600, numDays * 16);
+                        const LABEL_TOP = 14;
+                        const BAR_AREA = 100;
+                        const LABEL_BOT = 20;
+                        const BAR_H = LABEL_TOP + BAR_AREA + LABEL_BOT;
+                        const maxI = Math.max(1, cumulData.days.length - 1);
+                        const getX = (i) => (i / maxI) * BAR_W;
+                        const showLabel = numDays <= 30;
+                        const maxTotal = cumulData.days[cumulData.days.length - 1].total || 1;
+
+                        const stackedAtDay = cumulData.days.map(day => {
+                            let currentY = 0;
+                            return cumulData.bookIds.map(bId => {
+                                const val = day.books[bId] || 0;
+                                const top = currentY + val;
+                                const res = { bookId: bId, bottom: currentY, top };
+                                currentY = top;
+                                return res;
+                            });
+                        });
+                        
+                        const singleLinePts = cumulData.days.map((d, i) => `${getX(i)},${LABEL_TOP + BAR_AREA - (d.total / maxTotal) * BAR_AREA}`).join(' ');
+                        const singleAreaPts = `${getX(0)},${LABEL_TOP + BAR_AREA} ${singleLinePts} ${getX(maxI)},${LABEL_TOP + BAR_AREA}`;
+
+                        return (
+                            <>
+                                {/* Option 1: Mountain of Characters */}
+                                <div className="ssp-section">
+                                    <h2 className="ssp-section-title">Mountain of Characters
+                                        <span style={{ fontSize: 10, fontWeight: 400, opacity: 0.45, marginLeft: 8 }}>CUMULATIVE BY BOOK</span>
+                                    </h2>
+                                    <div className="ssp-chart-scroll-wrapper" ref={(el) => { if(el) el.scrollLeft = el.scrollWidth; }}>
+                                        <svg viewBox={`0 0 ${BAR_W} ${BAR_H}`} className="ssp-chart-svg" preserveAspectRatio="none" style={{ height: BAR_H, width: `${BAR_W}px` }}>
+                                            {cumulData.bookIds.map((bId, bookIdx) => {
+                                                const topPts = [];
+                                                const botPts = [];
+                                                cumulData.days.forEach((day, i) => {
+                                                    const x = getX(i);
+                                                    const stack = stackedAtDay[i][bookIdx];
+                                                    topPts.push(`${x},${LABEL_TOP + BAR_AREA - (stack.top / maxTotal) * BAR_AREA}`);
+                                                    botPts.unshift(`${x},${LABEL_TOP + BAR_AREA - (stack.bottom / maxTotal) * BAR_AREA}`);
+                                                });
+                                                return <polygon key={bId} points={`${topPts.join(' ')} ${botPts.join(' ')}`} fill={colors[bookIdx % colors.length]} opacity="0.85" />;
+                                            })}
+                                            
+                                            {/* Labels and tooltips */}
+                                            {cumulData.days.map((day, i) => {
+                                                const x = getX(i);
+                                                const isToday = i === maxI;
+                                                const topBooksStr = cumulData.bookIds.map(id => ({ id, val: day.books[id] || 0 })).filter(b => b.val > 0).sort((a,b) => b.val - a.val).map(b => `${storyMap[b.id] || 'Unknown'}: ${b.val.toLocaleString()}`).join('\n');
+                                                const snapW = BAR_W / cumulData.days.length;
+                                                return (
+                                                    <g key={`hover-${i}`}>
+                                                        <rect x={Math.max(0, x - snapW/2)} y={0} width={snapW} height={BAR_H - LABEL_BOT} fill="transparent" style={{ cursor: 'crosshair' }}>
+                                                            <title>{`${day.fullDate}\nTotal: ${day.total.toLocaleString()} chars\n\n${topBooksStr}`}</title>
+                                                        </rect>
+                                                        {showLabel ? (
+                                                            <text x={x} y={LABEL_TOP + BAR_AREA + LABEL_BOT - 2} textAnchor="middle" fill={isToday ? 'rgba(74,222,128,0.6)' : 'rgba(255,255,255,0.25)'} fontSize="8">
+                                                                {isToday ? 'T' : day.label.slice(0, 1)}
+                                                            </text>
+                                                        ) : (
+                                                            day.isFirstOfMonth && <text x={x} y={LABEL_TOP + BAR_AREA + LABEL_BOT - 2} textAnchor="middle" fill="rgba(255,255,255,0.45)" fontSize="9" fontWeight="bold">{day.dateLabel}</text>
+                                                        )}
+                                                    </g>
+                                                );
+                                            })}
+                                        </svg>
+                                    </div>
+                                </div>
+
+                                {/* Option 3: Milestone Curve */}
+                                <div className="ssp-section">
+                                    <h2 className="ssp-section-title">Milestone Curve
+                                        <span style={{ fontSize: 10, fontWeight: 400, opacity: 0.45, marginLeft: 8 }}>CUMULATIVE OVERALL</span>
+                                    </h2>
+                                    <div className="ssp-chart-scroll-wrapper" ref={(el) => { if(el) el.scrollLeft = el.scrollWidth; }}>
+                                        <svg viewBox={`0 0 ${BAR_W} ${BAR_H}`} className="ssp-chart-svg" preserveAspectRatio="none" style={{ height: BAR_H, width: `${BAR_W}px` }}>
+                                            <defs>
+                                                <linearGradient id="mileGrad" x1="0" y1="0" x2="0" y2="1">
+                                                    <stop offset="0%" stopColor="#ec4899" stopOpacity="0.4" />
+                                                    <stop offset="100%" stopColor="#ec4899" stopOpacity="0.0" />
+                                                </linearGradient>
+                                            </defs>
+                                            <polygon points={singleAreaPts} fill="url(#mileGrad)" />
+                                            <polyline points={singleLinePts} fill="none" stroke="#ec4899" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                            
+                                            {/* Labels and tooltips */}
+                                            {cumulData.days.map((day, i) => {
+                                                const x = getX(i);
+                                                const isToday = i === maxI;
+                                                const snapW = BAR_W / cumulData.days.length;
+                                                return (
+                                                    <g key={`hover3-${i}`}>
+                                                        <rect x={Math.max(0, x - snapW/2)} y={0} width={snapW} height={BAR_H - LABEL_BOT} fill="transparent" style={{ cursor: 'crosshair' }}>
+                                                            <title>{`${day.fullDate}\nTotal: ${day.total.toLocaleString()} chars`}</title>
+                                                        </rect>
+                                                        {showLabel ? (
+                                                            <text x={x} y={LABEL_TOP + BAR_AREA + LABEL_BOT - 2} textAnchor="middle" fill={isToday ? 'rgba(74,222,128,0.6)' : 'rgba(255,255,255,0.25)'} fontSize="8">
+                                                                {isToday ? 'T' : day.label.slice(0, 1)}
+                                                            </text>
+                                                        ) : (
+                                                            day.isFirstOfMonth && <text x={x} y={LABEL_TOP + BAR_AREA + LABEL_BOT - 2} textAnchor="middle" fill="rgba(255,255,255,0.45)" fontSize="9" fontWeight="bold">{day.dateLabel}</text>
+                                                        )}
+                                                    </g>
+                                                );
+                                            })}
+                                        </svg>
+                                    </div>
+                                </div>
+                            </>
+                        );
+                    })()}
 
                     {/* Today's Reading */}
                     {Object.keys(stats.todayByBook || {}).length > 0 && (() => {
