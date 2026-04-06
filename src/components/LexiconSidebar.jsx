@@ -256,6 +256,21 @@ const LexiconSidebar = ({ data }) => {
         setIsProperName(newStatus);
     };
 
+    const handlePlecoExport = () => {
+        if (starredWordsList.length === 0) return;
+        const content = starredWordsList.map(sw => sw.word).join('\n');
+        const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        const dateStr = new Date().toISOString().split('T')[0];
+        a.download = `ChineseReader_Pleco_Export_${dateStr}.txt`;
+        a.href = url;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    };
+
     // Character Breakdown Logic
     const getBreakdown = () => {
         try {
@@ -360,8 +375,16 @@ const LexiconSidebar = ({ data }) => {
             <div className="lexicon-scroll-area">
                 {viewMode === 'starred' ? (
                     <div style={{ padding: '0 20px 20px 20px' }}>
-                        <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', letterSpacing: '2px', marginBottom: 16, marginTop: 16 }}>
-                            STARRED VOCABULARY
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, marginTop: 16 }}>
+                            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', letterSpacing: '2px' }}>
+                                STARRED VOCABULARY
+                            </div>
+                            {starredWordsList.length > 0 && (
+                                <button className="lex-action-btn" onClick={handlePlecoExport} style={{ padding: '4px 8px', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px', background: 'var(--accent-blue)', color: '#000', fontWeight: 'bold' }}>
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                                    Export to Pleco
+                                </button>
+                            )}
                         </div>
                         {starredWordsList.length === 0 && (
                             <div style={{ opacity: 0.5, fontSize: '13px', fontStyle: 'italic' }}>No words saved yet. Press 'l' to star a word.</div>
