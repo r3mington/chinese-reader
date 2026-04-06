@@ -154,7 +154,39 @@ const GlobalStatsPage = ({ onClose }) => {
     const maxChars = Math.max(...charsDays.map(d => d.chars), 1);
     const cpmDays = buildActivityData(stats.dailyCpmLog || {}, 'cpm');
     const maxCpmDay = Math.max(...cpmDays.map(d => d.cpm), 1);
-    const estPages = stats.totalChars ? Math.round(stats.totalChars / 500) : 0;
+
+    const BOOK_COLORS = ['#2962FF', '#7c3aed', '#f59e0b', '#4ade80', '#ec4899', '#06b6d4', '#f43f5e', '#8b5cf6', '#14b8a6', '#f97316'];
+
+    // W/W calculation: rolling 7-day vs prior 7-day
+    const calcWoW = (dailyLog) => {
+        const today = new Date();
+        let thisWeek = 0, lastWeek = 0;
+        for (let i = 0; i < 7; i++) {
+            const d = new Date(today);
+            d.setDate(today.getDate() - i);
+            const k = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+            thisWeek += dailyLog[k] || 0;
+        }
+        for (let i = 7; i < 14; i++) {
+            const d = new Date(today);
+            d.setDate(today.getDate() - i);
+            const k = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+            lastWeek += dailyLog[k] || 0;
+        }
+        if (lastWeek === 0) return thisWeek > 0 ? null : null;
+        return Math.round(((thisWeek - lastWeek) / lastWeek) * 100);
+    };
+    const wowMins = calcWoW(stats.dailyLog || {});
+    const wowChars = calcWoW(stats.dailyCharsLog || {});
+    const fmtWoW = (v) => {
+        if (v === null) return { label: '--', color: 'rgba(255,255,255,0.4)', arrow: '' };
+        if (v > 0) return { label: `+${v}%`, color: '#4ade80', arrow: '▲' };
+        if (v < 0) return { label: `${v}%`, color: '#f87171', arrow: '▼' };
+        return { label: '0%', color: 'rgba(255,255,255,0.4)', arrow: '–' };
+    };
+    const wowMinsFormatted = fmtWoW(wowMins);
+    const wowCharsFormatted = fmtWoW(wowChars);
+
 
     return (
         <div className="ssp-overlay" onClick={onClose}>
@@ -175,83 +207,10 @@ const GlobalStatsPage = ({ onClose }) => {
 
                 <div className="ssp-body">
 
-                    {/* Hero Summary */}
-                    <div className="ssp-hero-grid">
-                        <div className="ssp-stat-card">
-                            <span className="ssp-card-value">{formatDuration(stats.totalTime)}</span>
-                            <span className="ssp-card-label">Total Time</span>
-                        </div>
-                        <div className="ssp-stat-card">
-                            <span className="ssp-card-value">{(stats.totalChars || 0).toLocaleString()}</span>
-                            <span className="ssp-card-label">Chars Read</span>
-                        </div>
-                        <div className="ssp-stat-card">
-                            <span className="ssp-card-value">{uniqueChars.toLocaleString()}</span>
-                            <span className="ssp-card-label">Unique Chars</span>
-                        </div>
-                        <div className="ssp-stat-card">
-                            <span className="ssp-card-value">{(stats.totalLookups || 0).toLocaleString()}</span>
-                            <span className="ssp-card-label">Total Lookups</span>
-                        </div>
-                        <div className="ssp-stat-card">
-                            <span className="ssp-card-value">{stats.totalSessions}</span>
-                            <span className="ssp-card-label">Sessions</span>
-                        </div>
-                        <div className="ssp-stat-card">
-                            <span className="ssp-card-value">{stats.avgCpm || '--'}</span>
-                            <span className="ssp-card-label">Avg CPM</span>
-                        </div>
-                        <div className="ssp-stat-card ssp-card-accent">
-                            <span className="ssp-card-value">{stats.bestCpm || '--'}</span>
-                            <span className="ssp-card-label">Best CPM</span>
-                        </div>
-                        <div className="ssp-stat-card">
-                            <span className="ssp-card-value">{estPages}</span>
-                            <span className="ssp-card-label">Est. Pages</span>
-                        </div>
-                    </div>
-
-                    {/* Insights */}
-                    <div className="ssp-section">
-                        <h2 className="ssp-section-title">Insights</h2>
-                        <div className="ssp-insights-row">
-                            <div className="ssp-insight-pill">
-                                <span className="ssp-insight-icon">🔥</span>
-                                <div>
-                                    <div className="ssp-insight-value">{stats.streak} day{stats.streak !== 1 ? 's' : ''}</div>
-                                    <div className="ssp-insight-desc">Reading streak</div>
-                                </div>
-                            </div>
-                            <div className="ssp-insight-pill">
-                                <span className="ssp-insight-icon">📚</span>
-                                <div>
-                                    <div className="ssp-insight-value">{stats.books.length}</div>
-                                    <div className="ssp-insight-desc">Books started</div>
-                                </div>
-                            </div>
-                            <div className="ssp-insight-pill">
-                                <span className="ssp-insight-icon">⚡</span>
-                                <div>
-                                    <div className="ssp-insight-value">{stats.bestCpm || '--'} CPM</div>
-                                    <div className="ssp-insight-desc">All-time best</div>
-                                </div>
-                            </div>
-                            {stats.totalSessions > 0 && (
-                                <div className="ssp-insight-pill">
-                                    <span className="ssp-insight-icon">⏱️</span>
-                                    <div>
-                                        <div className="ssp-insight-value">{formatDuration(stats.totalTime / Math.max(stats.totalSessions, 1))}</div>
-                                        <div className="ssp-insight-desc">Avg session length</div>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Time Range Tabs */}
+                    {/* Time Range Tabs — sticky, right below header */}
                     <div className="ssp-time-range-tabs">
                         {['7D', '14D', '30D', '6M', 'ALL'].map(t => (
-                            <button 
+                            <button
                                 key={t}
                                 className={`ssp-time-tab ${timeRange === t ? 'active' : ''}`}
                                 onClick={() => setTimeRange(t)}
@@ -260,6 +219,35 @@ const GlobalStatsPage = ({ onClose }) => {
                             </button>
                         ))}
                     </div>
+
+                    {/* Hero 3-card row */}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, padding: '0 20px 20px 20px' }}>
+                        {/* Card 1: Lifetime chars */}
+                        <div style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '16px 14px' }}>
+                            <div style={{ fontSize: 28, fontWeight: 700, color: '#fff', lineHeight: 1, letterSpacing: '-1px' }}>
+                                {(stats.totalChars || 0) >= 1000 ? `${((stats.totalChars || 0) / 1000).toFixed(1)}k` : (stats.totalChars || 0)}
+                            </div>
+                            <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)', letterSpacing: '1.5px', marginTop: 6 }}>LIFETIME CHARS</div>
+                            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', marginTop: 4 }}>{formatDuration(stats.totalTime)} total</div>
+                        </div>
+                        {/* Card 2: W/W minutes */}
+                        <div style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '16px 14px' }}>
+                            <div style={{ fontSize: 28, fontWeight: 700, color: wowMinsFormatted.color, lineHeight: 1, letterSpacing: '-1px' }}>
+                                {wowMinsFormatted.arrow} {wowMinsFormatted.label}
+                            </div>
+                            <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)', letterSpacing: '1.5px', marginTop: 6 }}>W/W MINUTES</div>
+                            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', marginTop: 4 }}>vs prior 7 days</div>
+                        </div>
+                        {/* Card 3: W/W chars */}
+                        <div style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '16px 14px' }}>
+                            <div style={{ fontSize: 28, fontWeight: 700, color: wowCharsFormatted.color, lineHeight: 1, letterSpacing: '-1px' }}>
+                                {wowCharsFormatted.arrow} {wowCharsFormatted.label}
+                            </div>
+                            <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)', letterSpacing: '1.5px', marginTop: 6 }}>W/W CHARS</div>
+                            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', marginTop: 4 }}>vs prior 7 days</div>
+                        </div>
+                    </div>
+
 
                     {/* 14-day Activity Bar Chart */}
                     <div className="ssp-section">
@@ -615,84 +603,94 @@ const GlobalStatsPage = ({ onClose }) => {
                         );
                     })()}
 
-                    {/* Today's Reading */}
-                    {Object.keys(stats.todayByBook || {}).length > 0 && (() => {
-                        const todayEntries = Object.entries(stats.todayByBook);
-                        const totalTodayMins = todayEntries.reduce((a, [, v]) => a + v.mins, 0);
-                        const totalTodayChars = todayEntries.reduce((a, [, v]) => a + v.chars, 0);
-                        const totalTodayCpm = totalTodayMins > 0 ? Math.round(totalTodayChars / totalTodayMins) : 0;
+                    {/* Reading Heatmap (full year) */}
+                    {(() => {
+                        const dailyLog = stats.dailyLog || {};
+                        const COLS = 53;
+                        const ROWS = 7;
+                        const CELL = 11;
+                        const GAP = 2;
+                        const W = COLS * (CELL + GAP);
+                        const H = ROWS * (CELL + GAP) + 20;
+                        const today = new Date();
+                        // Align so today is the last cell
+                        const cells = [];
+                        const monthLabels = [];
+                        const totalCells = COLS * ROWS;
+                        for (let i = totalCells - 1; i >= 0; i--) {
+                            const d = new Date(today);
+                            d.setDate(today.getDate() - i);
+                            const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+                            const mins = dailyLog[key] || 0;
+                            const idx = totalCells - 1 - i;
+                            const col = Math.floor(idx / ROWS);
+                            const row = idx % ROWS;
+                            const x = col * (CELL + GAP);
+                            const y = row * (CELL + GAP) + 18;
+                            let opacity = 0.06;
+                            if (mins > 0 && mins <= 20) opacity = 0.35;
+                            else if (mins > 20 && mins <= 40) opacity = 0.65;
+                            else if (mins > 40) opacity = 1;
+                            if (d.getDate() === 1 && col < COLS - 1) {
+                                monthLabels.push({ x, label: d.toLocaleDateString('en-US', { month: 'short' }) });
+                            }
+                            cells.push({ x, y, key, mins, fullDate: d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }), opacity });
+                        }
                         return (
-                            <div className="ssp-section" style={{ borderColor: 'rgba(74,222,128,0.2)', background: 'rgba(74,222,128,0.02)' }}>
-                                <h2 className="ssp-section-title" style={{ color: '#4ade80' }}>
-                                    Today
-                                    <span style={{ fontSize: 10, fontWeight: 400, color: 'rgba(74,222,128,0.5)', marginLeft: 8 }}>
-                                        {formatDuration(totalTodayMins)} · {totalTodayChars.toLocaleString()} chars · {totalTodayCpm} CPM
-                                    </span>
-                                </h2>
-                                <div className="ssp-table-wrapper">
-                                    <table className="ssp-table">
-                                        <thead>
-                                            <tr>
-                                                <th>Book</th>
-                                                <th>Time</th>
-                                                <th>Chars</th>
-                                                <th>Sessions</th>
-                                                <th>CPM</th>
-                                                <th>Lookups</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {todayEntries.map(([storyId, v], i) => (
-                                                <tr key={i}>
-                                                    <td style={{ fontWeight: 600, color: '#fff' }}>{storyMap[storyId] || storyId}</td>
-                                                    <td style={{ color: '#4ade80' }}>{formatDuration(v.mins)}</td>
-                                                    <td>{v.chars.toLocaleString()}</td>
-                                                    <td className="ssp-td-muted">{v.sessions}</td>
-                                                    <td>{v.cpm || '--'}</td>
-                                                    <td className="ssp-td-muted">{v.lookups}</td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
+                            <div className="ssp-section">
+                                <h2 className="ssp-section-title">Reading Heatmap <span style={{ fontSize: 10, fontWeight: 400, opacity: 0.45, marginLeft: 8 }}>FULL YEAR</span></h2>
+                                <div className="ssp-chart-scroll-wrapper" style={{ overflowX: 'auto' }}>
+                                    <svg width={W} height={H} style={{ display: 'block' }}>
+                                        {monthLabels.map((m, i) => (
+                                            <text key={i} x={m.x} y={13} fill="rgba(255,255,255,0.35)" fontSize="8" fontWeight="bold">{m.label}</text>
+                                        ))}
+                                        {cells.map((c, i) => (
+                                            <rect key={i} x={c.x} y={c.y} width={CELL} height={CELL} rx="2" fill="#2962FF" opacity={c.opacity}>
+                                                <title>{`${c.fullDate}\n${c.mins > 0 ? `${Math.round(c.mins)}mn read` : 'No reading'}`}</title>
+                                            </rect>
+                                        ))}
+                                    </svg>
                                 </div>
                             </div>
                         );
                     })()}
 
-                    {/* Per-book breakdown */}
-                    {stats.books.length > 0 && (
-                        <div className="ssp-section">
-                            <h2 className="ssp-section-title">By Book</h2>
-                            <div className="ssp-table-wrapper">
-                                <table className="ssp-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Book</th>
-                                            <th>Time</th>
-                                            <th>Chars</th>
-                                            <th>Sessions</th>
-                                            <th>Avg CPM</th>
-                                            <th>Last Read</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {stats.books.map((book, i) => (
-                                            <tr key={i}>
-                                                <td style={{ fontWeight: 600, color: '#fff' }}>
-                                                    {storyMap[book.storyId] || book.storyId}
-                                                </td>
-                                                <td>{formatDuration(book.totalTime)}</td>
-                                                <td>{(book.totalChars || 0).toLocaleString()}</td>
-                                                <td className="ssp-td-muted">{book.sessions}</td>
-                                                <td>{book.avgCpm || '--'}</td>
-                                                <td className="ssp-td-muted">{formatDate(book.lastSession)}</td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                    {/* Per-book visual breakdown */}
+                    {stats.books.length > 0 && (() => {
+                        const totalChars = stats.books.reduce((a, b) => a + (b.totalChars || 0), 0) || 1;
+                        const sorted = [...stats.books].sort((a, b) => (b.totalChars || 0) - (a.totalChars || 0));
+                        return (
+                            <div className="ssp-section">
+                                <h2 className="ssp-section-title">By Book</h2>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                                    {sorted.map((book, i) => {
+                                        const pct = Math.round(((book.totalChars || 0) / totalChars) * 100);
+                                        const color = BOOK_COLORS[i % BOOK_COLORS.length];
+                                        return (
+                                            <div key={i} style={{ display: 'grid', gridTemplateColumns: '12px 1fr auto', gap: 10, alignItems: 'center', padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                                                <div style={{ width: 10, height: 10, borderRadius: '50%', background: color, flexShrink: 0 }} />
+                                                <div style={{ minWidth: 0 }}>
+                                                    <div style={{ fontSize: 13, fontWeight: 600, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                                        {storyMap[book.storyId] || book.storyId}
+                                                    </div>
+                                                    <div style={{ display: 'flex', gap: 8, marginTop: 4, alignItems: 'center' }}>
+                                                        <div style={{ height: 4, borderRadius: 2, background: color, opacity: 0.7, width: `${pct}%`, maxWidth: '100%', transition: 'width 0.4s' }} />
+                                                        <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', whiteSpace: 'nowrap' }}>{pct}%</span>
+                                                    </div>
+                                                </div>
+                                                <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                                                    <div style={{ fontSize: 13, color: '#fff', fontWeight: 500 }}>
+                                                        {(book.totalChars || 0) >= 1000 ? `${((book.totalChars || 0)/1000).toFixed(1)}k` : (book.totalChars || 0)} ch
+                                                    </div>
+                                                    <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', marginTop: 2 }}>{formatDuration(book.totalTime)}</div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
                             </div>
-                        </div>
-                    )}
+                        );
+                    })()}
 
                     {stats.books.length === 0 && (
                         <div className="ssp-empty">No reading sessions recorded yet. Start reading to see your stats!</div>
