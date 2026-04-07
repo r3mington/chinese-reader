@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { lookupAt } from '../lib/dictionary';
 import { saveBookmark, getBookmark } from '../lib/storage';
-import { startReadingSession, endReadingSession, initStoryTracking, trackScrollProgress, trackSessionLookup, pauseStats, resumeStats, getIsPaused } from '../lib/stats';
+import { startReadingSession, endReadingSession, initStoryTracking, trackScrollProgress, trackSessionLookup, pauseStats, resumeStats, getIsPaused, checkpointSession, recoverSessionDraft } from '../lib/stats';
 import { trackWordClick, getVocabularyList } from '../lib/vocabulary';
 import { useIsMobile } from '../lib/useIsMobile';
 import { tokenizeText } from '../lib/tokenizer';
@@ -402,6 +402,9 @@ const Reader = ({ story }) => {
     useEffect(() => {
         if (!story) return;
 
+        // On each story mount, recover any crashed session draft first
+        recoverSessionDraft();
+
         // Start session immediately if page is visible
         if (!document.hidden) {
             startReadingSession();
@@ -433,9 +436,15 @@ const Reader = ({ story }) => {
         document.addEventListener('visibilitychange', handleVisibilityChange);
         window.addEventListener('pagehide', handlePageHide);
 
+        // Periodic checkpoint: save in-flight session every 60s so a crash doesn't lose it
+        const checkpointInterval = setInterval(() => {
+            checkpointSession();
+        }, 60000);
+
         return () => {
             // Story changed or component unmounted — save current session
             endReadingSession();
+            clearInterval(checkpointInterval);
             document.removeEventListener('visibilitychange', handleVisibilityChange);
             window.removeEventListener('pagehide', handlePageHide);
         };

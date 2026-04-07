@@ -2,6 +2,8 @@ import { get, set } from 'idb-keyval';
 
 const STATS_KEY = 'reading_stats';
 const STORY_CPM_KEY = 'story_cpm_stats';
+const DRAFT_KEY = 'session_draft_v1'; // periodic checkpoint of in-flight session
+
 
 // Initial state
 const defaultStats = {
@@ -131,7 +133,81 @@ export const endReadingSession = async () => {
     accumulatedSessionTime = 0;
     sessionStartChars = globalCurrentCharsRead; // update snapshot for next session
     hasMeasuredSinceSessionStart = false;
+
+    // Clear any outstanding draft since we saved properly
+    set(DRAFT_KEY, null).catch(() => {});
 };
+
+/**
+ * Periodically called (every ~60s) to write the in-flight session to IDB.
+ * If the app crashes, recoverSessionDraft() on next launch merges this.
+ */
+export const checkpointSession = async () => {
+    if (!currentStoryId || isCurrentStoryRead) return;
+
+    const now = Date.now();
+    let totalDurationMs = accumulatedSessionTime;
+    if (currentSessionStart && !isPaused) {
+        totalDurationMs += (now - currentSessionStart);
+    }
+    const durationMinutes = totalDurationMs / 1000 / 60;
+    const sessionChars = Math.max(0, globalCurrentCharsRead - sessionStartChars);
+
+    // Only worth saving if we have meaningful data
+    if (durationMinutes < 0.5 && sessionChars === 0) return;
+
+    const draft = {
+        storyId: currentStoryId,
+        durationMinutes,
+        chars: sessionChars,
+        lookups: sessionLookups,
+        date: localDateKey(),
+        savedAt: now
+    };
+
+    try {
+        await set(DRAFT_KEY, draft);
+    } catch (e) {
+        console.warn('Failed to save session draft', e);
+    }
+};
+
+/**
+ * Called once on app init. If a session draft exists from a previous crash,
+ * merges it into the real stats (if the draft is < 24h old and long enough).
+ */
+export const recoverSessionDraft = async () => {
+    try {
+        const draft = await get(DRAFT_KEY);
+        if (!draft) return;
+
+        const ageMs = Date.now() - (draft.savedAt || 0);
+        const tooOld = ageMs > 24 * 60 * 60 * 1000; // ignore drafts older than 24h
+        const tooShort = draft.durationMinutes < 0.5;
+
+        if (tooOld || tooShort) {
+            await set(DRAFT_KEY, null);
+            return;
+        }
+
+        console.log(`[Stats] Recovering crashed session: ${Math.round(draft.durationMinutes)}mn, ${draft.chars} chars`);
+
+        // Merge into real stats
+        if (!savedStats) await loadStats();
+        await updateReadingTime(draft.durationMinutes);
+
+        if (draft.storyId && draft.durationMinutes >= 0.5) {
+            const cpmVal = draft.durationMinutes > 0 ? Math.round(draft.chars / draft.durationMinutes) : 0;
+            await saveSession(draft.storyId, draft.durationMinutes, draft.chars, cpmVal, draft.lookups || 0);
+        }
+
+        // Clear the draft after successful recovery
+        await set(DRAFT_KEY, null);
+    } catch (e) {
+        console.warn('Failed to recover session draft', e);
+    }
+};
+
 
 export const updateReadingTime = async (minutes) => {
     if (!savedStats) await loadStats();
