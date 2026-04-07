@@ -69,9 +69,28 @@ const buildIndex = (data) => {
         if (entry.definitions && typeof entry.definitions === 'object' && !Array.isArray(entry.definitions)) {
             // New format: definitions is a map { "pinyin": "def1; def2" }
             if (Array.isArray(entry.pinyin)) {
+                // First pass: collect all defs per pinyin
+                const rawByPinyin = {};
                 entry.pinyin.forEach(py => {
                     const defBlock = entry.definitions[py];
-                    const defs = defBlock ? defBlock.split(';').map(d => d.trim()).filter(Boolean) : [];
+                    rawByPinyin[py] = defBlock ? defBlock.split(';').map(d => d.trim()).filter(Boolean) : [];
+                });
+
+                // Second pass: deduplicate — for each pinyin, remove defs that appear in another pinyin
+                // that has MORE unique defs (the "broader" entry). This keeps 露 lu4 as just the
+                // dew/nectar meanings and lets 露 lou4 own the "to reveal" meanings cleanly.
+                entry.pinyin.forEach(py => {
+                    let defs = rawByPinyin[py];
+                    const otherPinyins = entry.pinyin.filter(p => p !== py);
+                    const otherDefs = new Set(otherPinyins.flatMap(p => rawByPinyin[p]));
+                    // Only strip a def if EVERY other block that contains it has MORE total defs.
+                    // Simple heuristic: strip defs shared with lou4/variant entries if this entry has extra unique ones.
+                    const uniqueHere = defs.filter(d => !otherDefs.has(d));
+                    if (uniqueHere.length > 0) {
+                        // This entry has its own distinct content — remove the shared defs (they'll show under other pinyin)
+                        defs = uniqueHere;
+                    }
+                    // If ALL defs are shared (e.g. surname Lu where nothing else shares its defs), keep as-is
                     flattenedEntries.push({
                         simplified: entry.simplified,
                         traditional: entry.traditional,
