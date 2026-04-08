@@ -6,6 +6,7 @@ import { trackWordClick, getVocabularyList } from '../lib/vocabulary';
 import { useIsMobile } from '../lib/useIsMobile';
 import { tokenizeText } from '../lib/tokenizer';
 import { translateParagraph } from '../lib/translate';
+import { shouldShowRecap, getPreviousContext } from '../lib/recap';
 import WordPopup from './WordPopup';
 import MobileBottomSheet from './MobileBottomSheet';
 import ColorizedText from './ColorizedText';
@@ -13,6 +14,7 @@ import FloatingActionMenu from './FloatingActionMenu';
 import RecentLookups from './RecentLookups';
 import LexiconSidebar from './LexiconSidebar';
 import StatsToolbar from './StatsToolbar';
+import PreviouslyCard from './PreviouslyCard';
 import { getParagraphComplexity, getComplexityColor } from '../lib/complexity';
 import '../styles/oled.css';
 
@@ -44,6 +46,9 @@ const Reader = ({ story }) => {
     const hoverTimer = useRef(null);
     const isRestoringScroll = useRef(true);
     const isMobile = useIsMobile();
+
+    // "Previously..." recap card state
+    const [recapData, setRecapData] = useState(null); // { paragraphs, bookmarkCharIndex, lastRead }
 
     useEffect(() => {
         const loadWords = async () => {
@@ -463,6 +468,18 @@ const Reader = ({ story }) => {
         const restorePos = async () => {
             const bookmark = await getBookmark(story.id);
             if (bookmark && contentRef.current) {
+                // Show "Previously..." card if the user has been away long enough
+                if (shouldShowRecap(bookmark.lastRead) && story.content) {
+                    // Estimate char index from scroll position (rough: use progress ratio)
+                    const charIndex = Math.floor(
+                        (bookmark.scrollPosition / (contentRef.current.scrollHeight || 1)) * story.content.length
+                    );
+                    const paragraphs = getPreviousContext(story.content, charIndex, 3);
+                    if (paragraphs.length > 0) {
+                        setRecapData({ paragraphs, bookmarkCharIndex: charIndex, lastRead: bookmark.lastRead });
+                    }
+                }
+
                 // Temporarily disable scroll listening
                 isRestoringScroll.current = true;
                 contentRef.current.scrollTop = bookmark.scrollPosition;
@@ -848,6 +865,17 @@ const Reader = ({ story }) => {
                 </>
             ) : (
                 <LexiconSidebar data={popupData} />
+            )}
+
+            {/* Previously card — shown when returning after 30+ min gap */}
+            {recapData && (
+                <PreviouslyCard
+                    storyId={story.id}
+                    paragraphs={recapData.paragraphs}
+                    bookmarkCharIndex={recapData.bookmarkCharIndex}
+                    lastRead={recapData.lastRead}
+                    onDismiss={() => setRecapData(null)}
+                />
             )}
         </div>
     );
