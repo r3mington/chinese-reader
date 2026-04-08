@@ -243,6 +243,17 @@ const calculateEntryScore = (entry) => {
         
         score += firstDef.length;
         
+        // Boost for grammatical/functional words — CEDICT marks these with parenthetical
+        // labels like "(negative prefix for verbs)", "(particle)", "(suffix)", etc.
+        // These are almost always the primary meaning in context.
+        const grammaticalMarkers = ['(negative', '(particle', '(prefix for', '(suffix', '(measure word', '(modal', '(conjunction', '(preposition', '(pronoun'];
+        for (const gm of grammaticalMarkers) {
+            if (firstDef.includes(gm)) {
+                score -= 3000; // Very strong priority boost
+                break;
+            }
+        }
+
         // Bonus for having more definitions (highly common usages have many nuances in CEDICT)
         // Subtract 15 points for every definition to give an edge to comprehensive entries over obscure single-meaning ones.
         score -= (entry.definitions.length * 15);
