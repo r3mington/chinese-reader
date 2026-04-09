@@ -479,7 +479,7 @@ const LexiconSidebar = ({ data }) => {
                                             {idx === 0 && hskLevel && (
                                                 <span className="lexicon-badge hsk-badge ml-auto">HSK {hskLevel}</span>
                                             )}
-                                            {idx === 0 && freqRank && (
+                                            {idx === 0 && freqRank && freqRank <= 20000 && (
                                                 <span className="lexicon-badge freq-badge">🏆 #{freqRank}</span>
                                             )}
                                             {measureWords.length > 0 && (

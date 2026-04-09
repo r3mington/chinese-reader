@@ -45,8 +45,8 @@ for (const line of lines) {
         continue;
     }
 
-    // Only store up to the top 10,000 words to keep file size ultra small
-    if (rank > 10000) break;
+    // Only store up to the top 30,000 words
+    if (rank > 30000) break;
 
     // We store the RANK (1st, 2nd, 3rd most common), not the raw occurrence count.
     frequencyMap[word] = rank;
