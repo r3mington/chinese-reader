@@ -206,13 +206,15 @@ const Reader = ({ story }) => {
                             const finalCharIdx = result.index !== undefined ? result.index : charIdx;
                             setLockedHighlight({ paraIdx, charIdx: finalCharIdx });
 
-                            // Scroll smoothly if it's nearing the edge of the viewport
-                            // Find out if it is in view
+                            // Scroll if it hits the 150px comfortable margin from the edge
                             const rect = targetSpan.getBoundingClientRect();
                             const containerRect = contentRef.current.getBoundingClientRect();
-                            if (rect.top < containerRect.top || rect.bottom > containerRect.bottom) {
-                                targetSpan.scrollIntoView({ behavior: 'auto', block: 'nearest' });
-                                setTimeout(() => measureProgress(), 50);
+                            const margin = 150;
+                            const isVisible = (rect.top >= containerRect.top + margin) && (rect.bottom <= containerRect.bottom - margin);
+                            
+                            if (!isVisible) {
+                                targetSpan.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                setTimeout(() => measureProgress(), 350);
                             }
 
                             // Debounce vocabulary addition so we don't spam IDB when fast scrolling
@@ -292,16 +294,17 @@ const Reader = ({ story }) => {
                             charIdx: targetToken.startIndex
                         });
 
-                        // Scroll into view only if the specific word is out of bounds
+                        // Scroll into view comfortably before it hits the extreme edge of the screen
                         const spanEl = contentRef.current?.querySelector(`[data-para-index="${pIdx}"] [data-index="${targetToken.startIndex}"]`);
                         if (spanEl && contentRef.current) {
                             const rect = spanEl.getBoundingClientRect();
                             const containerRect = contentRef.current.getBoundingClientRect();
-                            const isVisible = (rect.top >= containerRect.top) && (rect.bottom <= containerRect.bottom);
+                            const margin = 150; // pixels
+                            const isVisible = (rect.top >= containerRect.top + margin) && (rect.bottom <= containerRect.bottom - margin);
                             
                             if (!isVisible) {
-                                spanEl.scrollIntoView({ behavior: 'auto', block: 'nearest' });
-                                setTimeout(() => measureProgress(), 50);
+                                spanEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                setTimeout(() => measureProgress(), 350);
                             }
                         }
 
