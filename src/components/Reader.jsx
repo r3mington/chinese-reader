@@ -44,6 +44,7 @@ const Reader = ({ story }) => {
 
     const contentRef = useRef(null);
     const hoverTimer = useRef(null);
+    const navSaveTimeoutRef = useRef(null);
     const isRestoringScroll = useRef(true);
     const isMobile = useIsMobile();
 
@@ -206,19 +207,25 @@ const Reader = ({ story }) => {
                             setLockedHighlight({ paraIdx, charIdx: finalCharIdx });
 
                             // Scroll smoothly if it's nearing the edge of the viewport
-                            targetSpan.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                            // Find out if it is in view
+                            const rect = targetSpan.getBoundingClientRect();
+                            const containerRect = contentRef.current.getBoundingClientRect();
+                            if (rect.top < containerRect.top || rect.bottom > containerRect.bottom) {
+                                targetSpan.scrollIntoView({ behavior: 'auto', block: 'nearest' });
+                                setTimeout(() => measureProgress(), 50);
+                            }
 
-                            // Update progress naturally
-                            setTimeout(() => {
-                                measureProgress();
-                            }, 300);
-
-                            setLookedUpWords(prev => new Set(prev).add(result.word));
-                            setRecentWordsList(prev => {
-                                const filtered = prev.filter(w => w !== result.word);
-                                return [...filtered, result.word].slice(-5);
-                            });
-                            trackWordClick(result.word, story.id);
+                            // Debounce vocabulary addition so we don't spam IDB when fast scrolling
+                            clearTimeout(navSaveTimeoutRef.current);
+                            navSaveTimeoutRef.current = setTimeout(() => {
+                                trackSessionLookup();
+                                setLookedUpWords(prev => new Set(prev).add(result.word));
+                                setRecentWordsList(prev => {
+                                    const filtered = prev.filter(w => w !== result.word);
+                                    return [...filtered, result.word].slice(-5);
+                                });
+                                trackWordClick(result.word, story.id);
+                            }, 500);
                         }
                     }
                     return; // End of w/s logic
@@ -285,24 +292,30 @@ const Reader = ({ story }) => {
                             charIdx: targetToken.startIndex
                         });
 
-                        // Scroll smoothly to the paragraph
-                        const paraEl = contentRef.current?.querySelector(`[data-para-index="${pIdx}"]`);
-                        if (paraEl) {
-                            paraEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-                            // Let the smooth scroll finish before measuring progress
-                            setTimeout(() => {
-                                measureProgress();
-                            }, 300);
+                        // Scroll into view only if the specific word is out of bounds
+                        const spanEl = contentRef.current?.querySelector(`[data-para-index="${pIdx}"] [data-index="${targetToken.startIndex}"]`);
+                        if (spanEl && contentRef.current) {
+                            const rect = spanEl.getBoundingClientRect();
+                            const containerRect = contentRef.current.getBoundingClientRect();
+                            const isVisible = (rect.top >= containerRect.top) && (rect.bottom <= containerRect.bottom);
+                            
+                            if (!isVisible) {
+                                spanEl.scrollIntoView({ behavior: 'auto', block: 'nearest' });
+                                setTimeout(() => measureProgress(), 50);
+                            }
                         }
 
-                        // Update history
-                        setLookedUpWords(prev => new Set(prev).add(targetToken.word));
-                        setRecentWordsList(prev => {
-                            const filtered = prev.filter(w => w !== targetToken.word);
-                            return [...filtered, targetToken.word].slice(-5);
-                        });
-                        trackWordClick(targetToken.word, story.id);
+                        // Debounce IDB history tracking so holding down arrow keys doesn't lag
+                        clearTimeout(navSaveTimeoutRef.current);
+                        navSaveTimeoutRef.current = setTimeout(() => {
+                            trackSessionLookup();
+                            setLookedUpWords(prev => new Set(prev).add(targetToken.word));
+                            setRecentWordsList(prev => {
+                                const filtered = prev.filter(w => w !== targetToken.word);
+                                return [...filtered, targetToken.word].slice(-5);
+                            });
+                            trackWordClick(targetToken.word, story.id);
+                        }, 500);
 
                         found = true;
                         break;
