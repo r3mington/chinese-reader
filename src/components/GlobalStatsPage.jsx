@@ -33,7 +33,28 @@ const GlobalStatsPage = ({ onClose }) => {
     }, []);
 
     const formatDuration = (mins) => {
+        if (!mins) return '0m';
+        if (mins < 60) return `${Math.round(mins)}m`;
+        const h = Math.floor(mins / 60);
+        const m = Math.round(mins % 60);
+        return m > 0 ? `${h}h ${m}m` : `${h}h`;
     };
+
+    const formatDate = (isoString) => {
+        if (!isoString) return '--';
+        const d = new Date(isoString);
+        if (isNaN(d)) return '--';
+        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    };
+
+    const formatTime = (isoString) => {
+        if (!isoString) return '--';
+        const d = new Date(isoString);
+        if (isNaN(d)) return '--';
+        return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+    };
+
+    const localDateKey = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 
     const getDaysCount = () => {
         if (timeRange === '7D') return 7;
