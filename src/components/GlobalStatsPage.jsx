@@ -33,19 +33,6 @@ const GlobalStatsPage = ({ onClose }) => {
     }, []);
 
     const formatDuration = (mins) => {
-        const m = Math.round(mins || 0);
-        if (m < 60) return `${m}mn`;
-        const h = Math.floor(m / 60);
-        const rem = m % 60;
-        return rem > 0 ? `${h}h ${rem}mn` : `${h}h`;
-    };
-
-    const formatDate = (isoStr) => {
-        if (!isoStr) return '--';
-        const d = new Date(isoStr);
-        const today = new Date();
-        if (d.toDateString() === today.toDateString()) return 'Today';
-        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     };
 
     const getDaysCount = () => {
@@ -736,9 +723,65 @@ const GlobalStatsPage = ({ onClose }) => {
                         );
                     })()}
 
-                    {stats.books.length === 0 && (
-                        <div className="ssp-empty">No reading sessions recorded yet. Start reading to see your stats!</div>
-                    )}
+                    {/* All Sessions History */}
+                    <div className="ssp-section">
+                        <h2 className="ssp-section-title">Session History <span style={{ fontSize: 10, fontWeight: 400, opacity: 0.45, marginLeft: 8 }}>ALL BOOKS</span></h2>
+                        {!stats.allSessions || stats.allSessions.length === 0 ? (
+                            <div className="ssp-empty">No sessions recorded yet. Start reading to track your progress!</div>
+                        ) : (
+                            <div className="ssp-table-wrapper">
+                                <table className="ssp-table">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Date</th>
+                                            <th>Time</th>
+                                            <th>Book</th>
+                                            <th>Duration</th>
+                                            <th>Chars</th>
+                                            <th>CPM</th>
+                                            <th>Lookups</th>
+                                            <th>Lookup %</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {[...stats.allSessions]
+                                            .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0))
+                                            .map((session, i) => {
+                                                const sessionCpm = session.duration > 0 ? Math.round((session.chars || 0) / session.duration) : 0;
+                                                const cpmPct = stats.bestCpm > 0 ? Math.round((sessionCpm / stats.bestCpm) * 100) : 0;
+                                                return (
+                                                    <tr key={i}>
+                                                        <td className="ssp-td-num">{stats.allSessions.length - i}</td>
+                                                        <td>{formatDate(session.date)}</td>
+                                                        <td className="ssp-td-muted">{formatTime(session.startTime || session.date)}</td>
+                                                        <td style={{ fontWeight: 600, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '120px' }} title={storyMap[session.storyId] || session.storyId}>
+                                                            {storyMap[session.storyId] || session.storyId}
+                                                        </td>
+                                                        <td>{formatDuration(session.duration)}</td>
+                                                        <td>{(session.chars || 0).toLocaleString()}</td>
+                                                        <td>
+                                                            <div className="ssp-cpm-cell">
+                                                                <span>{sessionCpm || '--'}</span>
+                                                                {sessionCpm > 0 && (
+                                                                    <div className="ssp-cpm-bar-track">
+                                                                        <div className="ssp-cpm-bar-fill" style={{ width: `${cpmPct}%` }} />
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        </td>
+                                                        <td>{(session.lookups || 0).toLocaleString()}</td>
+                                                        <td style={{ color: 'rgba(255,255,255,0.45)' }}>
+                                                            {session.chars > 0 ? ((session.lookups / session.chars) * 100).toFixed(1) + '%' : '--'}
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+                    </div>
 
                 </div>
             </div>
