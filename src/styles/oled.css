@@ -85,9 +85,9 @@ button {
 }
 
 .word-active-highlight {
-    color: #ffffe0 !important;
-    text-shadow: 0 0 10px rgba(255, 255, 224, 0.6);
-    background-color: rgba(255, 255, 224, 0.13);
+    color: #FFD54F !important;
+    text-shadow: 0 0 10px rgba(255, 213, 79, 0.4);
+    background-color: rgba(255, 213, 79, 0.25);
     transform: translateY(-1px);
     z-index: 10;
     position: relative;
