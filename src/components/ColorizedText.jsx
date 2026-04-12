@@ -29,11 +29,13 @@ const ColorizedText = ({ text, enabled = true, lookedUpWords = new Set(), proper
     const elements = useMemo(() => {
         const tokens = tokenizeText(text);
         const spans = [];
+        let inDialog = false;
 
         tokens.forEach((token) => {
             if (token.type === 'dict') {
                 const isLookedUp = lookedUpWords.has(token.word);
                 const lookedUpClass = isLookedUp ? ' word-looked-up' : '';
+                const dialogClass = inDialog ? ' dialog-text' : ' narrative-text';
                 const isHighlighted = activeIndex !== null && activeIndex >= token.startIndex && activeIndex <= token.endIndex;
                 const highlightClass = isHighlighted ? ' word-active-highlight' : '';
                 const isStarAnimating = starAnimationIndex !== null && starAnimationIndex >= token.startIndex && starAnimationIndex <= token.endIndex;
@@ -59,7 +61,7 @@ const ColorizedText = ({ text, enabled = true, lookedUpWords = new Set(), proper
                     spans.push(
                         <span
                             key={`${token.startIndex + index}`}
-                            className={`char-with-tone${toneClass}${lookedUpClass}${highlightClass}${starAnimClass}${freqClass}${properNameClass}`}
+                            className={`char-with-tone${toneClass}${lookedUpClass}${highlightClass}${starAnimClass}${freqClass}${properNameClass}${dialogClass}`}
                             data-word={token.word}
                             data-index={token.startIndex + index}
                             data-pinyin={isHighlighted ? c.pinyin : undefined}
@@ -79,20 +81,38 @@ const ColorizedText = ({ text, enabled = true, lookedUpWords = new Set(), proper
                 }
 
                 let quoteClass = '';
+                let dialogClass = '';
                 const c = token.chars[0].char;
-                if (c === '“' || c === '”' || c === '"') {
+                
+                if (c === '“' || c === '「') {
+                    inDialog = true;
                     quoteClass = ' quote-mark-highlight';
+                } else if (c === '”' || c === '」') {
+                    quoteClass = ' quote-mark-highlight';
+                } else if (c === '"') {
+                    quoteClass = ' quote-mark-highlight';
+                    inDialog = !inDialog; // Handle ambiguous straight quotes explicitly
+                }
+
+                if (inDialog && !quoteClass) {
+                    dialogClass = ' dialog-text';
+                } else if (!inDialog && !quoteClass) {
+                    dialogClass = ' narrative-text';
                 }
 
                 spans.push(
                     <span
                         key={`${token.startIndex}`}
-                        className={`char-with-tone${toneClass}${highlightClass}${quoteClass}`}
+                        className={`char-with-tone${toneClass}${highlightClass}${quoteClass}${dialogClass}`}
                         data-index={token.startIndex}
                     >
                         {c}
                     </span>
                 );
+
+                if (c === '”' || c === '」') {
+                    inDialog = false;
+                }
             }
         });
 

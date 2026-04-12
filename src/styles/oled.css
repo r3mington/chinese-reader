@@ -2674,7 +2674,19 @@ button:active {
 
 /* Conversation/Dialogue Markers */
 .quote-mark-highlight {
-    color: rgba(100, 200, 255, 0.5) !important;
+    color: var(--accent-blue);
+    font-weight: 800;
+}
+
+.narrative-text {
+    color: #A0AAB5; /* Dimmer, cooler grey for prose context */
+    transition: color 0.3s;
+}
+
+.dialog-text {
+    color: #FFFFFF; /* Bright pure white for spoken words */
+    background-color: rgba(255, 255, 255, 0.05); /* Subtle OLED-friendly tint behind dialog */
+    border-radius: 2px;
 }
 /* ============================================
    STATS TIME RANGE TABS
