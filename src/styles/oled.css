@@ -2682,6 +2682,7 @@ button:active {
    ============================================ */
 .ssp-time-range-tabs {
     display: flex;
+    flex-shrink: 0;
     gap: 8px;
     margin-bottom: 24px;
     background: transparent;
