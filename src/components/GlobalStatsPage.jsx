@@ -686,7 +686,6 @@ const GlobalStatsPage = ({ onClose }) => {
                                                 <th>Chars</th>
                                                 <th>Sessions</th>
                                                 <th>CPM</th>
-                                                <th>Lookups</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -697,7 +696,6 @@ const GlobalStatsPage = ({ onClose }) => {
                                                     <td>{v.chars.toLocaleString()}</td>
                                                     <td className="ssp-td-muted">{v.sessions}</td>
                                                     <td>{v.cpm || '--'}</td>
-                                                    <td className="ssp-td-muted">{v.lookups}</td>
                                                 </tr>
                                             ))}
                                         </tbody>
@@ -762,8 +760,6 @@ const GlobalStatsPage = ({ onClose }) => {
                                             <th>Duration</th>
                                             <th>Chars</th>
                                             <th>CPM</th>
-                                            <th>Lookups</th>
-                                            <th>Lookup %</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -780,7 +776,17 @@ const GlobalStatsPage = ({ onClose }) => {
                                                         <td style={{ fontWeight: 600, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '120px' }} title={storyMap[session.storyId] || session.storyId}>
                                                             {storyMap[session.storyId] || session.storyId}
                                                         </td>
-                                                        <td className="ssp-td-muted">{session.endPosition !== undefined && session.endPosition !== null ? session.endPosition.toLocaleString() : '--'}</td>
+                                                        <td 
+                                                            className="ssp-td-muted" 
+                                                            style={{ cursor: 'pointer', color: 'var(--accent-blue)', textDecoration: 'underline' }} 
+                                                            onClick={() => {
+                                                                if (session.endPosition !== undefined && session.endPosition !== null) {
+                                                                    window.dispatchEvent(new CustomEvent('loadStoryAndSeek', { detail: { storyId: session.storyId, position: session.endPosition } }));
+                                                                }
+                                                            }}
+                                                        >
+                                                            {session.endPosition !== undefined && session.endPosition !== null ? session.endPosition.toLocaleString() : '--'}
+                                                        </td>
                                                         <td>{formatDuration(session.duration)}</td>
                                                         <td>{(session.chars || 0).toLocaleString()}</td>
                                                         <td>
@@ -792,10 +798,6 @@ const GlobalStatsPage = ({ onClose }) => {
                                                                     </div>
                                                                 )}
                                                             </div>
-                                                        </td>
-                                                        <td>{(session.lookups || 0).toLocaleString()}</td>
-                                                        <td style={{ color: 'rgba(255,255,255,0.45)' }}>
-                                                            {session.chars > 0 ? ((session.lookups / session.chars) * 100).toFixed(1) + '%' : '--'}
                                                         </td>
                                                     </tr>
                                                 );

@@ -38,7 +38,28 @@ function App() {
         setIsLoadingDict(false);
       }
     };
+
+    // Listen for cross-component jump requests from the Stats table
+    const handleJump = async (e) => {
+        const { storyId, position } = e.detail;
+        const stories = await getStories();
+        const selected = stories.find(s => s.id === storyId);
+        if (selected) {
+            handleStorySelect(selected);
+            setGlobalStatsOpen(false);
+            setStatsStory(null);
+            
+            // Allow time for the Reader to mount the new story before emitting jump
+            setTimeout(() => {
+                window.dispatchEvent(new CustomEvent('readerJumpAbsolute', { detail: { position } }));
+            }, 300);
+        }
+    };
+    window.addEventListener('loadStoryAndSeek', handleJump);
+
     loadDict();
+
+    return () => window.removeEventListener('loadStoryAndSeek', handleJump);
   }, []);
 
   // Restore last read story on mount

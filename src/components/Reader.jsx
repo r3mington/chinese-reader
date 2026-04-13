@@ -245,8 +245,6 @@ const Reader = ({ story }) => {
                     startChar = activeHighlight.charIdx;
                 }
 
-                let found = false;
-
                 // Depending on direction, iterate paragraphs
                 const paraStep = isForward ? 1 : -1;
                 for (let pIdx = startPara; pIdx >= 0 && pIdx < paras.length; pIdx += paraStep) {
@@ -435,13 +433,11 @@ const Reader = ({ story }) => {
 
         const handleVisibilityChange = () => {
             if (document.hidden) {
-                // Instead of ending the session entirely, just pause the timer if not already paused.
                 if (!getIsPaused()) {
                     pauseStats();
                     autoPaused = true;
                 }
             } else {
-                // Resume the timer only if we were the ones to pause it
                 if (autoPaused) {
                     resumeStats();
                     autoPaused = false;
@@ -449,12 +445,23 @@ const Reader = ({ story }) => {
             }
         };
 
+        const handleAbsoluteJump = (e) => {
+            const pos = e.detail.position;
+            if (contentRef.current && story && story.content) {
+                // Determine absolute scroll target by measuring the proportion of the book character location
+                const ratio = pos / Math.max(1, story.content.length);
+                contentRef.current.scrollTop = ratio * contentRef.current.scrollHeight;
+                measureProgress();
+            }
+        };
+
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        window.addEventListener('readerJumpAbsolute', handleAbsoluteJump);
+
         // pagehide is the most reliable signal for mobile PWA close / background
         const handlePageHide = () => {
             endReadingSession();
         };
-
-        document.addEventListener('visibilitychange', handleVisibilityChange);
         window.addEventListener('pagehide', handlePageHide);
 
         // Periodic checkpoint: save in-flight session every 60s so a crash doesn't lose it
@@ -467,6 +474,7 @@ const Reader = ({ story }) => {
             endReadingSession();
             clearInterval(checkpointInterval);
             document.removeEventListener('visibilitychange', handleVisibilityChange);
+            window.removeEventListener('readerJumpAbsolute', handleAbsoluteJump);
             window.removeEventListener('pagehide', handlePageHide);
         };
     }, [story]);
@@ -554,7 +562,7 @@ const Reader = ({ story }) => {
         measureProgress();
     };
 
-    const handleTextClick = (e) => {
+    const handleTextClick = () => {
         setHoverPopupData(null);
         setHoverHighlight(null);
 
@@ -734,9 +742,36 @@ const Reader = ({ story }) => {
     };
 
     const handleFontSizeChange = (delta) => {
+        let anchorPara = null;
+        let percentOffset = 0;
+
+        if (contentRef.current) {
+            const paras = contentRef.current.querySelectorAll('.reader-para');
+            const scrollTop = contentRef.current.scrollTop;
+            for (let p of paras) {
+                if (p.offsetTop + p.offsetHeight > scrollTop) {
+                    anchorPara = p.getAttribute('data-para-index');
+                    percentOffset = (scrollTop - p.offsetTop) / Math.max(1, p.offsetHeight);
+                    if (percentOffset < 0) percentOffset = 0;
+                    break;
+                }
+            }
+        }
+
         const newSize = Math.max(12, Math.min(48, fontSize + delta));
         setFontSize(newSize);
         localStorage.setItem('fontSize', newSize);
+
+        if (anchorPara !== null) {
+            setTimeout(() => {
+                if (contentRef.current) {
+                    const p = contentRef.current.querySelector(`.reader-para[data-para-index="${anchorPara}"]`);
+                    if (p) {
+                        contentRef.current.scrollTop = p.offsetTop + (p.offsetHeight * percentOffset);
+                    }
+                }
+            }, 50);
+        }
     };
 
     if (!story) return <div className="reader-empty">Select a story to start reading</div>;
