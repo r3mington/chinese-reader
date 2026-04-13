@@ -1475,67 +1475,41 @@ button:active {
     transform: scale(1.1);
 }
 
-/* Floating Library Button (replaces sidebar) */
-.floating-library-button {
+/* Floating Actions Stack (bottom left, vertical) */
+.floating-actions-stack {
     position: fixed;
     bottom: 24px;
     left: 24px;
-    width: 56px;
-    height: 56px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 98;
+}
+
+.floating-action-btn {
+    width: 52px;
+    height: 52px;
     border-radius: 50%;
     background: #1a1a1a;
     color: white;
     border: none;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-    font-size: 24px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
     cursor: pointer;
-    z-index: 98;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
 }
 
-.floating-library-button:hover {
+.floating-action-btn:hover {
     background: #2a2a2a;
-    transform: scale(1.05);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    transform: scale(1.08);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
 }
 
-.floating-library-button:active {
+.floating-action-btn:active {
     transform: scale(0.95);
 }
-
-.floating-settings-button {
-    position: fixed;
-    bottom: 24px;
-    left: 96px;
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
-    background: #1a1a1a;
-    color: white;
-    border: none;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-    font-size: 24px;
-    cursor: pointer;
-    z-index: 98;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s ease;
-}
-
-.floating-settings-button:hover {
-    background: #2a2a2a;
-    transform: scale(1.05);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-}
-
-.floating-settings-button:active {
-    transform: scale(0.95);
-}
-
 /* Modal animation */
 @keyframes slideIn {
     from {
