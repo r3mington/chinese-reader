@@ -562,7 +562,7 @@ const Reader = ({ story, onViewGlobalStats }) => {
         measureProgress();
     };
 
-    const handleTextClick = () => {
+    const handleTextClick = (e) => {
         setHoverPopupData(null);
         setHoverHighlight(null);
 
