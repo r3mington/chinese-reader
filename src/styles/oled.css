@@ -437,16 +437,8 @@ button:active {
 }
 
 .reader-toolbar.paused-bar-orange {
-    background-color: #f59e0b !important;
-    color: #000 !important;
-}
-
-.reader-toolbar.paused-bar-orange button {
-    color: #000;
-}
-
-.reader-toolbar.paused-bar-orange svg {
-    color: #000;
+    background-color: #3d1c00 !important;
+    border-bottom: 1px solid #7c3a00;
 }
 
 .reader-toolbar>* {
