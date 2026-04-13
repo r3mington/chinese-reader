@@ -859,7 +859,7 @@ const StoryStatsPage = ({ story, onClose }) => {
                                                     </td>
                                                     <td className="ssp-td-muted">{formatTime(session.startTime || session.date)}</td>
                                                     <td className="ssp-td-muted" style={{ cursor: 'pointer' }} onClick={() => handleEditClick(session, originalIndex)}>
-                                                        {session.endPosition ? session.endPosition.toLocaleString() : '--'}
+                                                        {session.endPosition !== undefined && session.endPosition !== null ? session.endPosition.toLocaleString() : '--'}
                                                     </td>
                                                     <td style={{ cursor: 'pointer' }} onClick={() => handleEditClick(session, originalIndex)}>{formatDuration(session.duration)}</td>
                                                     <td style={{ cursor: 'pointer' }} onClick={() => handleEditClick(session, originalIndex)}>{(session.chars || 0).toLocaleString()}</td>
