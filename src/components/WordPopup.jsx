@@ -89,7 +89,6 @@ const WordPopup = ({ data, position, onClose, onMouseEnter, onMouseLeave }) => {
                                 <div className="sheet-word-group" style={{ flexWrap: 'wrap', gap: '8px 6px' }}>
                                     <span className="popup-word-text">{word}</span>
                                     {showTrad && <span className="bottom-sheet-trad" style={{ fontSize: 16 }}>{trad}</span>}
-                                    <span className="popup-pinyin-text">{convertPinyin(entry.pinyin)}</span>
                                     {hskLevel && <span className="sheet-badge hsk-badge">HSK {hskLevel}</span>}
                                     {freqRank && freqRank <= 20000 && <span className="sheet-badge freq-badge">🏆 #{freqRank}</span>}
                                     {toneSandhiRule && (

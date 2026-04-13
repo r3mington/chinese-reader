@@ -9,7 +9,8 @@ const FloatingActionMenu = ({
     toneColorsEnabled,
     onToneColorsToggle,
     toneColorTheme,
-    onToneThemeCycle
+    onToneThemeCycle,
+    onViewGlobalStats
 }) => {
     const [isOpen, setIsOpen] = useState(false);
 
@@ -78,6 +79,11 @@ const FloatingActionMenu = ({
                                         <line x1="15" y1="10" x2="18" y2="10" />
                                     </svg>
                                 )}
+                            </button>
+                        )}
+                        {onViewGlobalStats && (
+                            <button className="fab-menu-item" onClick={onViewGlobalStats} title="Reading Stats">
+                                📊
                             </button>
                         )}
                     </div>

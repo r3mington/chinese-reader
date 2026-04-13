@@ -15,10 +15,10 @@ import RecentLookups from './RecentLookups';
 import LexiconSidebar from './LexiconSidebar';
 import StatsToolbar from './StatsToolbar';
 import PreviouslyCard from './PreviouslyCard';
-import { getParagraphComplexity, getComplexityColor } from '../lib/complexity';
+import { checkToneSandhi } from '../lib/tones';
 import '../styles/oled.css';
 
-const Reader = ({ story }) => {
+const Reader = ({ story, onViewGlobalStats }) => {
     const [fontSize, setFontSize] = useState(() => {
         return parseInt(localStorage.getItem('fontSize')) || 20;
     });
@@ -788,18 +788,13 @@ const Reader = ({ story }) => {
 
             <div className="reader-main">
                 {!isMobile && (
-                    <div className="reader-toolbar">
+                    <div className={`reader-toolbar ${isPaused ? 'paused-bar-orange' : ''}`}>
                         <div className="toolbar-left" style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
                             <RecentLookups words={recentWordsList} />
                             <h3 style={{
                                 fontSize: '14px',
-                                opacity: isPaused ? 1 : 0.5,
+                                opacity: 1,
                                 margin: 0,
-                                padding: isPaused ? '4px 8px' : '0',
-                                borderRadius: '6px',
-                                backgroundColor: isPaused ? '#f59e0b' : 'transparent',
-                                color: isPaused ? '#000' : 'inherit',
-                                transition: 'all 0.2s ease',
                                 fontWeight: isPaused ? 700 : 500
                             }}>
                                 {story?.title}
@@ -839,43 +834,8 @@ const Reader = ({ story }) => {
                         <h2 className="mobile-story-title">{story.title}</h2>
                     )}
                     {story.content.split('\n').map((para, idx) => {
-                        const complexityScore = getParagraphComplexity(para);
-                        const indicatorColor = getComplexityColor(complexityScore);
-
                         return (
                             <div key={idx} style={{ position: 'relative' }}>
-                                {complexityScore !== null && (
-                                    <div
-                                        style={{
-                                            position: 'absolute',
-                                            left: isMobile ? '-24px' : '-44px',
-                                            top: '6px',
-                                            bottom: '6px',
-                                            display: 'flex',
-                                            alignItems: 'flex-start',
-                                            gap: '6px',
-                                            opacity: 0.6
-                                        }}
-                                        title={`Complexity Score: ${Math.round(complexityScore)}`}
-                                    >
-                                        <span style={{
-                                            fontSize: '10px',
-                                            color: indicatorColor,
-                                            fontWeight: 600,
-                                            marginTop: '2px', // Align with top of text
-                                            minWidth: '20px',
-                                            textAlign: 'right'
-                                        }}>
-                                            {Math.round(complexityScore)}%
-                                        </span>
-                                        <div style={{
-                                            width: '4px',
-                                            height: '100%',
-                                            backgroundColor: indicatorColor,
-                                            borderRadius: '2px'
-                                        }} />
-                                    </div>
-                                )}
                                 <p className="reader-para" data-para-index={idx}>
                                     <ColorizedText
                                         text={para}
@@ -912,6 +872,7 @@ const Reader = ({ story }) => {
                         onToneColorsToggle={toggleToneColors}
                         toneColorTheme={toneColorTheme}
                         onToneThemeCycle={cycleToneTheme}
+                        onViewGlobalStats={onViewGlobalStats}
                     />
                 </>
             ) : (

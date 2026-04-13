@@ -714,6 +714,7 @@ const StoryStatsPage = ({ story, onClose }) => {
                                 <table className="ssp-table">
                                     <thead>
                                         <tr>
+                                            <th>Actions</th>
                                             <th>#</th>
                                             <th>Date</th>
                                             <th>Time</th>
@@ -721,7 +722,6 @@ const StoryStatsPage = ({ story, onClose }) => {
                                             <th>Duration</th>
                                             <th>Chars</th>
                                             <th>CPM</th>
-                                            <th>Edit</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -734,6 +734,10 @@ const StoryStatsPage = ({ story, onClose }) => {
                                             if (isEditing) {
                                                 return (
                                                     <tr key={i} className="ssp-row-editing">
+                                                        <td style={{ display: 'flex', gap: '4px' }}>
+                                                            <button className="ssp-edit-save" onClick={() => handleSaveEdit(originalIndex)}>Save</button>
+                                                            <button className="ssp-edit-cancel" onClick={() => setEditingSession(null)}>✕</button>
+                                                        </td>
                                                         <td className="ssp-td-num">{sessionCount - i}</td>
                                                         <td>{formatDate(session.date)}</td>
                                                         <td className="ssp-td-muted">{formatTime(session.startTime || session.date)}</td>
@@ -756,52 +760,55 @@ const StoryStatsPage = ({ story, onClose }) => {
                                                                 min="0"
                                                             />
                                                         </td>
-                                                        <td style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-                                                            <button className="ssp-edit-save" onClick={() => handleSaveEdit(originalIndex)}>Save</button>
-                                                            <button className="ssp-edit-cancel" onClick={() => setEditingSession(null)}>Cancel</button>
-                                                        </td>
+                                                        <td>--</td>
                                                     </tr>
                                                 );
                                             }
 
                                             return (
-                                                <tr key={i}>
-                                                    <td className="ssp-td-num">{sessionCount - i}</td>
-                                                    <td style={{ cursor: 'pointer' }} onClick={() => handleEditClick(session, originalIndex)} title="Click to edit session">
-                                                        {formatDate(session.date)}
-                                                    </td>
-                                                    <td className="ssp-td-muted">{formatTime(session.startTime || session.date)}</td>
-                                                    <td 
-                                                        className="ssp-td-muted" 
-                                                        style={{ cursor: 'pointer', color: 'var(--accent-blue)', textDecoration: 'underline' }} 
-                                                        onClick={() => {
-                                                            if (session.endPosition && session.endPosition > 0) {
-                                                                window.dispatchEvent(new CustomEvent('loadStoryAndSeek', { detail: { storyId: story.id, position: session.endPosition } }));
-                                                                onClose();
-                                                            }
-                                                        }}
-                                                    >
-                                                        {session.endPosition !== undefined && session.endPosition !== null ? session.endPosition.toLocaleString() : '--'}
-                                                    </td>
-                                                    <td style={{ cursor: 'pointer' }} onClick={() => handleEditClick(session, originalIndex)}>{formatDuration(session.duration)}</td>
-                                                    <td style={{ cursor: 'pointer' }} onClick={() => handleEditClick(session, originalIndex)}>{(session.chars || 0).toLocaleString()}</td>
-                                                    <td>
-                                                        <div className="ssp-cpm-cell">
-                                                            <span>{sessionCpm || '--'}</span>
-                                                            {sessionCpm > 0 && (
-                                                                <div className="ssp-cpm-bar-track">
-                                                                    <div className="ssp-cpm-bar-fill" style={{ width: `${cpmPct}%` }} />
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    </td>
-                                                    <td>
-                                                        <button
-                                                            className="ssp-session-del-btn"
-                                                            onClick={() => handleDeleteSession(originalIndex)}
-                                                            title="Delete this session"
-                                                        >×</button>
-                                                    </td>
+                                                    <tr key={i}>
+                                                        <td>
+                                                            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                                                                <button 
+                                                                    className="icon-btn ssp-edit-btn" 
+                                                                    onClick={() => handleEditClick(session, originalIndex)}
+                                                                    title="Edit session"
+                                                                    style={{ fontSize: '14px', opacity: 0.7 }}
+                                                                >✎</button>
+                                                                <button
+                                                                    className="ssp-session-del-btn"
+                                                                    onClick={() => handleDeleteSession(originalIndex)}
+                                                                    title="Delete this session"
+                                                                >×</button>
+                                                            </div>
+                                                        </td>
+                                                        <td className="ssp-td-num">{sessionCount - i}</td>
+                                                        <td>{formatDate(session.date)}</td>
+                                                        <td className="ssp-td-muted">{formatTime(session.startTime || session.date)}</td>
+                                                        <td 
+                                                            className="ssp-td-muted" 
+                                                            style={{ cursor: 'pointer', color: 'var(--accent-blue)', textDecoration: 'underline' }} 
+                                                            onClick={() => {
+                                                                if (session.endPosition && session.endPosition > 0) {
+                                                                    window.dispatchEvent(new CustomEvent('loadStoryAndSeek', { detail: { storyId: story.id, position: session.endPosition } }));
+                                                                    onClose();
+                                                                }
+                                                            }}
+                                                        >
+                                                            {session.endPosition !== undefined && session.endPosition !== null ? session.endPosition.toLocaleString() : '--'}
+                                                        </td>
+                                                        <td>{formatDuration(session.duration)}</td>
+                                                        <td>{(session.chars || 0).toLocaleString()}</td>
+                                                        <td>
+                                                            <div className="ssp-cpm-cell">
+                                                                <span>{sessionCpm || '--'}</span>
+                                                                {sessionCpm > 0 && (
+                                                                    <div className="ssp-cpm-bar-track">
+                                                                        <div className="ssp-cpm-bar-fill" style={{ width: `${cpmPct}%` }} />
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        </td>
                                                 </tr>
                                             );
                                         })}

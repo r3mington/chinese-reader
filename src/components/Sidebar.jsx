@@ -72,7 +72,7 @@ const Sidebar = ({ onSelectStory, currentStoryId, onViewStats, onViewGlobalStats
 
     return (
         <div className="sidebar">
-            <div className="sidebar-header">
+            <div className="sidebar-header" style={{ justifyContent: 'flex-start', gap: '24px' }}>
                 <h2>Library</h2>
                 <button onClick={() => setIsAdding(!isAdding)}>
                     {isAdding ? 'Cancel' : '+ New'}
@@ -152,14 +152,7 @@ const Sidebar = ({ onSelectStory, currentStoryId, onViewStats, onViewGlobalStats
                 )}
             </div>
 
-            <div className="sidebar-footer">
-                <Link to="/vocabulary" className="sidebar-footer-link">
-                    View Vocabulary Stats →
-                </Link>
-                <button className="sidebar-footer-link sidebar-footer-btn" onClick={onViewGlobalStats}>
-                    Reading Stats →
-                </button>
-            </div>
+
 
         </div>
     );

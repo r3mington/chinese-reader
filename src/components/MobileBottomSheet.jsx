@@ -112,7 +112,6 @@ const MobileBottomSheet = ({ data, onClose }) => {
                             <div className="sheet-word-group">
                                 <span className="bottom-sheet-word">{word}</span>
                                 {showTrad && <span className="bottom-sheet-trad">{trad}</span>}
-                                <span className="bottom-sheet-pinyin">{convertPinyin(mainEntry.pinyin)}</span>
                                 {hskLevel && <span className="sheet-badge hsk-badge">HSK {hskLevel}</span>}
                                 {freqRank && freqRank <= 20000 && <span className="sheet-badge freq-badge">🏆 #{freqRank}</span>}
                                 {toneSandhiRule && (

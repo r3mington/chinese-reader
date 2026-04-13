@@ -433,6 +433,20 @@ button:active {
     z-index: 10;
     position: relative;
     overflow: hidden;
+    transition: background-color 0.3s ease;
+}
+
+.reader-toolbar.paused-bar-orange {
+    background-color: #f59e0b !important;
+    color: #000 !important;
+}
+
+.reader-toolbar.paused-bar-orange button {
+    color: #000;
+}
+
+.reader-toolbar.paused-bar-orange svg {
+    color: #000;
 }
 
 .reader-toolbar>* {
@@ -2684,6 +2698,7 @@ button:active {
 }
 
 .dialog-text {
+    font-style: italic;
     color: #FFFFFF; /* Bright pure white for spoken words */
     background-color: rgba(255, 255, 255, 0.05); /* Subtle OLED-friendly tint behind dialog */
     border-radius: 2px;
