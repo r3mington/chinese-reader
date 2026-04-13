@@ -470,12 +470,6 @@ const LexiconSidebar = ({ data }) => {
                                 return (
                                     <div key={idx} style={{ marginBottom: idx < data.entries.length - 1 ? '24px' : '32px', paddingBottom: idx < data.entries.length - 1 ? '24px' : '0', borderBottom: idx < data.entries.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none' }}>
                                         <div className="lexicon-phonetics">
-                                            {pinyin && (
-                                                <>
-                                                    <span className="lexicon-badge pinyin-badge">PY</span>
-                                                    <span className="lexicon-pinyin">{renderPinyin(pinyin)}</span>
-                                                </>
-                                            )}
                                             {idx === 0 && hskLevel && (
                                                 <span className="lexicon-badge hsk-badge ml-auto">HSK {hskLevel}</span>
                                             )}
