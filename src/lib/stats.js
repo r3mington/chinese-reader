@@ -125,7 +125,7 @@ export const endReadingSession = async () => {
             // Calculate session CPM explicitly as chars / duration
             const cpmVal = durationMinutes > 0 ? Math.round(sessionChars / durationMinutes) : 0;
 
-            await saveSession(currentStoryId, durationMinutes, sessionChars, cpmVal, sessionLookups); // Pass lookups
+            await saveSession(currentStoryId, durationMinutes, sessionChars, cpmVal, sessionLookups, globalCurrentCharsRead); // Pass lookups and position
         }
     }
 
@@ -161,6 +161,7 @@ export const checkpointSession = async () => {
         durationMinutes,
         chars: sessionChars,
         lookups: sessionLookups,
+        endPosition: globalCurrentCharsRead,
         date: localDateKey(),
         savedAt: now
     };
@@ -198,7 +199,7 @@ export const recoverSessionDraft = async () => {
 
         if (draft.storyId && draft.durationMinutes >= 0.5) {
             const cpmVal = draft.durationMinutes > 0 ? Math.round(draft.chars / draft.durationMinutes) : 0;
-            await saveSession(draft.storyId, draft.durationMinutes, draft.chars, cpmVal, draft.lookups || 0);
+            await saveSession(draft.storyId, draft.durationMinutes, draft.chars, cpmVal, draft.lookups || 0, draft.endPosition || 0);
         }
 
         // Clear the draft after successful recovery
@@ -465,7 +466,7 @@ export const getStoryStats = async (storyId) => {
     };
 };
 
-export const saveSession = async (storyId, durationMinutes, charsRead, cpm, lookups = 0) => {
+export const saveSession = async (storyId, durationMinutes, charsRead, cpm, lookups = 0, endPosition = 0) => {
     if (!storyId || durationMinutes < 3) return;
     if (!savedStats) await loadStats();
 
@@ -492,7 +493,8 @@ export const saveSession = async (storyId, durationMinutes, charsRead, cpm, look
         duration: durationMinutes,
         chars: charsRead,
         cpm: cpm,
-        lookups: lookups
+        lookups: lookups,
+        endPosition: endPosition
     });
 
     // Persist

@@ -758,6 +758,7 @@ const GlobalStatsPage = ({ onClose }) => {
                                             <th>Date</th>
                                             <th>Time</th>
                                             <th>Book</th>
+                                            <th>Position</th>
                                             <th>Duration</th>
                                             <th>Chars</th>
                                             <th>CPM</th>
@@ -779,6 +780,7 @@ const GlobalStatsPage = ({ onClose }) => {
                                                         <td style={{ fontWeight: 600, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '120px' }} title={storyMap[session.storyId] || session.storyId}>
                                                             {storyMap[session.storyId] || session.storyId}
                                                         </td>
+                                                        <td className="ssp-td-muted">{session.endPosition ? session.endPosition.toLocaleString() : '--'}</td>
                                                         <td>{formatDuration(session.duration)}</td>
                                                         <td>{(session.chars || 0).toLocaleString()}</td>
                                                         <td>

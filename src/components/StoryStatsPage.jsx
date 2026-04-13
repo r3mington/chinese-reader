@@ -792,6 +792,7 @@ const StoryStatsPage = ({ story, onClose }) => {
                                             <th>#</th>
                                             <th>Date</th>
                                             <th>Time</th>
+                                            <th>Position</th>
                                             <th>Duration</th>
                                             <th>Chars</th>
                                             <th>Lookups</th>
@@ -857,6 +858,9 @@ const StoryStatsPage = ({ story, onClose }) => {
                                                         {formatDate(session.date)}
                                                     </td>
                                                     <td className="ssp-td-muted">{formatTime(session.startTime || session.date)}</td>
+                                                    <td className="ssp-td-muted" style={{ cursor: 'pointer' }} onClick={() => handleEditClick(session, originalIndex)}>
+                                                        {session.endPosition ? session.endPosition.toLocaleString() : '--'}
+                                                    </td>
                                                     <td style={{ cursor: 'pointer' }} onClick={() => handleEditClick(session, originalIndex)}>{formatDuration(session.duration)}</td>
                                                     <td style={{ cursor: 'pointer' }} onClick={() => handleEditClick(session, originalIndex)}>{(session.chars || 0).toLocaleString()}</td>
                                                     <td style={{ cursor: 'pointer' }} onClick={() => handleEditClick(session, originalIndex)}>{(session.lookups || 0).toLocaleString()}</td>
