@@ -97,6 +97,9 @@ const WordPopup = ({ data, position, onClose, onMouseEnter, onMouseLeave }) => {
                                         </span>
                                     )}
                                 </div>
+                                {pinyinStr && (
+                                    <div className="bottom-sheet-pinyin" style={{ fontSize: 13, opacity: 0.55, marginTop: 2 }}>{convertPinyin(pinyinStr)}</div>
+                                )}
                                 {idx === 0 && (
                                     <div className="sheet-actions">
                                         <button className="sheet-action-btn" onClick={() => {

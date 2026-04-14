@@ -173,6 +173,9 @@ const MobileBottomSheet = ({ data, onClose }) => {
                                 </button>
                             </div>
                         </div>
+                        {pinyinStr && (
+                            <div className="bottom-sheet-pinyin">{convertPinyin(pinyinStr)}</div>
+                        )}
                     </div>
 
                     <div className="bottom-sheet-definitions">
