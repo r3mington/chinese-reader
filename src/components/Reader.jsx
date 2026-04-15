@@ -316,6 +316,30 @@ const Reader = ({ story, onViewGlobalStats }) => {
                                 return [...filtered, targetToken.word].slice(-5);
                             });
                             trackWordClick(targetToken.word, story.id);
+
+                            // Update POS with click-based char index (keyboard nav counts too)
+                            if (contentRef.current && story) {
+                                const allParaEls = Array.from(
+                                    contentRef.current.querySelectorAll('[data-para-index]')
+                                ).sort((a, b) =>
+                                    parseInt(a.getAttribute('data-para-index'), 10) -
+                                    parseInt(b.getAttribute('data-para-index'), 10)
+                                );
+                                let globalCharIdx = targetToken.startIndex;
+                                for (const p of allParaEls) {
+                                    const pI = parseInt(p.getAttribute('data-para-index'), 10);
+                                    if (pI < pIdx) globalCharIdx += p.textContent.length;
+                                }
+                                const totalChineseChars = (story.content?.match(/[\u4e00-\u9fff]/g) || []).length || 1;
+                                const progressRatio = Math.min(1, globalCharIdx / (story.content?.length || 1));
+                                const percentage = Math.round(progressRatio * 100);
+                                trackScrollProgress(globalCharIdx);
+                                setReadingProgress(percentage);
+                                window.dispatchEvent(new CustomEvent('readingProgressUpdated', {
+                                    detail: { percentage, charsRead: globalCharIdx, totalChars: totalChineseChars }
+                                }));
+                                saveBookmark(story.id, contentRef.current.scrollTop ?? 0, globalCharIdx);
+                            }
                         }, 500);
 
                         found = true;
