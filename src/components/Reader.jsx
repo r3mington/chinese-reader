@@ -557,8 +557,17 @@ const Reader = ({ story, onViewGlobalStats }) => {
             }
         };
 
-        // Give the DOM a moment to paint the text before restoring
-        setTimeout(restorePos, 50);
+        // Wait until [data-para-index] nodes appear in DOM, then restore position
+        const waitForSpans = (attempt = 0) => {
+            if (!contentRef.current) return;
+            const hasSpans = contentRef.current.querySelectorAll('[data-para-index]').length > 0;
+            if (hasSpans || attempt >= 30) {
+                restorePos();
+            } else {
+                setTimeout(() => waitForSpans(attempt + 1), 100);
+            }
+        };
+        waitForSpans();
     }, [story]);
 
     // Centralize progress calculation so both scrolling and keyboard nav can trigger it
