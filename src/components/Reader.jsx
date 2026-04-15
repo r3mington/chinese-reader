@@ -492,23 +492,62 @@ const Reader = ({ story, onViewGlobalStats }) => {
         const restorePos = async () => {
             const bookmark = await getBookmark(story.id);
             if (bookmark && contentRef.current) {
+                // Prefer click-based charIndex if available (more accurate than scrollTop)
+                const charIndex = bookmark.charIndex ?? Math.floor(
+                    (bookmark.scrollPosition / (contentRef.current.scrollHeight || 1)) * story.content.length
+                );
+
                 // Show "Previously..." card if the user has been away long enough
                 if (shouldShowRecap(bookmark.lastRead) && story.content) {
-                    // Estimate char index from scroll position (rough: use progress ratio)
-                    const charIndex = Math.floor(
-                        (bookmark.scrollPosition / (contentRef.current.scrollHeight || 1)) * story.content.length
-                    );
                     const paragraphs = getPreviousContext(story.content, charIndex, 3);
                     if (paragraphs.length > 0) {
                         setRecapData({ paragraphs, bookmarkCharIndex: charIndex, lastRead: bookmark.lastRead });
                     }
                 }
 
-                // Temporarily disable scroll listening
                 isRestoringScroll.current = true;
-                contentRef.current.scrollTop = bookmark.scrollPosition;
 
-                // Allow DOM to settle before re-enabling save and calculating initial progress
+                if (bookmark.charIndex != null) {
+                    // Find the span closest to charIndex across all paragraphs and scroll to it
+                    const allParaEls = Array.from(
+                        contentRef.current.querySelectorAll('[data-para-index]')
+                    ).sort((a, b) =>
+                        parseInt(a.getAttribute('data-para-index'), 10) -
+                        parseInt(b.getAttribute('data-para-index'), 10)
+                    );
+                    let remaining = bookmark.charIndex;
+                    let targetPara = null;
+                    let targetLocalIdx = 0;
+                    for (const p of allParaEls) {
+                        const len = p.textContent.length;
+                        if (remaining <= len) {
+                            targetPara = p;
+                            targetLocalIdx = remaining;
+                            break;
+                        }
+                        remaining -= len;
+                    }
+                    if (targetPara) {
+                        // Find span with closest data-index
+                        const spans = Array.from(targetPara.querySelectorAll('[data-index]'));
+                        let best = null;
+                        let bestDist = Infinity;
+                        for (const s of spans) {
+                            const d = Math.abs(parseInt(s.getAttribute('data-index'), 10) - targetLocalIdx);
+                            if (d < bestDist) { bestDist = d; best = s; }
+                        }
+                        if (best) {
+                            best.scrollIntoView({ block: 'center' });
+                        } else {
+                            targetPara.scrollIntoView({ block: 'center' });
+                        }
+                    } else {
+                        contentRef.current.scrollTop = bookmark.scrollPosition;
+                    }
+                } else {
+                    contentRef.current.scrollTop = bookmark.scrollPosition;
+                }
+
                 setTimeout(() => {
                     measureProgress();
                     isRestoringScroll.current = false;
@@ -634,6 +673,8 @@ const Reader = ({ story, onViewGlobalStats }) => {
                     window.dispatchEvent(new CustomEvent('readingProgressUpdated', {
                         detail: { percentage, charsRead: globalCharIdx, totalChars: totalChineseChars }
                     }));
+                    // Save bookmark with precise char index so reload restores to this word
+                    saveBookmark(story.id, contentRef.current?.scrollTop ?? 0, globalCharIdx);
                 }
 
                 return;
