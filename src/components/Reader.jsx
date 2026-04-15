@@ -609,6 +609,33 @@ const Reader = ({ story, onViewGlobalStats }) => {
                 if (story && story.id) {
                     trackWordClick(result.word, story.id);
                 }
+
+                // --- Option A: Click-based POS tracking ---
+                // Compute global char index by summing textContent of all preceding paragraphs
+                if (clickCharIdx !== null && clickParaIdx !== null && contentRef.current && story) {
+                    const allParaEls = Array.from(
+                        contentRef.current.querySelectorAll('[data-para-index]')
+                    ).sort((a, b) =>
+                        parseInt(a.getAttribute('data-para-index'), 10) -
+                        parseInt(b.getAttribute('data-para-index'), 10)
+                    );
+                    let globalCharIdx = clickCharIdx;
+                    for (const p of allParaEls) {
+                        const pIdx = parseInt(p.getAttribute('data-para-index'), 10);
+                        if (pIdx < clickParaIdx) {
+                            globalCharIdx += p.textContent.length;
+                        }
+                    }
+                    const totalChineseChars = (story.content?.match(/[\u4e00-\u9fff]/g) || []).length || 1;
+                    const progressRatio = Math.min(1, globalCharIdx / (story.content?.length || 1));
+                    const percentage = Math.round(progressRatio * 100);
+                    trackScrollProgress(globalCharIdx);
+                    setReadingProgress(percentage);
+                    window.dispatchEvent(new CustomEvent('readingProgressUpdated', {
+                        detail: { percentage, charsRead: globalCharIdx, totalChars: totalChineseChars }
+                    }));
+                }
+
                 return;
             }
         }
