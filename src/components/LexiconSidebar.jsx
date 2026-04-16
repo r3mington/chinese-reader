@@ -363,14 +363,7 @@ const LexiconSidebar = ({ data }) => {
                 </div>
             )}
 
-            {/* Random Word Bank Flashcard (Active Mode) */}
-            {viewMode === 'detail' && randomFlashcard && (
-                <div className="mini-flashcard" title="Random word from your saved Bank">
-                    <div className="mf-character">{randomFlashcard.word}</div>
-                    <div className="mf-pinyin">{renderPinyin(randomFlashcard.pinyin)}</div>
-                    <div className="mf-def">{randomFlashcard.definition}</div>
-                </div>
-            )}
+
 
             <div className="lexicon-scroll-area">
                 {viewMode === 'starred' ? (
