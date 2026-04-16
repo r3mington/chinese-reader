@@ -45,18 +45,9 @@ export const updateStoryProgress = async (id, progress) => {
   });
 };
 
-export const saveBookmark = async (storyId, scrollPosition, charIndex = null) => {
+export const saveBookmark = async (storyId, scrollPosition) => {
   await update(BOOKMARKS_KEY, (bookmarks = {}) => {
-    const existing = bookmarks[storyId] || {};
-    return {
-      ...bookmarks,
-      [storyId]: {
-        ...existing,
-        scrollPosition,
-        ...(charIndex !== null ? { charIndex } : {}),
-        lastRead: Date.now()
-      }
-    };
+    return { ...bookmarks, [storyId]: { scrollPosition, lastRead: Date.now() } };
   });
 };
 

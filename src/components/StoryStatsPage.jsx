@@ -722,12 +722,14 @@ const StoryStatsPage = ({ story, onClose }) => {
                                             <th>Duration</th>
                                             <th>Chars</th>
                                             <th>CPM</th>
+                                            <th>CPS</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {history.map((session, i) => {
                                             const originalIndex = sessionCount - 1 - i; // history is reversed
                                             const sessionCpm = session.duration > 0 ? Math.round((session.chars || 0) / session.duration) : 0;
+                                            const sessionCps = session.duration > 0 ? ((session.chars || 0) / (session.duration * 60)).toFixed(2) : 0;
                                             const cpmPct = bestCpm > 0 ? Math.round((sessionCpm / bestCpm) * 100) : 0;
                                             const isEditing = editingSession === originalIndex;
 
@@ -760,6 +762,7 @@ const StoryStatsPage = ({ story, onClose }) => {
                                                                 min="0"
                                                             />
                                                         </td>
+                                                        <td>--</td>
                                                         <td>--</td>
                                                     </tr>
                                                 );
@@ -809,6 +812,7 @@ const StoryStatsPage = ({ story, onClose }) => {
                                                                 )}
                                                             </div>
                                                         </td>
+                                                        <td className="ssp-td-muted">{sessionCps > 0 ? sessionCps : '--'}</td>
                                                 </tr>
                                             );
                                         })}

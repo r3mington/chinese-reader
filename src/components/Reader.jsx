@@ -306,31 +306,7 @@ const Reader = ({ story, onViewGlobalStats }) => {
                             }
                         }
 
-                        // Save charIndex IMMEDIATELY (before debounce) to win any race with scroll events
-                        if (contentRef.current && story) {
-                            const allParaEls = Array.from(
-                                contentRef.current.querySelectorAll('[data-para-index]')
-                            ).sort((a, b) =>
-                                parseInt(a.getAttribute('data-para-index'), 10) -
-                                parseInt(b.getAttribute('data-para-index'), 10)
-                            );
-                            let globalCharIdx = targetToken.startIndex;
-                            for (const p of allParaEls) {
-                                const pI = parseInt(p.getAttribute('data-para-index'), 10);
-                                if (pI < pIdx) globalCharIdx += p.textContent.length;
-                            }
-                            const totalChineseChars = (story.content?.match(/[\u4e00-\u9fff]/g) || []).length || 1;
-                            const progressRatio = Math.min(1, globalCharIdx / (story.content?.length || 1));
-                            const percentage = Math.round(progressRatio * 100);
-                            trackScrollProgress(globalCharIdx);
-                            setReadingProgress(percentage);
-                            window.dispatchEvent(new CustomEvent('readingProgressUpdated', {
-                                detail: { percentage, charsRead: globalCharIdx, totalChars: totalChineseChars }
-                            }));
-                            saveBookmark(story.id, contentRef.current.scrollTop ?? 0, globalCharIdx);
-                        }
-
-                        // Debounce the expensive IDB history tracking (holding key doesn't lag)
+                        // Debounce IDB history tracking so holding down arrow keys doesn't lag
                         clearTimeout(navSaveTimeoutRef.current);
                         navSaveTimeoutRef.current = setTimeout(() => {
                             trackSessionLookup();
@@ -516,62 +492,23 @@ const Reader = ({ story, onViewGlobalStats }) => {
         const restorePos = async () => {
             const bookmark = await getBookmark(story.id);
             if (bookmark && contentRef.current) {
-                // Prefer click-based charIndex if available (more accurate than scrollTop)
-                const charIndex = bookmark.charIndex ?? Math.floor(
-                    (bookmark.scrollPosition / (contentRef.current.scrollHeight || 1)) * story.content.length
-                );
-
                 // Show "Previously..." card if the user has been away long enough
                 if (shouldShowRecap(bookmark.lastRead) && story.content) {
+                    // Estimate char index from scroll position (rough: use progress ratio)
+                    const charIndex = Math.floor(
+                        (bookmark.scrollPosition / (contentRef.current.scrollHeight || 1)) * story.content.length
+                    );
                     const paragraphs = getPreviousContext(story.content, charIndex, 3);
                     if (paragraphs.length > 0) {
                         setRecapData({ paragraphs, bookmarkCharIndex: charIndex, lastRead: bookmark.lastRead });
                     }
                 }
 
+                // Temporarily disable scroll listening
                 isRestoringScroll.current = true;
+                contentRef.current.scrollTop = bookmark.scrollPosition;
 
-                if (bookmark.charIndex != null) {
-                    // Find the span closest to charIndex across all paragraphs and scroll to it
-                    const allParaEls = Array.from(
-                        contentRef.current.querySelectorAll('[data-para-index]')
-                    ).sort((a, b) =>
-                        parseInt(a.getAttribute('data-para-index'), 10) -
-                        parseInt(b.getAttribute('data-para-index'), 10)
-                    );
-                    let remaining = bookmark.charIndex;
-                    let targetPara = null;
-                    let targetLocalIdx = 0;
-                    for (const p of allParaEls) {
-                        const len = p.textContent.length;
-                        if (remaining <= len) {
-                            targetPara = p;
-                            targetLocalIdx = remaining;
-                            break;
-                        }
-                        remaining -= len;
-                    }
-                    if (targetPara) {
-                        // Find span with closest data-index
-                        const spans = Array.from(targetPara.querySelectorAll('[data-index]'));
-                        let best = null;
-                        let bestDist = Infinity;
-                        for (const s of spans) {
-                            const d = Math.abs(parseInt(s.getAttribute('data-index'), 10) - targetLocalIdx);
-                            if (d < bestDist) { bestDist = d; best = s; }
-                        }
-                        if (best) {
-                            best.scrollIntoView({ block: 'center' });
-                        } else {
-                            targetPara.scrollIntoView({ block: 'center' });
-                        }
-                    } else {
-                        contentRef.current.scrollTop = bookmark.scrollPosition;
-                    }
-                } else {
-                    contentRef.current.scrollTop = bookmark.scrollPosition;
-                }
-
+                // Allow DOM to settle before re-enabling save and calculating initial progress
                 setTimeout(() => {
                     measureProgress();
                     isRestoringScroll.current = false;
@@ -581,17 +518,8 @@ const Reader = ({ story, onViewGlobalStats }) => {
             }
         };
 
-        // Wait until [data-para-index] nodes appear in DOM, then restore position
-        const waitForSpans = (attempt = 0) => {
-            if (!contentRef.current) return;
-            const hasSpans = contentRef.current.querySelectorAll('[data-para-index]').length > 0;
-            if (hasSpans || attempt >= 30) {
-                restorePos();
-            } else {
-                setTimeout(() => waitForSpans(attempt + 1), 100);
-            }
-        };
-        waitForSpans();
+        // Give the DOM a moment to paint the text before restoring
+        setTimeout(restorePos, 50);
     }, [story]);
 
     // Centralize progress calculation so both scrolling and keyboard nav can trigger it
@@ -681,35 +609,6 @@ const Reader = ({ story, onViewGlobalStats }) => {
                 if (story && story.id) {
                     trackWordClick(result.word, story.id);
                 }
-
-                // --- Option A: Click-based POS tracking ---
-                // Compute global char index by summing textContent of all preceding paragraphs
-                if (clickCharIdx !== null && clickParaIdx !== null && contentRef.current && story) {
-                    const allParaEls = Array.from(
-                        contentRef.current.querySelectorAll('[data-para-index]')
-                    ).sort((a, b) =>
-                        parseInt(a.getAttribute('data-para-index'), 10) -
-                        parseInt(b.getAttribute('data-para-index'), 10)
-                    );
-                    let globalCharIdx = clickCharIdx;
-                    for (const p of allParaEls) {
-                        const pIdx = parseInt(p.getAttribute('data-para-index'), 10);
-                        if (pIdx < clickParaIdx) {
-                            globalCharIdx += p.textContent.length;
-                        }
-                    }
-                    const totalChineseChars = (story.content?.match(/[\u4e00-\u9fff]/g) || []).length || 1;
-                    const progressRatio = Math.min(1, globalCharIdx / (story.content?.length || 1));
-                    const percentage = Math.round(progressRatio * 100);
-                    trackScrollProgress(globalCharIdx);
-                    setReadingProgress(percentage);
-                    window.dispatchEvent(new CustomEvent('readingProgressUpdated', {
-                        detail: { percentage, charsRead: globalCharIdx, totalChars: totalChineseChars }
-                    }));
-                    // Save bookmark with precise char index so reload restores to this word
-                    saveBookmark(story.id, contentRef.current?.scrollTop ?? 0, globalCharIdx);
-                }
-
                 return;
             }
         }
