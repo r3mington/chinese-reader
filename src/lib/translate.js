@@ -1,4 +1,7 @@
-export const translateParagraph = async (text) => {
+let _translateTimer = null;
+let _translateResolvers = [];
+
+const _doTranslate = async (text) => {
     try {
         const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=zh-CN&tl=en&dt=t&q=${encodeURIComponent(text)}`;
         const response = await fetch(url);
@@ -42,4 +45,19 @@ export const translateParagraph = async (text) => {
         console.error("Translation API error:", error);
         return "Failed to fetch translation. Check your network connection.";
     }
+};
+
+// Rate-limited wrapper: collapses calls within 500ms into a single request
+export const translateParagraph = (text) => {
+    return new Promise((resolve) => {
+        _translateResolvers.push({ text, resolve });
+        clearTimeout(_translateTimer);
+        _translateTimer = setTimeout(async () => {
+            const pending = _translateResolvers.splice(0);
+            // Use only the most recent call's text (last one wins)
+            const latest = pending[pending.length - 1];
+            const result = await _doTranslate(latest.text);
+            pending.forEach(({ resolve }) => resolve(result));
+        }, 500);
+    });
 };
