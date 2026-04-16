@@ -760,6 +760,7 @@ const GlobalStatsPage = ({ onClose }) => {
                                             <th>Duration</th>
                                             <th>Chars</th>
                                             <th>CPM</th>
+                                            <th>CPS</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -767,6 +768,7 @@ const GlobalStatsPage = ({ onClose }) => {
                                             .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0))
                                             .map((session, i) => {
                                                 const sessionCpm = session.duration > 0 ? Math.round((session.chars || 0) / session.duration) : 0;
+                                                const sessionCps = session.duration > 0 ? ((session.chars || 0) / (session.duration * 60)).toFixed(2) : 0;
                                                 const cpmPct = stats.bestCpm > 0 ? Math.round((sessionCpm / stats.bestCpm) * 100) : 0;
                                                 return (
                                                     <tr key={i}>
@@ -799,6 +801,7 @@ const GlobalStatsPage = ({ onClose }) => {
                                                                 )}
                                                             </div>
                                                         </td>
+                                                        <td className="ssp-td-muted">{sessionCps > 0 ? sessionCps : '--'}</td>
                                                     </tr>
                                                 );
                                             })}
